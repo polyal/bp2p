@@ -1,5 +1,8 @@
 # bp2p
 
 Requirements
-BlueZ
+bluez
 zlib
+libarchive
+libbz2-dev
+

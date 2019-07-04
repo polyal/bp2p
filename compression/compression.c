@@ -26,14 +26,14 @@ int def(FILE *source, FILE *dest, int level)
 	strm.zalloc = Z_NULL;
 	strm.zfree = Z_NULL;
 	strm.opaque = Z_NULL;
-	
+	printf("3\n");
 	ret = deflateInit(&strm, level);
 	if (ret != Z_OK)
 	    return ret;
 
 	/* compress until end of file */
     do {
-
+printf("4\n");
     	strm.avail_in = fread(in, 1, CHUNK, source);
         if (ferror(source)) {
             (void)deflateEnd(&strm);
@@ -46,7 +46,7 @@ int def(FILE *source, FILE *dest, int level)
         /* run deflate() on input until output buffer not full, finish
            compression if all of source has been read in */
         do {
-
+printf("5\n");
         	strm.avail_out = CHUNK;
         	strm.next_out = out;
 
@@ -65,7 +65,7 @@ int def(FILE *source, FILE *dest, int level)
     /* done when last data in file processed */
     } while (flush != Z_FINISH);
     assert(ret == Z_STREAM_END);        /* stream will be complete */
-
+printf("6\n");
     /* clean up and return */
     (void)deflateEnd(&strm);
     return Z_OK;
@@ -172,14 +172,20 @@ void zerr(int ret)
 int main(int argc, char **argv)
 {
     int ret;
-
+printf("START\n");
     /* avoid end-of-line conversions */
     //SET_BINARY_MODE(stdin);
     //SET_BINARY_MODE(stdout);
 
+	FILE* source = fopen("test/test12", "wb");
+	FILE* dest = fopen("test/file1", "rb");
+printf("1\n");
     /* do compression if no arguments */
     if (argc == 1) {
-        ret = def(stdin, stdout, Z_DEFAULT_COMPRESSION);
+    	printf("2\n");
+        ret = def(source, dest, Z_DEFAULT_COMPRESSION);
+        fclose(source);
+        fclose(dest);
         if (ret != Z_OK)
             zerr(ret);
         return ret;
@@ -187,9 +193,11 @@ int main(int argc, char **argv)
 
     /* do decompression if -d specified */
     else if (argc == 2 && strcmp(argv[1], "-d") == 0) {
-        ret = inf(stdin, stdout);
+        ret = inf(dest, source);
         if (ret != Z_OK)
             zerr(ret);
+        fclose(source);
+        fclose(dest);
         return ret;
     }
 
