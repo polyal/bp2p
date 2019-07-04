@@ -1,5 +1,5 @@
 default:
-	gcc -Wall blue.c -lbluetooth -o out/a.out
+	gcc -Wall bluetooth/blue.c -lbluetooth -o out/a.out
 
 torrent:
 	g++ -std=c++11 -Wall torrent/torrent.cpp torrent/torrent.h -o out/torrent
