@@ -4,8 +4,8 @@ default:
 torrent:
 	g++ -std=c++11 -Wall torrent/torrent.cpp torrent/torrent.h -o out/torrent
 
-archive:
-	gcc -Wall archive/archive.c -lz -larchive -o out/a.out
+package:
+	gcc -Wall src/package.c src/compress.c -lz -larchive -o out/a.out
 
 clean:
 	rm out/*
