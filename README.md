@@ -5,4 +5,5 @@ bluez
 zlib
 libarchive
 libbz2-dev
+libssl-dev
 

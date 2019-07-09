@@ -7,5 +7,7 @@ torrent:
 package:
 	gcc -Wall src/package.c src/compress.c -lz -larchive -o out/a.out
 
+hash:
+	gcc src/hash.c -lcrypto -o out/a.out
 clean:
 	rm out/*
