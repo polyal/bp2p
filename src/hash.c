@@ -1,13 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <openssl/sha.h>
 
-#define CHUNK 32768
+#include "hash.h"
 
-#define H_SUCCESS                 0
-#define H_INSUFFICIENT_RESOURCES -1
-#define H_INVALID_FILE           -2
+#define CHUNK 32768
+#define DEBUG 0
+
 
 void sha256_hash_string (unsigned char hash[SHA256_DIGEST_LENGTH], char outputBuffer[65])
 {
@@ -78,17 +79,17 @@ int computeSha256FileChunks(char* path, char*** digest, int* length){
     fileSize = ftell(fp); 
     fseek(fp, 0L, SEEK_SET);
 
-    if (fileSize == 0) return H_INVALID_FILE;
+    if (fileSize == 0) return ENOENT;
     
     int i = 0;
     long numChunks = fileSize / CHUNK;
     if (fileSize % CHUNK) numChunks++;
 
     *digest = malloc(sizeof(char) * numChunks);
-    if (*digest == NULL) return H_INSUFFICIENT_RESOURCES;
+    if (*digest == NULL) return ENOMEM;
     for (i = 0; i < numChunks; i++){
         (*digest)[i] = malloc(sizeof(char) * SHA256_DIGEST_LENGTH);
-        if ((*digest)[i] == NULL) return H_INSUFFICIENT_RESOURCES;
+        if ((*digest)[i] == NULL) return ENOMEM;
     }
 
     i = 0;
@@ -104,6 +105,7 @@ int computeSha256FileChunks(char* path, char*** digest, int* length){
     return 0;
 }
 
+#if DEBUG == 1
 int main (int argc, char **argv)
 {
     argv++;
@@ -116,3 +118,4 @@ int main (int argc, char **argv)
     
     return 0;
 }
+#endif
