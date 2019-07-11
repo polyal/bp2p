@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "nlohmann/json.hpp"
+
 using namespace std;
 
 int Torrent::createTorrent (char* filename){
