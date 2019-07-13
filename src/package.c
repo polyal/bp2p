@@ -28,6 +28,8 @@
 
 #include "compress.h"
 
+#define DEBUG 0
+
 void write_archive(const char *outname, const char **filename)
 {
     struct archive *a;
@@ -214,6 +216,7 @@ int depackage(const char *packageName){
 *  after flag and thats compressed file
 *
 ****************************************/
+#if DEBUG == 1
 int main(int argc, const char **argv)
 {
     const char *outname;
@@ -235,3 +238,4 @@ int main(int argc, const char **argv)
 
     return 0;
 }
+#endif

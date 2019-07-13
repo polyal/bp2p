@@ -9,6 +9,10 @@
 
 #include "nlohmann/json.hpp"
 
+extern "C" {
+#include "../src/package.h"
+}
+
 using namespace std;
 
 int Torrent::createTorrent (char* filename){
@@ -18,7 +22,7 @@ int Torrent::createTorrent (char* filename){
 }
 
 Torrent::Torrent(char* filename){
-
+	int ret = depackage(filename);
 }
 
 Torrent::Torrent(){
@@ -31,7 +35,7 @@ Torrent::Torrent(){
 
 int main(int argc, char *argv[]){
 
-	Torrent newTorrent(argv[0]);
+	Torrent newTorrent(argv[1]);
 
     cout << "helloworld\n";
 
