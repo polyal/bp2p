@@ -179,6 +179,8 @@ int package(const char *archive, const char **filename){
     fclose(source);
     fclose(dest);
 
+    remove("temp");
+
     if (ret != Z_OK)
         zerr(ret);
     return ret;
@@ -194,6 +196,9 @@ int depackage(const char *packageName){
 
     fclose(source);
     fclose(dest);
+
+    remove("temp");
+    
     if (ret != Z_OK)
         zerr(ret);
 
