@@ -1,4 +1,5 @@
-packageObjs = package.o compress.o 
+packageObjs = package.o compress.o
+objects     = empty # a list of object files            
 
 default:
 	gcc -Wall bluetooth/blue.c -lbluetooth -o out/a.out
@@ -11,16 +12,17 @@ packageObject: package mvObjs $(foreach obj, $(packageObjs), out/$(obj))
 	ar rvs out/pkobj.o $(foreach obj, $(packageObjs), out/$(obj))
 
 package:
-	gcc -Wall -c src/package.c src/compress.c -lz -larchive
+	gcc -Wall -c src/package.c src/compress.c -lz -larchive;
+	$(eval objects := $(packageObjs))
 
 hash:
 	gcc -Wall src/hash.c -lcrypto -o out/a.out
 
 
-#cleanup objfiles generated in root
+# moves obj files from root/ to out/
 mvObjs:
-	mv $(packageObjs) -t out/
+	mv $(objects) -t out/
 
-#cleanup all obj files and out dir
+# cleanup out dir
 clean:
 	rm out/*
