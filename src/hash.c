@@ -67,7 +67,7 @@ void computeSha256(char *buffer, char* digest, int size)
 //  char* filename:  filename of file to hash
 //  char* digest:    function allocated pointer to 2d array
 //                    
-int computeSha256FileChunks(char* path, char*** digest, int* length){
+int computeSha256FileChunks(const char* path, char*** digest, int* length){
     FILE *fp = NULL;
     long fileSize = 0;
 
@@ -82,8 +82,8 @@ int computeSha256FileChunks(char* path, char*** digest, int* length){
     if (fileSize == 0) return ENOENT;
     
     int i = 0;
-    long numChunks = fileSize / CHUNK;
-    if (fileSize % CHUNK) numChunks++;
+    long numChunks = (fileSize % CHUNK) ? (fileSize / CHUNK) + 1 : fileSize / CHUNK;
+    *length = numChunks;
 
     *digest = malloc(sizeof(char) * numChunks);
     if (*digest == NULL) return ENOMEM;
@@ -98,7 +98,7 @@ int computeSha256FileChunks(char* path, char*** digest, int* length){
     while((bytesRead = fread(buffer, 1, CHUNK, fp)))
     {
         computeSha256(buffer, (*digest)[i], bytesRead);
-        printf("%d %s\n", i, (*digest)[i]);
+        //printf("%d %lx \n", i, (*digest)[i]);
         i++;
     }
 
@@ -115,6 +115,15 @@ int main (int argc, char **argv)
     char** digest = NULL;
     int length = 0;
     computeSha256FileChunks(filename, &digest, &length);
+
+    int i = 0;
+    if (digest){
+        for (i = 0; i < length; i++){
+            if (digest[i])
+                free(digest[i]);
+        }
+        free(digest);
+    }
     
     return 0;
 }

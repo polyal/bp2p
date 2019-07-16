@@ -7,4 +7,4 @@
 //  char* digest:    function allocated pointer to 2d array
 //  int* length:     number of chucks the file splits into
 //                    
-int computeSha256FileChunks(char* path, char*** digest, int* length);
+int computeSha256FileChunks(const char* path, char*** digest, int* length);

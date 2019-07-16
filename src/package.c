@@ -196,13 +196,12 @@ int depackage(const char *packageName){
 
     fclose(source);
     fclose(dest);
-
-    remove("temp");
     
     if (ret != Z_OK)
         zerr(ret);
 
     extract("temp");
+    remove("temp");
 
     return ret;
 }

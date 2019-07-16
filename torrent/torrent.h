@@ -31,7 +31,8 @@ class Torrent {
 
  	public:
  		Torrent();
- 		Torrent(char* torrentLocation); // takes the filename of an already existing torrent
+ 		Torrent(const char* filename); // takes the filename of an already existing torrent
+ 		Torrent(const char* archive, const char** files); // takes a list of files to be packaged
 
 
 		int createTorrent (char* filename); // takes the filename of a file to be converted into a torrent
