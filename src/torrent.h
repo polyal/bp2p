@@ -16,8 +16,10 @@
 
 #include <iostream>
 #include <linux/limits.h>
-#include <list>
+#include <vector>
 #include <tuple>
+
+#include "nlohmann/json.hpp"
 
 using namespace std;
 
@@ -27,7 +29,10 @@ class Torrent {
 		int numPieces;
 		char filename[PATH_MAX];
 		char torrentLocation[PATH_MAX];
-		list <tuple<char*, bool>> chuncks;
+		vector<tuple<string, bool>> chunks;
+
+		nlohmann::json jobj;
+		string serializedObj;
 
  	public:
  		Torrent();
@@ -35,5 +40,14 @@ class Torrent {
  		Torrent(const char* archive, const char** files); // takes a list of files to be packaged
 
 
-		int createTorrent (char* filename); // takes the filename of a file to be converted into a torrent
+ 		// takes the filename of a file to be converted into a torrent
+		int createTorrent (const char* archive, const char** files);
+
+		// takes the name of the archive to be created and a list of files to be archived abd compressed
+		int createPackage(const char* archive, const char** files);
+		
+ 		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
+		int generateChunks();
+
+		void createJson();
 };

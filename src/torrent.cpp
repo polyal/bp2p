@@ -10,12 +10,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "nlohmann/json.hpp"
 
 // include c libs
 extern "C" {
-#include "../src/package.h"
-#include "../src/hash.h"
+#include "package.h"
+#include "hash.h"
 }
 
 using namespace std;
@@ -64,46 +63,8 @@ char* hexToBytes(const string& strhex, int* size){
 }
 
 
-
-int Torrent::createTorrent (char* filename){
-	cout << "createTorrent\n";
-
-	return 0;
-}
-
 Torrent::Torrent(const char* archive, const char** files){
-	int ret = 0;
-
-	ret = package(archive, files);
-
-	if (ret != 0){
-		cout << "packaging error" << endl;
-		return;
-	}
-
-	char** digest = NULL;
-	int length = 0;
-	ret = computeSha256FileChunks(archive, &digest, &length);
-
-	string strdigest = bytesToHex(digest[0], 32);
-
-	cout << strdigest << endl;
-
-	// free up digest mem
-	int i = 0;
-    if (digest){
-        for (i = 0; i < length; i++){
-            if (digest[i])
-                free(digest[i]);
-        }
-        free(digest);
-    }
-
-    cout << "num chuncks " << length << endl;
-    if (ret != 0){
-    	cout << "hashing error" << endl;
-		return;
-    }
+	createTorrent (archive, files);
 }
 
 Torrent::Torrent(const char* filename){
@@ -115,6 +76,95 @@ Torrent::Torrent(){
 	filename[0] = '\0';
 	torrentLocation[0] = '\0';
 }
+
+int Torrent::createTorrent (const char* archive, const char** files){
+	cout << "createTorrent\n";
+
+	createPackage(archive, files);
+	generateChunks();
+	createJson();
+
+	return 0;
+}
+
+int Torrent::createPackage(const char* archive, const char** files){
+	int ret = 0;
+
+	ret = package(archive, files);
+	generateChunks();
+
+	if (ret != 0){
+		cout << "packaging error" << endl;
+		return ret;
+	}
+
+	// set filename instance
+	strcpy(filename, archive);
+	
+	return 0;
+}
+
+
+int Torrent::generateChunks(){
+	int ret = 0;
+	char** digest = NULL;
+	int length = 0;
+
+	// need to call cfreate package first
+	if (filename[0] == '\0')
+		return -1;
+
+	// generate chunk hashes
+	ret = computeSha256FileChunks(filename, &digest, &length);
+
+	//convert hash chunks to hex strings
+	int i = 0;
+	for (i = 0; i < length; i++){
+		string strdigest = bytesToHex(digest[0], 32);
+		cout << strdigest << endl;
+
+		auto keyValPair = make_tuple(strdigest, true);
+
+		chunks.push_back(keyValPair);
+	}
+
+	string strdigest = bytesToHex(digest[0], 32);
+
+	// free up digest mem
+	i = 0;
+    if (digest){
+        for (i = 0; i < length; i++){
+            if (digest[i])
+                free(digest[i]);
+            else
+            	break; // if NULL, malloc failed to allocate memory
+        }
+        free(digest);
+    }
+
+    cout << "num chunks " << length << endl;
+    if (ret != 0){
+    	cout << "chunking error" << endl;
+		return ret;
+    }
+
+    // object initializations
+    numPieces = length;
+
+    return 0;
+}
+
+void Torrent::createJson(){
+
+	std::vector<tuple<string, bool>>::size_type i = 0;
+	for(i = 0; i != chunks.size(); i++) {
+    	jobj[to_string(i)] = { get<0>(chunks[i]), true };
+	}
+
+	serializedObj = jobj.dump();
+	cout << "json\n\n" << serializedObj << endl;
+}
+
 
 
 
