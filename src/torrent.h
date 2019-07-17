@@ -26,6 +26,8 @@ using namespace std;
 class Torrent {
 	private:
 		static const int chunkSize = 32768;  //256 kilobyte chunk size
+		static const string torrentDir;
+
 		int numPieces;
 		char filename[PATH_MAX];
 		char torrentLocation[PATH_MAX];
@@ -49,5 +51,10 @@ class Torrent {
  		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
 		int generateChunks();
 
-		void createJson();
+		void serialize();
+
+		void deserialize(string& serializedObj);
+
+		// uses the serialized instance varaible to create a torrent file
+		void dumpToTorrentFile ();
 };

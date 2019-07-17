@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <fstream>
 
 // determine file/dir
 #include <sys/types.h>
@@ -18,6 +19,8 @@ extern "C" {
 }
 
 using namespace std;
+
+const string Torrent::torrentDir = "/tmp/bp2p/torrents/";
 
 string bytesToHex(char* bytes, int len){
 	std::stringstream digest;
@@ -82,7 +85,9 @@ int Torrent::createTorrent (const char* archive, const char** files){
 
 	createPackage(archive, files);
 	generateChunks();
-	createJson();
+	serialize();
+	deserialize(serializedObj);
+	dumpToTorrentFile();
 
 	return 0;
 }
@@ -154,7 +159,8 @@ int Torrent::generateChunks(){
     return 0;
 }
 
-void Torrent::createJson(){
+void Torrent::serialize(){
+	jobj["filename"] = filename;
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
 	for(i = 0; i != chunks.size(); i++) {
@@ -162,7 +168,45 @@ void Torrent::createJson(){
 	}
 
 	serializedObj = jobj.dump();
-	cout << "json\n\n" << serializedObj << endl;
+	cout << "json ::\n" << serializedObj << endl;
+}
+
+void Torrent::deserialize(string& serializedObj){
+	this->serializedObj = serializedObj;
+	jobj = nlohmann::json::parse(serializedObj);
+
+	strcpy(filename, jobj["filename"].get<std::string>().c_str());
+
+	printf("filename %s \n", filename);
+
+	int i = 0;
+	for (i = 0; i < jobj.size()-1; i++) {
+		auto hashpair = jobj[to_string(i)];
+  		std::cout << hashpair << endl;
+
+  		make_tuple(hashpair[0], hashpair[1]);
+  		auto keyValPair = make_tuple(hashpair[0], hashpair[1]);
+		chunks.push_back(keyValPair);
+	}
+
+	cout << "\n ventor \n";
+
+	for(auto const& value: chunks) {
+		cout << get<0>(value) << " " << get<1>(value) << endl;
+	}
+}
+
+void Torrent::dumpToTorrentFile (){
+	char filepath[PATH_MAX];
+
+	strcpy(filepath, torrentDir.c_str());
+	strcat(filepath, filename);
+
+	printf("%s \n", filepath);
+
+	ofstream fTorrent {filepath};
+ 	fTorrent << serializedObj;
+ 	fTorrent.close();
 }
 
 
