@@ -57,4 +57,6 @@ class Torrent {
 
 		// uses the serialized instance varaible to create a torrent file
 		void dumpToTorrentFile ();
+
+		void readTorrentFromFile(const char* filename);
 };

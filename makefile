@@ -5,12 +5,12 @@ default:
 
 torrent: packageObjs
 	g++ -std=c++1y -Wall src/torrent.cpp src/torrent.h -Ilib/json/include -o out/a.out \
-	out/arobj.o \
+	-l:out/arobj.a \
 	-lz -larchive \
 	-lcrypto
 
 packageObjs: package hash mvObjs $(foreach obj, $(objs), out/$(obj))
-	ar rvs out/arobj.o $(foreach obj, $(objs), out/$(obj))
+	ar rvs out/arobj.a $(foreach obj, $(objs), out/$(obj))
 
 package:
 	gcc -Wall -c src/package.c src/compress.c -lz -larchive

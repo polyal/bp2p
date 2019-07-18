@@ -20,7 +20,7 @@ extern "C" {
 
 using namespace std;
 
-const string Torrent::torrentDir = "/tmp/bp2p/torrents/";
+const string Torrent::torrentDir = "torrents/";
 
 string bytesToHex(char* bytes, int len){
 	std::stringstream digest;
@@ -71,7 +71,9 @@ Torrent::Torrent(const char* archive, const char** files){
 }
 
 Torrent::Torrent(const char* filename){
-	depackage(filename);
+	//depackage(filename);
+	readTorrentFromFile(filename);
+	deserialize(serializedObj);
 }
 
 Torrent::Torrent(){
@@ -86,7 +88,6 @@ int Torrent::createTorrent (const char* archive, const char** files){
 	createPackage(archive, files);
 	generateChunks();
 	serialize();
-	deserialize(serializedObj);
 	dumpToTorrentFile();
 
 	return 0;
@@ -161,6 +162,7 @@ int Torrent::generateChunks(){
 
 void Torrent::serialize(){
 	jobj["filename"] = filename;
+	jobj["numPieces"] = numPieces;
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
 	for(i = 0; i != chunks.size(); i++) {
@@ -176,11 +178,12 @@ void Torrent::deserialize(string& serializedObj){
 	jobj = nlohmann::json::parse(serializedObj);
 
 	strcpy(filename, jobj["filename"].get<std::string>().c_str());
+	numPieces = jobj["numPieces"];
 
-	printf("filename %s \n", filename);
+	printf("filename %s %d \n", filename, numPieces);
 
 	int i = 0;
-	for (i = 0; i < jobj.size()-1; i++) {
+	for (i = 0; i < numPieces; i++) {
 		auto hashpair = jobj[to_string(i)];
   		std::cout << hashpair << endl;
 
@@ -205,10 +208,35 @@ void Torrent::dumpToTorrentFile (){
 	printf("%s \n", filepath);
 
 	ofstream fTorrent {filepath};
- 	fTorrent << serializedObj;
- 	fTorrent.close();
+
+	if (fTorrent.is_open()){
+		fTorrent << serializedObj;
+ 		fTorrent.close();
+	}
 }
 
+void Torrent::readTorrentFromFile(const char* filename){
+	char filepath[PATH_MAX];
+
+	strcpy(filepath, torrentDir.c_str());
+	strcat(filepath, filename);
+
+	printf("%s \n", filepath);
+
+	string data;
+ 	ifstream fTorrent{filepath};
+
+ 	if (fTorrent.is_open()){
+ 		while(getline(fTorrent, data)) // Saves the line in STRING.) // To get you all the lines.
+	    {
+	        cout << data; // Prints our STRING.
+	    }
+		fTorrent.close();
+ 	}
+    
+
+	serializedObj = data;
+}
 
 
 
