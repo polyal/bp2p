@@ -29,8 +29,8 @@ class Torrent {
 		static const string torrentDir;
 
 		int numPieces;
-		char filename[PATH_MAX];
-		char torrentLocation[PATH_MAX];
+		string filename;
+		string torrentLocation;
 		vector<tuple<string, bool>> chunks;
 
 		nlohmann::json jobj;
@@ -38,15 +38,15 @@ class Torrent {
 
  	public:
  		Torrent();
- 		Torrent(const char* filename); // takes the filename of an already existing torrent
- 		Torrent(const char* archive, const char** files); // takes a list of files to be packaged
+ 		Torrent(const string& torrentName); // takes the filename of an already existing torrent
+ 		Torrent(const string& torrentName, const vector<string>& files); // takes a list of files to be packaged
 
 
  		// takes the filename of a file to be converted into a torrent
-		int createTorrent (const char* archive, const char** files);
+		int createTorrent (const string& archive, const vector<string>& files);
 
 		// takes the name of the archive to be created and a list of files to be archived abd compressed
-		int createPackage(const char* archive, const char** files);
+		int createPackage(const string& archive, const vector<string>& files);
 		
  		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
 		int generateChunks();
@@ -58,5 +58,5 @@ class Torrent {
 		// uses the serialized instance varaible to create a torrent file
 		void dumpToTorrentFile ();
 
-		void readTorrentFromFile(const char* filename);
+		void readTorrentFromFile(const string& torrentName);
 };

@@ -54,8 +54,6 @@ char* hexToBytes(const string& strhex, int* size){
 
 	char* buf = new char[bufSize];
 
-
-
 	for (int i = 0; i < bufSize; i++){
 		buf[i] = value(str[2 * i]) * 16 + value(str[2 * i + 1]);
 	}
@@ -66,13 +64,22 @@ char* hexToBytes(const string& strhex, int* size){
 }
 
 
-Torrent::Torrent(const char* archive, const char** files){
-	createTorrent (archive, files);
+Torrent::Torrent(const string& torrentName, const vector<string>& files){
+	numPieces = 0;
+	filename[0] = '\0';
+	torrentLocation[0] = '\0';
+
+	if (torrentName.empty() || files.empty()){
+		cout << "Error: Torrent Name or Files array empty" << endl;
+		return;
+	}
+
+	createTorrent (torrentName, files);
 }
 
-Torrent::Torrent(const char* filename){
+Torrent::Torrent(const string& torrentName){
 	//depackage(filename);
-	readTorrentFromFile(filename);
+	readTorrentFromFile(torrentName);
 	deserialize(serializedObj);
 }
 
@@ -82,10 +89,10 @@ Torrent::Torrent(){
 	torrentLocation[0] = '\0';
 }
 
-int Torrent::createTorrent (const char* archive, const char** files){
+int Torrent::createTorrent (const string& torrentName, const vector<string>& files){
 	cout << "createTorrent\n";
 
-	createPackage(archive, files);
+	createPackage(torrentName, files);
 	generateChunks();
 	serialize();
 	dumpToTorrentFile();
@@ -93,11 +100,16 @@ int Torrent::createTorrent (const char* archive, const char** files){
 	return 0;
 }
 
-int Torrent::createPackage(const char* archive, const char** files){
+int Torrent::createPackage(const string& torrentName, const vector<string>& files){
 	int ret = 0;
+	const char* cstrTorrent = torrentName.c_str();
+	vector<char*> cstrFiles;
+    cstrFiles.reserve(files.size());
+	
+	for(auto& file: cstrFiles)
+    	cstrFiles.push_back(&file[0]);
 
-	ret = package(archive, files);
-	generateChunks();
+	ret = package(cstrTorrent, cstrFiles.data());
 
 	if (ret != 0){
 		cout << "packaging error" << endl;
@@ -105,9 +117,9 @@ int Torrent::createPackage(const char* archive, const char** files){
 	}
 
 	// set filename instance
-	strcpy(filename, archive);
+	filename = cstrTorrent;
 	
-	return 0;
+	return ret;
 }
 
 
@@ -121,7 +133,7 @@ int Torrent::generateChunks(){
 		return -1;
 
 	// generate chunk hashes
-	ret = computeSha256FileChunks(filename, &digest, &length);
+	ret = computeSha256FileChunks(filename.c_str(), &digest, &length);
 
 	//convert hash chunks to hex strings
 	int i = 0;
@@ -177,10 +189,10 @@ void Torrent::deserialize(string& serializedObj){
 	this->serializedObj = serializedObj;
 	jobj = nlohmann::json::parse(serializedObj);
 
-	strcpy(filename, jobj["filename"].get<std::string>().c_str());
+	filename = jobj["filename"].get<std::string>();
 	numPieces = jobj["numPieces"];
 
-	printf("filename %s %d \n", filename, numPieces);
+	cout << "filename " << filename << " " << numPieces << endl;
 
 	int i = 0;
 	for (i = 0; i < numPieces; i++) {
@@ -203,7 +215,7 @@ void Torrent::dumpToTorrentFile (){
 	char filepath[PATH_MAX];
 
 	strcpy(filepath, torrentDir.c_str());
-	strcat(filepath, filename);
+	strcat(filepath, filename.c_str());
 
 	printf("%s \n", filepath);
 
@@ -215,11 +227,11 @@ void Torrent::dumpToTorrentFile (){
 	}
 }
 
-void Torrent::readTorrentFromFile(const char* filename){
+void Torrent::readTorrentFromFile(const string& torrentName){
 	char filepath[PATH_MAX];
 
 	strcpy(filepath, torrentDir.c_str());
-	strcat(filepath, filename);
+	strcat(filepath, torrentName.c_str());
 
 	printf("%s \n", filepath);
 
@@ -241,15 +253,15 @@ void Torrent::readTorrentFromFile(const char* filename){
 
 
 int main(int argc, char *argv[]){
-	const char* archive = argv[1];
+	string archive { argv[1] };
 
-	cout << argc << endl;
+	cout << argc << archive << endl;
 
 	if (argc == 2){
 		Torrent newTorrent(archive);
 	}
 	else{
-		const char** files = (const char**)&argv[2];
+		vector<string> files {argv+2, argv+argc};
 		Torrent newTorrent(archive, files);
 	}
 

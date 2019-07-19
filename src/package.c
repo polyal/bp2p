@@ -163,7 +163,7 @@ void extract(const char *filename)
 }
 
 
-int package(const char *archive, const char **filename){
+int package(const char *archive, char const* const*filename){
     int ret;
 
     write_archive("temp", filename);

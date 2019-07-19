@@ -9,7 +9,7 @@
 *            be archived and compressed
 *
 **********************************************************/
-int package(const char *archive, const char **filename);
+int package(const char *archive, char const* const*filename);
 
 
 /**********************************************************
