@@ -66,8 +66,9 @@ char* hexToBytes(const string& strhex, int* size){
 
 Torrent::Torrent(const string& torrentName, const vector<string>& files){
 	numPieces = 0;
-	filename[0] = '\0';
-	torrentLocation[0] = '\0';
+	filename = "";
+	torrentLocation = "";
+	serializedObj = "";
 
 	if (torrentName.empty() || files.empty()){
 		cout << "Error: Torrent Name or Files array empty" << endl;
@@ -78,9 +79,9 @@ Torrent::Torrent(const string& torrentName, const vector<string>& files){
 }
 
 Torrent::Torrent(const string& torrentName){
-	//depackage(filename);
 	readTorrentFromFile(torrentName);
 	deserialize(serializedObj);
+	depackage(filename.c_str());
 }
 
 Torrent::Torrent(){
@@ -90,7 +91,10 @@ Torrent::Torrent(){
 }
 
 int Torrent::createTorrent (const string& torrentName, const vector<string>& files){
-	cout << "createTorrent\n";
+	if (torrentName.empty() || files.empty()){
+		cout << "Create Torrent Error: invalid input" << endl;
+		return -1;
+	}
 
 	createPackage(torrentName, files);
 	generateChunks();
@@ -103,21 +107,22 @@ int Torrent::createTorrent (const string& torrentName, const vector<string>& fil
 int Torrent::createPackage(const string& torrentName, const vector<string>& files){
 	int ret = 0;
 	const char* cstrTorrent = torrentName.c_str();
-	vector<char*> cstrFiles;
+	vector<const char*> cstrFiles;
     cstrFiles.reserve(files.size());
 	
-	for(auto& file: cstrFiles)
-    	cstrFiles.push_back(&file[0]);
+	for(auto& file: files)
+    	cstrFiles.push_back(file.c_str());
+	cstrFiles.push_back(NULL); // last entry needs to be NULL
 
 	ret = package(cstrTorrent, cstrFiles.data());
 
 	if (ret != 0){
-		cout << "packaging error" << endl;
+		cout << "Packaging Error" << endl;
 		return ret;
 	}
 
 	// set filename instance
-	filename = cstrTorrent;
+	filename = torrentName;
 	
 	return ret;
 }
@@ -128,8 +133,8 @@ int Torrent::generateChunks(){
 	char** digest = NULL;
 	int length = 0;
 
-	// need to call cfreate package first
-	if (filename[0] == '\0')
+	// need to call createPackage() first
+	if (filename.empty())
 		return -1;
 
 	// generate chunk hashes
@@ -146,8 +151,6 @@ int Torrent::generateChunks(){
 		chunks.push_back(keyValPair);
 	}
 
-	string strdigest = bytesToHex(digest[0], 32);
-
 	// free up digest mem
 	i = 0;
     if (digest){
@@ -162,7 +165,7 @@ int Torrent::generateChunks(){
 
     cout << "num chunks " << length << endl;
     if (ret != 0){
-    	cout << "chunking error" << endl;
+    	cout << "Chunking Error" << endl;
 		return ret;
     }
 
@@ -173,6 +176,11 @@ int Torrent::generateChunks(){
 }
 
 void Torrent::serialize(){
+	if (filename.empty() || numPieces == 0 || chunks.empty()){
+		cout << "Serialize Input Error: invalid input" << endl;
+		return;
+	}
+
 	jobj["filename"] = filename;
 	jobj["numPieces"] = numPieces;
 
@@ -212,41 +220,50 @@ void Torrent::deserialize(string& serializedObj){
 }
 
 void Torrent::dumpToTorrentFile (){
-	char filepath[PATH_MAX];
+	string fullpath;
 
-	strcpy(filepath, torrentDir.c_str());
-	strcat(filepath, filename.c_str());
+	if (torrentDir.empty() || filename.empty() || serializedObj.empty()){
+		cout << "Dump Error: input error" << endl;
+		return;
+	}
 
-	printf("%s \n", filepath);
+	fullpath = torrentDir + filename;
 
-	ofstream fTorrent {filepath};
+	cout << "Write Torrent: " << fullpath << endl;
+
+	ofstream fTorrent {fullpath};
 
 	if (fTorrent.is_open()){
 		fTorrent << serializedObj;
  		fTorrent.close();
 	}
+	else{
+		cout << "Dump Error: error opening output torrent file" << endl;
+	}
 }
 
 void Torrent::readTorrentFromFile(const string& torrentName){
-	char filepath[PATH_MAX];
+	string fullpath;
 
-	strcpy(filepath, torrentDir.c_str());
-	strcat(filepath, torrentName.c_str());
+	if (torrentDir.empty() || torrentName.empty()){
+		cout << "Read Torrent File: input error" << endl;
+		return;
+	}
+	fullpath = torrentDir + torrentName;
 
-	printf("%s \n", filepath);
+	cout << "Read torrent: " << fullpath << endl;
 
 	string data;
- 	ifstream fTorrent{filepath};
+ 	ifstream fTorrent{fullpath};
 
  	if (fTorrent.is_open()){
- 		while(getline(fTorrent, data)) // Saves the line in STRING.) // To get you all the lines.
-	    {
-	        cout << data; // Prints our STRING.
-	    }
+ 		while(getline(fTorrent, data))
+	        cout << data;
 		fTorrent.close();
  	}
+ 	else
+ 		cout << "Read Torrent Error: cant open file" << endl;
     
-
 	serializedObj = data;
 }
 
@@ -262,6 +279,11 @@ int main(int argc, char *argv[]){
 	}
 	else{
 		vector<string> files {argv+2, argv+argc};
+
+		for (auto& file : files)
+			cout << file << endl;
+		cout << endl;
+
 		Torrent newTorrent(archive, files);
 	}
 

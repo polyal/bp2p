@@ -30,7 +30,7 @@
 
 #define DEBUG 0
 
-void write_archive(const char *outname, const char **filename)
+void write_archive(const char *outname, char const* const* filename)
 {
     struct archive *a;
     struct archive_entry *entry;
@@ -163,7 +163,7 @@ void extract(const char *filename)
 }
 
 
-int package(const char *archive, char const* const*filename){
+int package(const char *archive, char const* const* filename){
     int ret;
 
     write_archive("temp", filename);

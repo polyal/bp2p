@@ -36,4 +36,4 @@ packageTest:
 
 # cleanup out dir
 clean:
-	rm out/*
+	rm out/* torrents/*

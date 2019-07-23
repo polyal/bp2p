@@ -70,6 +70,7 @@ void computeSha256(char *buffer, char* digest, int size)
 int computeSha256FileChunks(const char* path, char*** digest, int* length){
     FILE *fp = NULL;
     long fileSize = 0;
+    *length = 0;
 
     fp = fopen(path, "rb");
     if(!fp) return -534;
