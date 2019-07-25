@@ -1,7 +1,7 @@
 objs = package.o compress.o hash.o           
 
 default:
-	gcc -Wall bluetooth/blue.c -lbluetooth -o out/a.out
+	gcc -Wall src/blue.c -lbluetooth -o out/a.out
 
 torrent: packageObjs
 	g++ -std=c++1y -Wall src/torrent.cpp src/torrent.h -Ilib/json/include -o out/a.out \

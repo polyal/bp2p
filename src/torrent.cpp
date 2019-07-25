@@ -79,9 +79,14 @@ Torrent::Torrent(const string& torrentName, const vector<string>& files){
 }
 
 Torrent::Torrent(const string& torrentName){
+	if (torrentName.empty()){
+		cout << "Error: Torrent Name Invalid" << endl;
+		return;
+	}
+
 	readTorrentFromFile(torrentName);
 	deserialize(serializedObj);
-	depackage(filename.c_str());
+	unpackage (filename);
 }
 
 Torrent::Torrent(){
@@ -125,6 +130,16 @@ int Torrent::createPackage(const string& torrentName, const vector<string>& file
 	filename = torrentName;
 	
 	return ret;
+}
+
+int Torrent::unpackage (const string& packageName){
+	if (packageName.empty()){
+		cout << "Depackage Error: invalid input" << endl;
+	}
+
+	cout << packageName << endl;
+
+	return depackage(packageName.c_str());
 }
 
 
@@ -257,6 +272,7 @@ void Torrent::readTorrentFromFile(const string& torrentName){
  	ifstream fTorrent{fullpath};
 
  	if (fTorrent.is_open()){
+ 		// this should always only be one line
  		while(getline(fTorrent, data))
 	        cout << data;
 		fTorrent.close();

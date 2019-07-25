@@ -47,6 +47,8 @@ class Torrent {
 
 		// takes the name of the archive to be created and a list of files to be archived abd compressed
 		int createPackage(const string& archive, const vector<string>& files);
+
+		int unpackage (const string& packageName);
 		
  		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
 		int generateChunks();
