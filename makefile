@@ -1,5 +1,6 @@
 objs = package.o compress.o hash.o torrent.o
 cobjs = package.o compress.o hash.o
+libs = -lz -larchive -lcrypto
 
 default:
 	gcc -Wall src/blue.c -lbluetooth -o out/a.out
@@ -28,8 +29,7 @@ mvCobjs:
 torrentTest: package hash mvCobjs
 	g++ -std=c++1y -Wall src/torrent.cpp -Ilib/json/include -o out/a.out \
 	$(foreach obj, $(cobjs), out/$(obj)) \
-	-lz -larchive \
-	-lcrypto
+	$(libs)
 
 # compile each module as its own executable
 # make sure to set DEBUG = 1
