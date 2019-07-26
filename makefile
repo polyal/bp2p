@@ -25,14 +25,14 @@ mvCobjs:
 	mv $(cobjs) -t out/
 
 
-# for testing torrent specific functinality
+
+# compile each module as its own executable
+# make sure to set DEBUG = 1
 torrentTest: package hash mvCobjs
 	g++ -std=c++1y -Wall src/torrent.cpp -Ilib/json/include -o out/a.out \
 	$(foreach obj, $(cobjs), out/$(obj)) \
 	$(libs)
 
-# compile each module as its own executable
-# make sure to set DEBUG = 1
 hashTest:
 	gcc -Wall src/hash.c -lcrypto -o out/a.out
 
