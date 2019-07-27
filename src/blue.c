@@ -99,7 +99,7 @@ int client(const char *dest, const char *data, int size){
     return status;
 }
 
-int server(char addr[18], char **data, int *size){
+int server(char addr[18], char **const data, int *size){
     int status = 0;
     struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
     char buff[CHUNK] = { 0 };
