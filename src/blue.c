@@ -114,6 +114,13 @@ void server(){
 
 int main(int argc, char **argv)
 {
-    client();
+
+    if (strcmp ("-c", argv[1]) == 0)
+        client();
+    else if (strcmp ("-s", argv[1]) == 0)
+        server();
+    else if (strcmp ("-f", argv[1]) == 0)
+        findDevices();
+
     return 0;
 }
