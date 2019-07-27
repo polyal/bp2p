@@ -175,8 +175,13 @@ int main(int argc, char **argv)
     char* data = NULL;
     int size = 0;
 
+    if (argc < 2){
+        printf("Usage: ./a.out [-c | -s | -f]\n");
+        return 0;
+    }
+
     if (strcmp ("-c", argv[1]) == 0)
-        client("34:DE:1A:1D:F4:0B", "Send This Data", sizeof("Send This Data"));
+        client("34:DE:1A:1D:F4:0B", "Send This Data", sizeof("Send This Data\0"));
     else if (strcmp ("-s", argv[1]) == 0)
         server(addr, &data, &size);
     else if (strcmp ("-f", argv[1]) == 0)
