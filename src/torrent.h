@@ -53,9 +53,11 @@ class Torrent {
  		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
 		int generateChunks();
 
-		void serialize();
+		// if create is true, all the chunks are marked as existing
+		void serialize(bool create);
 
-		void deserialize(string& serializedObj);
+		// if create is true, all chunks are marked as nonexisting, meaning it is a nre torrent
+		void deserialize(string& serializedObj, bool create);
 
 		// uses the serialized instance varaible to create a torrent file
 		void dumpToTorrentFile ();

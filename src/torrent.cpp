@@ -85,7 +85,7 @@ Torrent::Torrent(const string& torrentName){
 	}
 
 	readTorrentFromFile(torrentName);
-	deserialize(serializedObj);
+	deserialize(serializedObj, true);
 	unpackage (filename);
 }
 
@@ -103,7 +103,7 @@ int Torrent::createTorrent (const string& torrentName, const vector<string>& fil
 
 	createPackage(torrentName, files);
 	generateChunks();
-	serialize();
+	serialize(true);
 	dumpToTorrentFile();
 
 	return 0;
@@ -190,7 +190,7 @@ int Torrent::generateChunks(){
     return 0;
 }
 
-void Torrent::serialize(){
+void Torrent::serialize(bool create){
 	if (filename.empty() || numPieces == 0 || chunks.empty()){
 		cout << "Serialize Input Error: invalid input" << endl;
 		return;
@@ -201,14 +201,17 @@ void Torrent::serialize(){
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
 	for(i = 0; i != chunks.size(); i++) {
-    	jobj[to_string(i)] = get<0>(chunks[i]);
+		if (create)
+    		jobj[to_string(i)] = {get<0>(chunks[i]), true};
+    	else
+    		jobj[to_string(i)] = {get<0>(chunks[i]), get<1>(chunks[i])};
 	}
 
 	serializedObj = jobj.dump();
 	cout << "json ::\n" << serializedObj << endl;
 }
 
-void Torrent::deserialize(string& serializedObj){
+void Torrent::deserialize(string& serializedObj, bool create){
 	this->serializedObj = serializedObj;
 	jobj = nlohmann::json::parse(serializedObj);
 
@@ -219,10 +222,14 @@ void Torrent::deserialize(string& serializedObj){
 
 	int i = 0;
 	for (i = 0; i < numPieces; i++) {
-		auto hash = jobj[to_string(i)];
-  		std::cout << hash << endl;
+		auto hashpair = jobj[to_string(i)];
+  		std::cout << hashpair << endl;
 
-  		auto keyValPair = make_tuple(hash, 0);
+  		tuple<string, bool> keyValPair;
+  		if (create)
+  			keyValPair = make_tuple(hashpair[0], false);
+		else
+			keyValPair = make_tuple(hashpair[0], hashpair[1]);
 		chunks.push_back(keyValPair);
 	}
 
@@ -283,8 +290,12 @@ void Torrent::readTorrentFromFile(const string& torrentName){
 
 
 int main(int argc, char *argv[]){
-	string archive { argv[1] };
+	if (argc < 2){
+		cout << "Usage: IMPORT: ./a.out [torrent]\n       EXPORT: ./a.out [torrent] [file1 | file2 | ...]" << endl;
+		return 0;
+	}
 
+	string archive { argv[1] };
 	cout << argc << archive << endl;
 
 	if (argc == 2){
