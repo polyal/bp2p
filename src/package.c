@@ -163,7 +163,7 @@ void extract(const char *filename)
 }
 
 
-int package(const char *archive, char const* const* filename){
+int package(const char* const archive, const char *const *const filename){
     int ret;
 
     write_archive("temp", filename);
@@ -186,7 +186,7 @@ int package(const char *archive, char const* const* filename){
     return ret;
 }
 
-int depackage(const char *packageName){
+int depackage(const char* const packageName){
     int ret;
     
     FILE* source = fopen(packageName, "rb");

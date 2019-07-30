@@ -9,7 +9,7 @@
 *            be archived and compressed
 *
 **********************************************************/
-int package(const char *archive, char const* const*filename);
+int package(const char* const archive, const char * const * const filename);
 
 
 /**********************************************************
@@ -20,4 +20,4 @@ int package(const char *archive, char const* const*filename);
 *                and unarchived
 *
 **********************************************************/
-int depackage(const char *packageName);
+int depackage(const char* const packageName);

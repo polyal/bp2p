@@ -15,7 +15,7 @@
 #include "compress.h"
 
 
-int compressFile(FILE *source, FILE *dest, int level)
+int compressFile(FILE* const source, FILE* const dest, int level)
 {
     int ret, flush;
     unsigned have;
@@ -73,7 +73,7 @@ int compressFile(FILE *source, FILE *dest, int level)
 }
 
 
-int decompressFile(FILE *source, FILE *dest)
+int decompressFile(FILE* const source, FILE* const dest)
 {
     int ret;
     unsigned have;

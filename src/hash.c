@@ -67,7 +67,7 @@ void computeSha256(char *buffer, char* digest, int size)
 //  char* filename:  filename of file to hash
 //  char* digest:    function allocated pointer to 2d array
 //                    
-int computeSha256FileChunks(const char* path, char*** digest, int* length){
+int computeSha256FileChunks(const char* const path, char*** const digest, int* const length){
     FILE *fp = NULL;
     long fileSize = 0;
     *length = 0;

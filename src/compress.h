@@ -10,7 +10,7 @@
   version of the library linked do not match, or Z_ERRNO if there is
   an error reading or writing the files.
 */
-int compressFile(FILE *source, FILE *dest, int level);
+int compressFile(FILE* const source, FILE* const dest, int level);
 
 /*
   Decompress from file source to file dest until stream ends or EOF.
@@ -20,6 +20,6 @@ int compressFile(FILE *source, FILE *dest, int level);
   the version of the library linked do not match, or Z_ERRNO if there
   is an error reading or writing the files. 
 */
-int decompressFile(FILE *source, FILE *dest);
+int decompressFile(FILE* const source, FILE* const dest);
 
 void zerr(int ret);

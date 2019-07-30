@@ -201,7 +201,7 @@ void Torrent::serialize(){
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
 	for(i = 0; i != chunks.size(); i++) {
-    	jobj[to_string(i)] = { get<0>(chunks[i]), true };
+    	jobj[to_string(i)] = get<0>(chunks[i]);
 	}
 
 	serializedObj = jobj.dump();
@@ -215,19 +215,16 @@ void Torrent::deserialize(string& serializedObj){
 	filename = jobj["filename"].get<std::string>();
 	numPieces = jobj["numPieces"];
 
-	cout << "filename " << filename << " " << numPieces << endl;
+	cout << "filename " << filename << ", num Pieces " << numPieces << endl;
 
 	int i = 0;
 	for (i = 0; i < numPieces; i++) {
-		auto hashpair = jobj[to_string(i)];
-  		std::cout << hashpair << endl;
+		auto hash = jobj[to_string(i)];
+  		std::cout << hash << endl;
 
-  		make_tuple(hashpair[0], hashpair[1]);
-  		auto keyValPair = make_tuple(hashpair[0], hashpair[1]);
+  		auto keyValPair = make_tuple(hash, 0);
 		chunks.push_back(keyValPair);
 	}
-
-	cout << "\n ventor \n";
 
 	for(auto const& value: chunks) {
 		cout << get<0>(value) << " " << get<1>(value) << endl;
@@ -274,7 +271,7 @@ void Torrent::readTorrentFromFile(const string& torrentName){
  	if (fTorrent.is_open()){
  		// this should always only be one line
  		while(getline(fTorrent, data))
-	        cout << data;
+	        cout << data << endl;
 		fTorrent.close();
  	}
  	else
@@ -303,8 +300,5 @@ int main(int argc, char *argv[]){
 		Torrent newTorrent(archive, files);
 	}
 
-    cout << "helloworld\n";
-
     return 0;
-
 }
