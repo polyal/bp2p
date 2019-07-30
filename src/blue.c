@@ -7,17 +7,10 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/rfcomm.h>
 #include <errno.h>
+#include "blue.h"
 
 #define DEBUG 1
-#define CHUNK 32768
-#define MAX_DEVS 255 // max devices returned during discovery
-#define DISC_UNIT 8  // unit * 1.28sec time spent searching for devices
-#define ADDR_SIZE 18 // size in chars of a bluetooth address
 
-typedef struct _bDevInf {
-    char addr[ADDR_SIZE];
-    char* name;
-} bDevInf;
 
 int findDevices(bDevInf ** const devs, int * const numDevs){
     int status = -1;
@@ -77,7 +70,7 @@ findDevicesCleanup:
     return status;
 }
 
-int client(const char *dest, const char *data, int size){
+int client(const char* const dest, const char* const data, int size){
     int status = -1;
     struct sockaddr_rc addr = { 0 };
     int sock;
@@ -131,7 +124,7 @@ clientCleanup:
     return status;
 }
 
-int server(char addr[ADDR_SIZE], char **const data, int *size){
+int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     int status = -1;
     struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
     char buff[CHUNK] = { 0 };
