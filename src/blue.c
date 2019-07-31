@@ -96,7 +96,7 @@ int client(const char* const dest, const char* const data, int size){
 
     // set the connection parameters (who to connect to)
     addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) 1;
+    addr.rc_channel = (uint8_t) 0;
     str2ba( dest, &addr.rc_bdaddr );
 
     // connect to server
@@ -149,7 +149,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     // local bluetooth adapter
     loc_addr.rc_family = AF_BLUETOOTH;
     loc_addr.rc_bdaddr = *BDADDR_ANY;
-    loc_addr.rc_channel = (uint8_t) 1;
+    loc_addr.rc_channel = (uint8_t) 0;
     status = bind(s, (struct sockaddr *)&loc_addr, sizeof(loc_addr));
     if (status == -1){
         printf("Server Error: Cannot bind name to socket. %d \n", errno);
