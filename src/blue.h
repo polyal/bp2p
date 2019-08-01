@@ -9,9 +9,9 @@ typedef struct _devInf {
     char* name;
 } devInf;
 
-int findLocalDevices(bDevInf ** const devs, int * const numDevs);
+int findLocalDevices(devInf ** const devs, int * const numDevs);
 
-int findDevices(bDevInf ** const devs, int * const numDevs);
+int findDevices(devInf ** const devs, int * const numDevs);
 
 int client(const char* const dest, const char* const data, int size);
 
