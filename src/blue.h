@@ -4,9 +4,12 @@
 #define ADDR_SIZE 18 // size in chars of a bluetooth address
 
 typedef struct _bDevInf {
+	int devId;
     char addr[ADDR_SIZE];
     char* name;
 } bDevInf;
+
+int findLocalDevices(bDevInf ** const devs, int * const numDevs);
 
 int findDevices(bDevInf ** const devs, int * const numDevs);
 

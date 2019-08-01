@@ -6,10 +6,79 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/rfcomm.h>
+#include <sys/ioctl.h>
 #include <errno.h>
 #include "blue.h"
 
 #define DEBUG 1
+
+
+int findLocalDevices(bDevInf ** const devs, int * const numDevs){
+    struct hci_dev_list_req *devList = NULL;
+    struct hci_dev_req *devReq = NULL;
+    int status = -1;
+    int i, sock, err = 0;
+
+    if (!devs || !numDevs){
+        printf("Find Local Error: Invalid Input. \n");
+        goto findLocalDevicesCleanup;
+    }
+
+    sock = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+    if (sock < 0){
+        printf("Find Local Error: Can't allocate socket. \n");
+        goto findLocalDevicesCleanup;
+    }
+
+    devList = malloc(HCI_MAX_DEV * sizeof(*devReq) + sizeof(*devList));
+    if (!devList) {
+        err = errno;
+        goto findLocalDevicesCleanup;
+    }
+
+    memset(devList, 0, HCI_MAX_DEV * sizeof(*devReq) + sizeof(*devList));
+    devList->dev_num = HCI_MAX_DEV;
+    devReq = devList->dev_req;
+
+    // request list of devices from microcontroller
+    if (ioctl(sock, HCIGETDEVLIST, (void *) devList) < 0) {
+        printf("Find Local Error: IOCTL. \n");
+        err = errno;
+        goto findLocalDevicesCleanup;
+    }
+
+    if (devList->dev_num < 1)
+        goto findLocalDevicesCleanup;
+
+    *devs = malloc(sizeof(bDevInf)* devList->dev_num);
+    if (*devs == NULL) 
+        goto findLocalDevicesCleanup;
+
+    bdaddr_t bdaddr;// = { 0 };
+    char addr[ADDR_SIZE] = { 0 };
+    for (i = 0; i < devList->dev_num; i++, devReq++) {
+        if (hci_test_bit(HCI_UP, &devReq->dev_opt)){
+            //char name[248] = { 0 };
+            hci_devba(devReq->dev_id, &bdaddr);
+            ba2str(&bdaddr, addr);
+            //hci_read_local_name(sock, 248, name, 0);
+
+            devs[i]->devId = devReq->dev_id;
+            memcpy(devs[i]->addr, addr, strlen(addr));
+            printf("Find Local Dev: %d %s \n", devs[i]->devId, devs[i]->addr);
+        }       
+    }
+
+    *numDevs = devList->dev_num;
+    status = 0;
+
+findLocalDevicesCleanup:
+    if (devList) free(devList);
+    if (sock >= 0) close(sock);
+    errno = err;
+    return status;
+}
+
 
 
 int findDevices(bDevInf ** const devs, int * const numDevs){
@@ -96,7 +165,7 @@ int client(const char* const dest, const char* const data, int size){
 
     // set the connection parameters (who to connect to)
     addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) 0;
+    addr.rc_channel = (uint8_t) 1;
     str2ba( dest, &addr.rc_bdaddr );
 
     // connect to server
@@ -221,6 +290,8 @@ int main(int argc, char **argv)
         server(addr, &data, &size);
     else if (strcmp ("-f", argv[1]) == 0)
         findDevices(&devs, &size);
+    else if (strcmp ("-l", argv[1]) == 0)
+        findLocalDevices(&devs, &size);
 
     int i;
     for (i = 0; i < size; i++){
