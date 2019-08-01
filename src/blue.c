@@ -271,22 +271,10 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     status = 0;
 
 
-    // connect to server
-    do {
-        status = connect(client, (struct sockaddr *)&addr, sizeof(addr));
-    } while (status == EHOSTDOWN);
-    
-    if (status == 0){
-        status = write(client, data, bytes_read);
+    status = write(client, data, bytes_read);
 
-        if( status == -1 ){
-            printf("Client Error: Write error. %d \n", errno);
-            status = errno;
-            //goto clientCleanup;
-        }
-    }
-    else{
-        printf("Client Error: Cannot connect to socket. %d \n", errno);
+    if( status == -1 ){
+        printf("Client Error: Write error. %d \n", errno);
         status = errno;
         //goto clientCleanup;
     }
