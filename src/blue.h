@@ -3,11 +3,11 @@
 #define DISC_UNIT 8  // unit * 1.28sec time spent searching for devices
 #define ADDR_SIZE 18 // size in chars of a bluetooth address
 
-typedef struct _bDevInf {
+typedef struct _devInf {
 	int devId;
     char addr[ADDR_SIZE];
     char* name;
-} bDevInf;
+} devInf;
 
 int findLocalDevices(bDevInf ** const devs, int * const numDevs);
 

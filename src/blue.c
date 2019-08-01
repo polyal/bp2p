@@ -13,7 +13,7 @@
 #define DEBUG 1
 
 
-int findLocalDevices(bDevInf ** const devs, int * const numDevs){
+int findLocalDevices(devInf ** const devs, int * const numDevs){
     struct hci_dev_list_req *devList = NULL;
     struct hci_dev_req *devReq = NULL;
     int status = -1;
@@ -50,7 +50,7 @@ int findLocalDevices(bDevInf ** const devs, int * const numDevs){
     if (devList->dev_num < 1)
         goto findLocalDevicesCleanup;
 
-    *devs = malloc(sizeof(bDevInf)* devList->dev_num);
+    *devs = malloc(sizeof(devInf)* devList->dev_num);
     if (*devs == NULL) 
         goto findLocalDevicesCleanup;
 
@@ -62,6 +62,9 @@ int findLocalDevices(bDevInf ** const devs, int * const numDevs){
             hci_devba(devReq->dev_id, &bdaddr);
             ba2str(&bdaddr, addr);
             //hci_read_local_name(sock, 248, name, 0);
+
+            // TODO:
+            // add local device name retrieval
 
             devs[i]->devId = devReq->dev_id;
             memcpy(devs[i]->addr, addr, strlen(addr));
@@ -81,7 +84,7 @@ findLocalDevicesCleanup:
 
 
 
-int findDevices(bDevInf ** const devs, int * const numDevs){
+int findDevices(devInf ** const devs, int * const numDevs){
     int status = -1;
     inquiry_info *ii = NULL;
     int num_rsp;
@@ -111,7 +114,7 @@ int findDevices(bDevInf ** const devs, int * const numDevs){
         goto findDevicesCleanup;
     }
 
-    *devs = malloc(sizeof(bDevInf)* num_rsp);
+    *devs = malloc(sizeof(devInf)* num_rsp);
     if (*devs == NULL) goto findDevicesCleanup;
 
     int i;
@@ -276,7 +279,7 @@ int main(int argc, char **argv)
 {
     char addr[ADDR_SIZE] = {0};
     char* data = NULL;
-    bDevInf *devs = NULL;
+    devInf *devs = NULL;
     int size = 0;
 
     if (argc < 2){
