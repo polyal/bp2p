@@ -5,7 +5,7 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
-#include <bluetooth/rfcomm.h>
+#include <bluetooth/l2cap.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include "blue.h"
@@ -144,7 +144,7 @@ findDevicesCleanup:
 
 int client(const char* const dest, const char* const data, int size){
     int status = -1;
-    struct sockaddr_rc addr = { 0 };
+    struct sockaddr_l2 addr = { 0 };
     int sock;
 
 
@@ -159,7 +159,7 @@ int client(const char* const dest, const char* const data, int size){
 
 
     // allocate a socket
-    sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
     if (sock == -1){
         printf("Client Error: Cannot allocate socket. %d \n", errno);
         status = errno;
@@ -167,9 +167,9 @@ int client(const char* const dest, const char* const data, int size){
     }
 
     // set the connection parameters (who to connect to)
-    addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) 1;
-    str2ba( dest, &addr.rc_bdaddr );
+    addr.l2_family = AF_BLUETOOTH;
+    addr.l2_psm = htobs(0x1001);
+    str2ba( dest, &addr.l2_bdaddr );
 
     // connect to server
     status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
@@ -198,7 +198,7 @@ clientCleanup:
 
 int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     int status = -1;
-    struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
+    struct sockaddr_l2 loc_addr = { 0 }, rem_addr = { 0 };
     char buff[CHUNK] = { 0 };
     char cAddr[ADDR_SIZE] = { 0 };
     int s, client, bytes_read;
@@ -210,7 +210,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     }
 
     // allocate socket
-    s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    s = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP);
     if (s == -1){
         printf("Server Error: Cannot allocate socket. %d \n", errno);
         status = errno;
@@ -219,9 +219,9 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
 
     // bind socket to port 1 of the first available 
     // local bluetooth adapter
-    loc_addr.rc_family = AF_BLUETOOTH;
-    loc_addr.rc_bdaddr = *BDADDR_ANY;
-    loc_addr.rc_channel = (uint8_t) 0;
+    loc_addr.l2_family = AF_BLUETOOTH;
+    loc_addr.l2_bdaddr = *BDADDR_ANY;
+    loc_addr.l2_psm = htobs(0x1001);
     status = bind(s, (struct sockaddr *)&loc_addr, sizeof(loc_addr));
     if (status == -1){
         printf("Server Error: Cannot bind name to socket. %d \n", errno);
@@ -245,7 +245,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
         goto serverCleanup;
     }
 
-    ba2str( &rem_addr.rc_bdaddr, cAddr );
+    ba2str( &rem_addr.l2_bdaddr, cAddr );
     printf("Server Notice: accepted connection from %s \n", cAddr);
     memcpy(addr, cAddr, ADDR_SIZE-1);
 
