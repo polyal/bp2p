@@ -318,6 +318,97 @@ createServerCleanup:
     return sock;
 }
 
+int receiveRequest(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
+    int status = -1, client = -1, bytesRead = 0;
+    struct sockaddr_rc clientAddr = { 0 };
+    char cAddr[ADDR_SIZE] = { 0 };
+    socklen_t opt = sizeof(clientAddr);
+    char buff[CHUNK] = { 0 };
+
+    if (sock < 0 || data == NULL || size == NULL){
+        printf("Receive Error: Invalid Input.\n");
+        goto receiveRequestCleanup;
+    }
+
+    // put socket into listening modeq
+    status = listen(sock, MAX_CON_DEVS);
+    if (status == -1){
+        printf("Receive Error: Cannot listen for connections on socket. %d \n", errno);
+        *err = errno;
+        goto receiveRequestCleanup;
+    }
+
+    // accept one connection
+    client = accept(sock, (struct sockaddr *)&clientAddr, &opt);
+    if (client == -1){
+        printf("Receive Error: Failed to accept message. %d \n", errno);
+        *err = errno;
+        goto receiveRequestCleanup;
+    }
+
+    ba2str( &clientAddr.rc_bdaddr, cAddr );
+    printf("Receive Notice: accepted connection from %s \n", cAddr);
+    memcpy(addr, cAddr, ADDR_SIZE-1);
+
+    // read data from the client
+    bytesRead = read(client, buff, sizeof(buff));
+    if( bytesRead == -1 ) {
+        printf("Receive Error: Failed to read message. %d \n", errno);
+        *err = errno;
+        goto receiveRequestCleanup;
+    }
+
+    printf("Server Notice: Read message:\n%s\n", buff);
+    *data = malloc(sizeof(char)*bytesRead);
+    if (*data == NULL){
+        printf("Receive Error: Failed to return data\n");
+        *err = -1;
+        goto receiveRequestCleanup;
+    }
+
+    memcpy(*data, buff, bytesRead);
+    status = 0;
+
+receiveRequestCleanup:
+
+    return client;
+}
+
+int sendResponse(int sock, char * const data, const int size, int * const err){
+    int status = -1;
+
+    if (sock < 0 || data == NULL){
+        printf("Response Error: Invalid Input.\n");
+        goto sendResponseCleanup;
+    }
+
+    status = write(sock, data, size);
+    if( status == -1 ){
+        printf("Response Error: Write error. %d \n", errno);
+        *err = errno;
+        goto sendResponseCleanup;
+    }
+
+    printf("Response Notice: Wrote: %d %s \n", status, data);
+
+    *err = 0;
+
+sendResponseCleanup:
+
+    return status;
+}
+
+int closeSocket(int sock){
+    int status = -1;
+
+    if (sock < 0){
+        printf("Socket Error: Invalid Input \n");
+        return status;
+    }
+
+    return close(sock);
+}
+
 int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     int status = -1;
     struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
