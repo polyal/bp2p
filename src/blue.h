@@ -16,3 +16,10 @@ int findDevices(devInf ** const devs, int * const numDevs);
 int client(const char* const dest, const char* const data, int size);
 
 int server(char addr[ADDR_SIZE], char ** const data, int* const size);
+
+
+int createServer(int * const err);
+
+int createClient(const char* const dest, int * const err);
+
+int sendRequest(const int sock, const char * const reqData, const int size, char recData[255]);
