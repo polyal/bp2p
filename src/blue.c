@@ -17,7 +17,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
     struct hci_dev_list_req *devList = NULL;
     struct hci_dev_req *devReq = NULL;
     int status = -1;
-    int i, sock, err = 0;
+    int i, sock;
 
     if (!devs || !numDevs){
         printf("Find Local Error: Invalid Input. \n");
@@ -32,7 +32,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
 
     devList = malloc(HCI_MAX_DEV * sizeof(*devReq) + sizeof(*devList));
     if (!devList) {
-        err = errno;
+        status = errno;
         goto findLocalDevicesCleanup;
     }
 
@@ -43,7 +43,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
     // request list of devices from microcontroller
     if (ioctl(sock, HCIGETDEVLIST, (void *) devList) < 0) {
         printf("Find Local Error: IOCTL. \n");
-        err = errno;
+        status = errno;
         goto findLocalDevicesCleanup;
     }
 
@@ -78,7 +78,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
 findLocalDevicesCleanup:
     if (devList) free(devList);
     if (sock >= 0) close(sock);
-    errno = err;
+
     return status;
 }
 
@@ -174,7 +174,7 @@ int client(const char* const dest, const char* const data, int size){
     // connect to server
     do {
         status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
-    } while (status == EHOSTDOWN);
+    } while (errno == EHOSTDOWN || errno == EBADFD);
 
     if (status == 0){
         status = write(sock, data, size);
@@ -269,15 +269,6 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
 
     memcpy(*data, buff, bytes_read);
     status = 0;
-
-
-    status = write(client, data, bytes_read);
-
-    if( status == -1 ){
-        printf("Client Error: Write error. %d \n", errno);
-        status = errno;
-        //goto clientCleanup;
-    }
 
 serverCleanup:
     close(client);
