@@ -124,12 +124,11 @@ int findDevices(devInf ** const devs, int * const numDevs){
         if (hci_read_remote_name(sock, &(ii+i)->bdaddr, sizeof(name), name, 0) < 0)
             strcpy(name, "[unknown]");
 
-        devs[i]->name = malloc(sizeof(char)* (strlen(name)+1));
-        if (devs[i]->name == NULL) goto findDevicesCleanup;
-
-        memcpy(devs[i]->name, name, strlen(name));
-        memcpy(devs[i]->addr, addr, strlen(addr));
-        printf("%s  %s\n", devs[i]->addr, devs[i]->name);
+        memcpy((*devs)[i].name, name, strlen(name));
+        memcpy((*devs)[i].addr, addr, strlen(addr));
+        (*devs)[i].name[strlen(name)] = '\0';
+        (*devs)[i].addr[strlen(addr)] = '\0';
+        printf("%s  %s\n", (*devs)[i].addr, (*devs)[i].name);
     }
 
     *numDevs = num_rsp;
@@ -470,7 +469,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
         goto serverCleanup;
     }
 
-    printf("Server Notice: Read message:\n%s\n", buff);
+    printf("Server Notice: Read message:\n%s %d\n", buff, bytes_read);
     *data = malloc(sizeof(char)*bytes_read);
     if (*data == NULL){
         printf("Server Error: Failed to return data\n");
@@ -514,13 +513,14 @@ int main(int argc, char **argv)
     }
 
     if (strcmp ("-c", argv[1]) == 0)
-        client("34:DE:1A:1D:F4:0B", "Send This Data", sizeof("Send This Data\0"));
+        client("34:DE:1A:1D:F4:0B", "Send This Data", sizeof("Send This Data"));
     else if (strcmp ("-s", argv[1]) == 0)
         server(addr, &data, &size);
     else if (strcmp ("-f", argv[1]) == 0)
         findDevices(&devs, &size);
     else if (strcmp ("-l", argv[1]) == 0)
         findLocalDevices(&devs, &size);
+
 
     int i;
     for (i = 0; i < size; i++){

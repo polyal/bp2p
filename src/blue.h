@@ -3,11 +3,12 @@
 #define DISC_UNIT 8  // unit * 1.28sec time spent searching for devices
 #define ADDR_SIZE 18 // size in chars of a bluetooth address
 #define MAX_CON_DEVS 30 // number of connected devices with rfcomm
+#define MAX_NAME_LEN 255
 
 typedef struct _devInf {
 	int devId;
     char addr[ADDR_SIZE];
-    char* name;
+    char name[MAX_NAME_LEN];
 } devInf;
 
 int findLocalDevices(devInf ** const devs, int * const numDevs);
