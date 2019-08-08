@@ -317,12 +317,13 @@ createServerCleanup:
     return sock;
 }
 
-int receiveRequest(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
+int wait4request(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
     int status = -1, client = -1, bytesRead = 0;
     struct sockaddr_rc clientAddr = { 0 };
     char cAddr[ADDR_SIZE] = { 0 };
     socklen_t opt = sizeof(clientAddr);
     char buff[CHUNK] = { 0 };
+    *err = -1;
 
     if (sock < 0 || data == NULL || size == NULL){
         printf("Receive Error: Invalid Input.\n");
@@ -373,7 +374,7 @@ receiveRequestCleanup:
     return client;
 }
 
-int sendResponse(int sock, char * const data, const int size, int * const err){
+int sendResponse(int sock, char * const data, const int size){
     int status = -1;
 
     if (sock < 0 || data == NULL){
@@ -384,13 +385,13 @@ int sendResponse(int sock, char * const data, const int size, int * const err){
     status = write(sock, data, size);
     if( status == -1 ){
         printf("Response Error: Write error. %d \n", errno);
-        *err = errno;
+        status = errno;
         goto sendResponseCleanup;
     }
 
     printf("Response Notice: Wrote: %d %s \n", status, data);
 
-    *err = 0;
+    status = 0;
 
 sendResponseCleanup:
 

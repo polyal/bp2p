@@ -26,8 +26,8 @@ int createClient(const char* const dest, int * const err);
 
 int sendRequest(const int sock, const char * const reqData, const int size, char recData[255]);
 
-int receiveRequest(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err);
+int wait4request(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err);
 
-int sendResponse(int sock, char * const data, const int size, int * const err);
+int sendResponse(int sock, char * const data, const int size);
 
 int closeSocket(int sock);
