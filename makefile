@@ -2,8 +2,19 @@ objs = package.o compress.o hash.o torrent.o
 cobjs = package.o compress.o hash.o
 libs = -lz -larchive -lcrypto
 
+blueLibs = -lbluetooth
+
 default:
 	gcc -Wall src/blue.c -lbluetooth -o out/a.out
+
+comm: bluetooth
+	g++ -std=c++1y -Wall src/comm.cpp -o out/a.out \
+	out/blue.o \
+	$(blueLibs)
+
+bluetooth:
+	gcc -Wall -c src/blue.c;
+	mv blue.o out/blue.o
 
 torrent: package hash
 	g++ -std=c++1y -Wall -c src/torrent.cpp -Ilib/json/include
