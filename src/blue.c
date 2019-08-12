@@ -485,8 +485,8 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     memcpy(addr, cAddr, ADDR_SIZE-1);
 
     FD_ZERO(&fds);
-    FD_SET(s, &fds);
-    status = select(s + 1, &fds, NULL, NULL, NULL);
+    FD_SET(client, &fds);
+    status = select(client + 1, &fds, NULL, NULL, NULL);
 
     if (status == -1){
         printf("Server Error: Read Select Failed. %d \n", errno);
