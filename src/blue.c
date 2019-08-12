@@ -218,6 +218,7 @@ int client(const char* const dest, const char* const data, int size){
     int status = -1;
     struct sockaddr_rc addr = { 0 };
     int sock;
+    fd_set fds;
 
 
     if (dest == NULL || strlen(dest) != 17){
@@ -247,6 +248,16 @@ int client(const char* const dest, const char* const data, int size){
     status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
 
     if (status == 0){
+        FD_ZERO(&fds);
+        FD_SET(sock, &fds);
+        status = select(sock + 1, NULL, &fds, NULL, NULL);
+
+        if (status == -1){
+            printf("Client Error: Write Select Failed. %d \n", errno);
+            status = errno;
+            goto clientCleanup;
+        }
+
         status = write(sock, data, size);
 
         if( status == -1 ){
@@ -262,6 +273,16 @@ int client(const char* const dest, const char* const data, int size){
     }
 
     char buff[200];
+
+    FD_ZERO(&fds);
+    FD_SET(sock, &fds);
+    status = select(sock + 1, &fds, NULL, NULL, NULL);
+
+    if (status == -1){
+        printf("Client Error: Read Select Failed. %d \n", errno);
+        status = errno;
+        goto clientCleanup;
+    }
 
     size = read(sock, buff, sizeof(buff));
     if( size == -1 ) {
@@ -415,6 +436,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     char buff[CHUNK] = { 0 };
     char cAddr[ADDR_SIZE] = { 0 };
     int s, client, bytes_read;
+    fd_set fds;
     socklen_t opt = sizeof(rem_addr);
 
     if (data == NULL || size == NULL){
@@ -462,6 +484,16 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     printf("Server Notice: accepted connection from %s \n", cAddr);
     memcpy(addr, cAddr, ADDR_SIZE-1);
 
+    FD_ZERO(&fds);
+    FD_SET(s, &fds);
+    status = select(s + 1, &fds, NULL, NULL, NULL);
+
+    if (status == -1){
+        printf("Server Error: Read Select Failed. %d \n", errno);
+        status = errno;
+        goto serverCleanup;
+    }
+
     // read data from the client
     bytes_read = read(client, buff, sizeof(buff));
     if( bytes_read == -1 ) {
@@ -482,6 +514,16 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
 
     buff[0] = '!';
     buff[bytes_read-1] = '!';
+
+    FD_ZERO(&fds);
+    FD_SET(client, &fds);
+    status = select(client + 1, NULL, &fds, NULL, NULL);
+
+    if (status == -1){
+        printf("Server Error: Write Select Failed. %d \n", errno);
+        status = errno;
+        goto serverCleanup;
+    }
 
     status = write(client, buff, bytes_read);
 
