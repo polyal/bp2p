@@ -20,8 +20,7 @@ class Peer{
 		};
 
 	private:
-		vector<Device> clientNodes;
-		vector<Device> serverNodes;
+		vector<Device> nodes;
 		vector<Device> localDevices;
 
 	public:

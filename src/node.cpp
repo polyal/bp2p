@@ -33,7 +33,7 @@ void Peer::initializeServerNodes(){
 		free(devs);
 	}
 
-	serverNodes = devices;
+	nodes.insert( nodes.end(), devices.begin(), devices.end() );
 }
 
 void Peer::initializeLocalDevices(){
@@ -56,7 +56,7 @@ void Peer::initializeLocalDevices(){
 		free(devs);
 	}
 
-	serverNodes = devices;
+	localDevices = devices;
 }
 
 
