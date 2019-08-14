@@ -7,8 +7,8 @@ blueLibs = -lbluetooth
 default:
 	gcc -Wall src/blue.c -lbluetooth -o out/a.out
 
-comm: bluetooth
-	g++ -std=c++1y -Wall src/comm.cpp -o out/a.out \
+node: bluetooth
+	g++ -std=c++1y -Wall src/node.cpp -o out/a.out \
 	out/blue.o \
 	$(blueLibs)
 

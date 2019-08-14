@@ -10,7 +10,7 @@
 #include <errno.h>
 #include "blue.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 
 int findLocalDevices(devInf ** const devs, int * const numDevs){
@@ -68,6 +68,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
 
             devs[i]->devId = devReq->dev_id;
             memcpy(devs[i]->addr, addr, strlen(addr));
+            devs[i]->name[0] = '\0';
             printf("Find Local Dev: %d %s \n", devs[i]->devId, devs[i]->addr);
         }       
     }
