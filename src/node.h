@@ -17,6 +17,10 @@ class Peer{
 			Device (string addr, string name); // this will be used for local devices
 			Device (int id, string addr, string name); // this will be used for remote devices
 
+			string getAddr();
+			string getName();
+			int getSock();
+
 		};
 
 	private:
@@ -26,7 +30,10 @@ class Peer{
 	public:
 		Peer();
 
-		void initializeLocalDevices();
-		void initializeServerNodes();
+		void findNearbyDevices();
+		void findLocalDevices();
+
+		void connectToClient(Peer::Device dev);
+
 };
 

@@ -142,7 +142,7 @@ findDevicesCleanup:
     return status;
 }
 
-int createClient(const char* const dest, int * const err){
+int connectToClient(const char* const dest, int * const err){
     struct sockaddr_rc addr = { 0 };
     int sock = -1, status;
     *err = -1;
@@ -196,14 +196,14 @@ int sendRequest(const int sock, const char * const reqData, const int size, char
     status = write(sock, reqData, size);
 
     if( status == -1 ){
-        printf("Client Error: Write error. %d \n", errno);
+        printf("sendRequest Error: Write error. %d \n", errno);
         status = errno;
         goto sendRequestCleanup;
     }
 
     bytes_read = read(sock, recData, sizeof(recData));
     if( bytes_read == -1 ) {
-        printf("Server Error: Failed to read message. %d \n", errno);
+        printf("sendRequest Error: Failed to read message. %d \n", errno);
         status = errno;
         goto sendRequestCleanup;
     }

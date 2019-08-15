@@ -22,7 +22,7 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size);
 
 int createServer(int * const err);
 
-int createClient(const char* const dest, int * const err);
+int connectToClient(const char* const dest, int * const err);
 
 int sendRequest(const int sock, const char * const reqData, const int size, char recData[255]);
 
