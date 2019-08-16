@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 #include "node.h"
@@ -60,14 +61,45 @@ void Peer::findLocalDevices(){
 	localDevices = devices;
 }
 
-void Peer::connectToClient(Peer::Device dev){
+void Peer::connect2Node(Peer::Device& dev){
 	int err = 0;
+	int sock = -1;
 
-	::connectToClient(dev.getAddr().c_str(), &err);
+	sock = ::connect2Server(dev.getChannel(), dev.getAddr().c_str(), &err);
 
 	if (err > 0){
 		cout << "CreateSock2Client Error: " << err << endl;
 	}
+
+	dev.setSendSock(sock);
+}
+
+void Peer::sendReqWait4Resp(const Peer::Device& dev, const string req, string resp){
+	int err = 0;
+	auto bResp = unique_ptr<char[]>{new char[255]};
+	
+	err = ::sendReqWait4Resp(dev.getSendSock(), req.c_str(), req.length(), bResp.get());
+
+	if (err > 0){
+		cout << "sendReqWait4Resp Error: " << err << endl;
+		return;
+	}
+
+	resp = bResp.get();
+}
+
+void Peer::initServer(Peer::Device& dev){
+	int err = 0;
+	int sock = -1;
+
+	sock = ::initServer(&err);
+
+	if (err > 0){
+		cout << "initServer Error: " << err << endl;
+		return;
+	}
+
+	dev.setRecSock(sock);
 }
 
 
@@ -91,16 +123,28 @@ Peer::Device::Device(int id, string addr, string name){
 	this->name = name;
 }
 
-string Peer::Device::getAddr(){
+string Peer::Device::getAddr() const{
 	return this->addr;
 }
 
-string Peer::Device::getName(){
+string Peer::Device::getName() const{
 	return this->name;
 }
 
-int Peer::Device::getSock(){
-	return this->sock;
+int Peer::Device::getChannel() const{
+	return this->channel;
+}
+
+int Peer::Device::getSendSock() const{
+	return this->sendSock;
+}
+
+void Peer::Device::setSendSock(int sock){
+	this->sendSock = sock;
+}
+
+void Peer::Device::setRecSock(int sock){
+	this->recSock = sock;
 }
 
 

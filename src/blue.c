@@ -142,7 +142,7 @@ findDevicesCleanup:
     return status;
 }
 
-int connectToClient(const char* const dest, int * const err){
+int connect2Server(const int channel, const char* const dest, int * const err){
     struct sockaddr_rc addr = { 0 };
     int sock = -1, status;
     *err = -1;
@@ -162,7 +162,7 @@ int connectToClient(const char* const dest, int * const err){
 
     // set the connection parameters (who to connect to)
     addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) 1;
+    addr.rc_channel = (uint8_t) channel;
     str2ba( dest, &addr.rc_bdaddr );
 
     // connect to server
@@ -185,7 +185,7 @@ connectCleanup:
     return sock;
 }
 
-int sendRequest(const int sock, const char * const reqData, const int size, char recData[255]){
+int sendReqWait4Resp(const int sock, const char * const reqData, const int size, char recData[255]){
     int status = -1, bytes_read = 0;
 
     if (sock < 0 || reqData == NULL || size <= 0){
@@ -302,7 +302,7 @@ clientCleanup:
     return status;
 }
 
-int createServer(int * const err){
+int initServer(int * const err){
     int status = -1;
     struct sockaddr_rc loc_addr = { 0 };
     int sock = -1;
@@ -339,7 +339,7 @@ createServerCleanup:
     return sock;
 }
 
-int wait4request(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
+int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
     int status = -1, client = -1, bytesRead = 0;
     struct sockaddr_rc clientAddr = { 0 };
     char cAddr[ADDR_SIZE] = { 0 };

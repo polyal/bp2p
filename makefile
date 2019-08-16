@@ -4,10 +4,8 @@ libs = -lz -larchive -lcrypto
 
 blueLibs = -lbluetooth
 
-default:
-	gcc -Wall src/blue.c -lbluetooth -o out/a.out
 
-node: bluetooth
+default: bluetooth
 	g++ -std=c++1y -Wall src/node.cpp -o out/a.out \
 	out/blue.o \
 	$(blueLibs)
@@ -39,6 +37,10 @@ mvCobjs:
 
 # compile each module as its own executable
 # make sure to set DEBUG = 1
+
+bluetoohTest:
+	gcc -Wall src/blue.c -lbluetooth -o out/a.out
+
 torrentTest: package hash mvCobjs
 	g++ -std=c++1y -Wall src/torrent.cpp -Ilib/json/include -o out/a.out \
 	$(foreach obj, $(cobjs), out/$(obj)) \
