@@ -28,6 +28,6 @@ int sendReqWait4Resp(const int sock, const char * const reqData, const int size,
 
 int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err);
 
-int sendResponse(int sock, char * const data, const int size);
+int sendResponse(int sock, const char * const data, const int size);
 
 int closeSocket(int sock);

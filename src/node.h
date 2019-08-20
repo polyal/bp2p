@@ -38,12 +38,18 @@ class Peer{
 		void findNearbyDevices();
 		void findLocalDevices();
 
-		void connect2Node(Peer::Device& dev);
+		int connect2Node(Peer::Device& dev);
 		// TODO: create a class for request and response
-		void sendReqWait4Resp(const Peer::Device& dev, const string req, string resp);
+		int sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp);
+		int initServer(Peer::Device& dev);
+		int listen4Req(Peer::Device& dev, Peer::Device& client, string& req);
+		int sendResponse(Peer::Device& dev, string data);
+		void endComm(Peer::Device& dev);
 
-		void initServer(Peer::Device& dev);
 
+		// testing functions
+		void Client();
+		void Server();
 
 
 };

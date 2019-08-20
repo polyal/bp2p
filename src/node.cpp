@@ -61,7 +61,7 @@ void Peer::findLocalDevices(){
 	localDevices = devices;
 }
 
-void Peer::connect2Node(Peer::Device& dev){
+int Peer::connect2Node(Peer::Device& dev){
 	int err = 0;
 	int sock = -1;
 
@@ -69,12 +69,15 @@ void Peer::connect2Node(Peer::Device& dev){
 
 	if (err > 0){
 		cout << "CreateSock2Client Error: " << err << endl;
+		return err;
 	}
 
 	dev.setSendSock(sock);
+
+	return 0;
 }
 
-void Peer::sendReqWait4Resp(const Peer::Device& dev, const string req, string resp){
+int Peer::sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp){
 	int err = 0;
 	auto bResp = unique_ptr<char[]>{new char[255]};
 	
@@ -82,13 +85,14 @@ void Peer::sendReqWait4Resp(const Peer::Device& dev, const string req, string re
 
 	if (err > 0){
 		cout << "sendReqWait4Resp Error: " << err << endl;
-		return;
+		return err;
 	}
 
 	resp = bResp.get();
+	return 0;
 }
 
-void Peer::initServer(Peer::Device& dev){
+int Peer::initServer(Peer::Device& dev){
 	int err = 0;
 	int sock = -1;
 
@@ -96,10 +100,58 @@ void Peer::initServer(Peer::Device& dev){
 
 	if (err > 0){
 		cout << "initServer Error: " << err << endl;
-		return;
+		return err;
 	}
 
 	dev.setRecSock(sock);
+	return 0;
+}
+
+int Peer::listen4Req(Peer::Device& dev, Peer::Device& client, string& req){
+	int err = 0;
+	int clientPort = 0;
+	char* data = NULL;
+	int size = 0;
+	char clientAddr[ADDR_SIZE];
+
+	clientPort = ::listen4Req(dev.getSendSock(), &data, &size, clientAddr, &err);
+
+	if (err > 0){
+		cout << "listen4Req Error: " << err << endl;
+		return err;
+	}
+
+	Device caller{clientPort, clientAddr, ""};
+	req = data;
+	client = dev;
+
+	if (data) free (data);
+
+	return 0;
+}
+
+int Peer::sendResponse(Peer::Device& dev, const string data){
+	int err = 0;
+
+	err = ::sendResponse(dev.getSendSock(), data.c_str(), data.size());
+
+	if (err > 0){
+		cout << "sendResponse Error: " << err << endl;
+		return err;
+	}
+
+	return 0;
+}
+
+void Peer::endComm(Peer::Device& dev){
+	int err = 0;
+
+	err = closeSocket(dev.getSendSock());
+
+	if (err > 0){
+		cout << "endComm Error: " << err << endl;
+		return;
+	}
 }
 
 
@@ -147,6 +199,68 @@ void Peer::Device::setRecSock(int sock){
 	this->recSock = sock;
 }
 
+void Peer::Client(){
+	int err = 0;
+
+	this->findNearbyDevices();
+
+	if (nodes.size() == 0){
+		cout << "Client Error: No Nodes Available " << endl;
+		return;
+	}
+
+	err = this->connect2Node(nodes[0]);
+
+	if (err > 0){
+		cout << "Client Error: connect2Node Failed with " << err << endl;
+		return;
+	}
+
+	string resp;
+	err = this->sendReqWait4Resp(nodes[0], "Send This Data\n", resp);
+	if (err > 0){
+		cout << "Client Error: sendReqWait4Resp Failed with " << err << endl;
+		return;
+	}
+
+	cout << "Received " << resp << " from " << nodes[0].getAddr() << endl;
+
+	this->endComm(localDevices[0]);
+}
+
+void Peer::Server(){
+	int err = 0;
+
+	this->findNearbyDevices();
+	if (localDevices.size() == 0){
+		cout << "Server Error: No Local Devices Available " << endl;
+		return;
+	}
+
+	err = this->initServer(localDevices[0]);
+	if (err > 0){
+		cout << "Server Error: initServer Failed with " << err << endl;
+		return;
+	}
+
+	Peer::Device client;
+	string req;
+	err = this->listen4Req(localDevices[0], client, req);
+	if (err > 0){
+		cout << "Server Error: listen4Req Failed with " << err << endl;
+		return;
+	}
+	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << endl;
+
+	err = this->sendResponse(client, "Send Back This Data\n");
+	if (err > 0){
+		cout << "Server Error: sendResponse Failed with " << err << endl;
+		return;
+	}
+
+	this->endComm(localDevices[0]);
+	this->endComm(client);
+}
 
 int main(int argc, char *argv[]){
 	Peer me{};

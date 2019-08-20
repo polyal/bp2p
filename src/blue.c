@@ -396,7 +396,7 @@ receiveRequestCleanup:
     return client;
 }
 
-int sendResponse(int sock, char * const data, const int size){
+int sendResponse(int sock, const char * const data, const int size){
     int status = -1;
 
     if (sock < 0 || data == NULL){
