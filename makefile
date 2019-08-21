@@ -1,21 +1,24 @@
 objs = package.o compress.o hash.o torrent.o
 cobjs = package.o compress.o hash.o
 libs = -lz -larchive -lcrypto
+inclJson = -Ilib/json/include
 
 blueLibs = -lbluetooth
 
 
-default: bluetooth
-	g++ -std=c++1y -Wall src/node.cpp -o out/a.out \
+default: bluetooth torrent
+	g++ -std=c++1y -Wall src/node.cpp -Ilib/json/include -o out/a.out \
 	out/blue.o \
 	$(blueLibs)
+	
 
 bluetooth:
 	gcc -Wall -c src/blue.c;
 	mv blue.o out/blue.o
 
-torrent: package hash
+torrent: package hash mvCobjs
 	g++ -std=c++1y -Wall -c src/torrent.cpp -Ilib/json/include
+	mv torrent.o out/torrent.o
 
 packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
 	ar rvs out/arobj.a $(foreach obj, $(objs), out/$(obj))

@@ -2,12 +2,14 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "node.h"
+#include "torrent.h"
 
 // include c libs
 extern "C" {
 #include "blue.h"
 }
+
+#include "node.h"
 
 using namespace std;
 
