@@ -148,11 +148,18 @@ int Peer::sendResponse(Peer::Device& dev, const string data){
 void Peer::endComm(Peer::Device& dev){
 	int err = 0;
 
-	err = closeSocket(dev.getSendSock());
+	if (dev.getSendSock() >= 0)
+		err = closeSocket(dev.getSendSock());
 
 	if (err > 0){
-		cout << "endComm Error: " << err << endl;
-		return;
+		cout << "endComm Send Error: " << err << endl;
+	}
+
+	if (dev.getRecSock() >= 0)
+		err = closeSocket(dev.getRecSock());
+
+	if (err > 0){
+		cout << "endComm Rec Error: " << err << endl;
 	}
 }
 
@@ -259,7 +266,7 @@ void Peer::Server(){
 	}
 	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << " PORT " << client.getSendSock() << endl;
 
-	err = this->sendResponse(client, "Send Back This Data\n");
+	err = this->sendResponse(client, "Rec Data\n");
 	if (err > 0){
 		cout << "Server Error: sendResponse Failed with " << err << endl;
 		return;
