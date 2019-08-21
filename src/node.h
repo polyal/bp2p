@@ -22,9 +22,12 @@ class Peer{
 			string getName() const;
 			int getChannel() const;
 			int getSendSock() const;
+			int getRecSock() const;
 
 			void setSendSock(int sock);
 			void setRecSock(int sock);
+
+
 
 		};
 

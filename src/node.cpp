@@ -102,6 +102,7 @@ int Peer::initServer(Peer::Device& dev){
 		cout << "initServer Error: " << err << endl;
 		return err;
 	}
+	cout << "initServer Socket: " << sock << endl;
 
 	dev.setRecSock(sock);
 	return 0;
@@ -114,7 +115,7 @@ int Peer::listen4Req(Peer::Device& dev, Peer::Device& client, string& req){
 	int size = 0;
 	char clientAddr[ADDR_SIZE];
 
-	clientPort = ::listen4Req(dev.getSendSock(), &data, &size, clientAddr, &err);
+	clientPort = ::listen4Req(dev.getRecSock(), &data, &size, clientAddr, &err);
 
 	if (err > 0){
 		cout << "listen4Req Error: " << err << endl;
@@ -191,6 +192,10 @@ int Peer::Device::getSendSock() const{
 	return this->sendSock;
 }
 
+int Peer::Device::getRecSock() const{
+	return this->recSock;
+}
+
 void Peer::Device::setSendSock(int sock){
 	this->sendSock = sock;
 }
@@ -231,7 +236,7 @@ void Peer::Client(){
 void Peer::Server(){
 	int err = 0;
 
-	this->findNearbyDevices();
+	this->findLocalDevices();
 	if (localDevices.size() == 0){
 		cout << "Server Error: No Local Devices Available " << endl;
 		return;
@@ -242,6 +247,7 @@ void Peer::Server(){
 		cout << "Server Error: initServer Failed with " << err << endl;
 		return;
 	}
+	cout << "Server Notice: Sock " << localDevices[0].getRecSock() << endl;
 
 	Peer::Device client;
 	string req;
@@ -265,8 +271,7 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
-	me.findLocalDevices();
-	me.findNearbyDevices();
+	me.Server();
 
     return 0;
 }
