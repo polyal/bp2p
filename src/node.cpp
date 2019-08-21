@@ -65,7 +65,7 @@ int Peer::connect2Node(Peer::Device& dev){
 	int err = 0;
 	int sock = -1;
 
-	sock = ::connect2Server(dev.getChannel(), dev.getAddr().c_str(), &err);
+	sock = ::connect2Server(1, dev.getAddr().c_str(), &err);
 
 	if (err > 0){
 		cout << "CreateSock2Client Error: " << err << endl;
@@ -271,7 +271,7 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
-	me.Server();
+	me.Client();
 
     return 0;
 }
