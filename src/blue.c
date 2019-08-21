@@ -201,7 +201,7 @@ int sendReqWait4Resp(const int sock, const char * const reqData, const int size,
         goto sendRequestCleanup;
     }
 
-    bytes_read = read(sock, recData, sizeof(recData));
+    bytes_read = read(sock, recData, 255);
     if( bytes_read == -1 ) {
         printf("sendRequest Error: Failed to read message. %d \n", errno);
         status = errno;

@@ -231,7 +231,7 @@ void Peer::Client(){
 
 	cout << "Received " << resp << " from " << nodes[0].getAddr() << endl;
 
-	this->endComm(localDevices[0]);
+	this->endComm(nodes[0]);
 }
 
 void Peer::Server(){
