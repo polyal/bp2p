@@ -185,8 +185,9 @@ connectCleanup:
     return sock;
 }
 
-int sendReqWait4Resp(const int sock, const char * const reqData, const int size, char recData[255]){
+int sendReqWait4Resp(const int sock, const char * const reqData, const int size, char recData[CHUNK], int * const respSize){
     int status = -1, bytes_read = 0;
+    *respSize = 0;
 
     if (sock < 0 || reqData == NULL || size <= 0){
         printf("sendRequest Error: Invalid Input.\n");
@@ -201,13 +202,14 @@ int sendReqWait4Resp(const int sock, const char * const reqData, const int size,
         goto sendRequestCleanup;
     }
 
-    bytes_read = read(sock, recData, 255);
+    bytes_read = read(sock, recData, CHUNK);
     if( bytes_read == -1 ) {
         printf("sendRequest Error: Failed to read message. %d \n", errno);
         status = errno;
         goto sendRequestCleanup;
     }
 
+    *respSize = bytes_read;
     status = 0;
 
 sendRequestCleanup:

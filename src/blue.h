@@ -24,7 +24,7 @@ int initServer(int * const err);
 
 int connect2Server(const int channel, const char* const dest, int * const err);
 
-int sendReqWait4Resp(const int sock, const char * const reqData, const int size, char recData[255]);
+int sendReqWait4Resp(const int sock, const char * const reqData, const int size, char recData[CHUNK], int * const respSize);
 
 int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err);
 

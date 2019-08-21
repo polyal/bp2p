@@ -79,9 +79,10 @@ int Peer::connect2Node(Peer::Device& dev){
 
 int Peer::sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp){
 	int err = 0;
-	auto bResp = unique_ptr<char[]>{new char[255]};
+	int respSize = 0;
+	auto bResp = unique_ptr<char[]>{new char[CHUNK]};
 	
-	err = ::sendReqWait4Resp(dev.getSendSock(), req.c_str(), req.length(), bResp.get());
+	err = ::sendReqWait4Resp(dev.getSendSock(), req.c_str(), req.length(), bResp.get(), &respSize);
 
 	if (err > 0){
 		cout << "sendReqWait4Resp Error: " << err << endl;
