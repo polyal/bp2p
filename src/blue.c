@@ -371,6 +371,7 @@ int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZ
     ba2str( &clientAddr.rc_bdaddr, cAddr );
     printf("Receive Notice: accepted connection from %s \n", cAddr);
     memcpy(addr, cAddr, ADDR_SIZE-1);
+    addr[ADDR_SIZE-1] = '\0';
 
     // read data from the client
     bytesRead = read(client, buff, sizeof(buff));

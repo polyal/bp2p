@@ -110,22 +110,23 @@ int Peer::initServer(Peer::Device& dev){
 
 int Peer::listen4Req(Peer::Device& dev, Peer::Device& client, string& req){
 	int err = 0;
-	int clientPort = 0;
+	int clientSock = 0;
 	char* data = NULL;
 	int size = 0;
 	char clientAddr[ADDR_SIZE];
 
-	clientPort = ::listen4Req(dev.getRecSock(), &data, &size, clientAddr, &err);
+	clientSock = ::listen4Req(dev.getRecSock(), &data, &size, clientAddr, &err);
 
 	if (err > 0){
 		cout << "listen4Req Error: " << err << endl;
 		return err;
 	}
 
-	Device caller{clientPort, clientAddr, ""};
+	Device caller{clientAddr, ""};
+	client = caller;
+	client.setSendSock(clientSock);
 	req = data;
-	client = dev;
-
+	
 	if (data) free (data);
 
 	return 0;
@@ -256,7 +257,7 @@ void Peer::Server(){
 		cout << "Server Error: listen4Req Failed with " << err << endl;
 		return;
 	}
-	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << endl;
+	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << " PORT " << client.getSendSock() << endl;
 
 	err = this->sendResponse(client, "Send Back This Data\n");
 	if (err > 0){
@@ -271,7 +272,7 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
-	me.Client();
+	me.Server();
 
     return 0;
 }
