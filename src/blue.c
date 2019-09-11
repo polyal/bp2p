@@ -341,17 +341,16 @@ createServerCleanup:
     return sock;
 }
 
-int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZE], int * const err){
-    int status = -1, client = -1, bytesRead = 0;
+int listen4Req(int sock, char addr[ADDR_SIZE], int * const err){
+    int status = -1, client = -1;
     struct sockaddr_rc clientAddr = { 0 };
     char cAddr[ADDR_SIZE] = { 0 };
     socklen_t opt = sizeof(clientAddr);
-    char buff[CHUNK] = { 0 };
     *err = -1;
 
-    if (sock < 0 || data == NULL || size == NULL){
+    if (sock < 0){
         printf("Receive Error: Invalid Input.\n");
-        goto receiveRequestCleanup;
+        goto listen4ReqCleanup;
     }
 
     // put socket into listening modeq
@@ -359,7 +358,7 @@ int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZ
     if (status == -1){
         printf("Receive Error: Cannot listen for connections on socket. %d \n", errno);
         *err = errno;
-        goto receiveRequestCleanup;
+        goto listen4ReqCleanup;
     }
 
     // accept one connection
@@ -367,7 +366,7 @@ int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZ
     if (client == -1){
         printf("Receive Error: Failed to accept message. %d \n", errno);
         *err = errno;
-        goto receiveRequestCleanup;
+        goto listen4ReqCleanup;
     }
 
     ba2str( &clientAddr.rc_bdaddr, cAddr );
@@ -375,28 +374,45 @@ int listen4Req(int sock, char ** const data, int* const size, char addr[ADDR_SIZ
     memcpy(addr, cAddr, ADDR_SIZE-1);
     addr[ADDR_SIZE-1] = '\0';
 
+    status = 0;
+
+listen4ReqCleanup:
+
+    return client;
+}
+
+int fetchRequestData(int sock, char ** const data, int * const size){
+    int status = -1;
+    char buff[CHUNK] = { 0 };
+    int bytesRead = 0;
+
+    if (sock < 0 || data == NULL || size == NULL){
+        printf("Receive Error: Invalid Input.\n");
+        goto fetchRequestDataCleanup;
+    }
+
     // read data from the client
-    bytesRead = read(client, buff, sizeof(buff));
+    bytesRead = read(sock, buff, sizeof(buff));
     if( bytesRead == -1 ) {
         printf("Receive Error: Failed to read message. %d \n", errno);
-        *err = errno;
-        goto receiveRequestCleanup;
+        status = errno;
+        goto fetchRequestDataCleanup;
     }
 
     printf("Server Notice: Read message:\n%s\n", buff);
     *data = malloc(sizeof(char)*bytesRead);
     if (*data == NULL){
         printf("Receive Error: Failed to return data\n");
-        *err = -1;
-        goto receiveRequestCleanup;
+        status = -1;
+        goto fetchRequestDataCleanup;
     }
 
     memcpy(*data, buff, bytesRead);
     status = 0;
 
-receiveRequestCleanup:
+fetchRequestDataCleanup:
 
-    return client;
+    return status;
 }
 
 int sendResponse(int sock, const char * const data, const int size){

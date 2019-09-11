@@ -23,7 +23,7 @@ void Peer::findNearbyDevices(){
 	int numDevs;
 	vector<Device> devices;
 
-	status = findDevices(&devs, &numDevs);
+	status = ::findDevices(&devs, &numDevs);
 
 	if (status == 0 && devs && numDevs > 0){
 		devices.reserve(numDevs);
@@ -111,14 +111,12 @@ int Peer::initServer(Peer::Device& dev){
 	return 0;
 }
 
-int Peer::listen4Req(Peer::Device& dev, Peer::Device& client, string& req){
+int Peer::listen4Req(Peer::Device& dev, Peer::Device& client){
 	int err = 0;
 	int clientSock = 0;
-	char* data = NULL;
-	int size = 0;
 	char clientAddr[ADDR_SIZE];
 
-	clientSock = ::listen4Req(dev.getRecSock(), &data, &size, clientAddr, &err);
+	clientSock = ::listen4Req(dev.getRecSock(), clientAddr, &err);
 
 	if (err > 0){
 		cout << "listen4Req Error: " << err << endl;
@@ -128,13 +126,28 @@ int Peer::listen4Req(Peer::Device& dev, Peer::Device& client, string& req){
 	Device caller{clientAddr, ""};
 	client = caller;
 	client.setSendSock(clientSock);
-	req = data;
-	
-	if (data) free (data);
 
 	return 0;
 }
 
+int Peer::fetchRequestData(const Peer::Device& dev, string& req){
+	int err = 0;
+	char* data = NULL;
+	int size = 0;
+
+	err = ::fetchRequestData(dev.getSendSock(), &data, &size);
+
+	if (err > 0){
+		cout << "fetchRequestData Error: " << err << endl;
+		return err;
+	}
+
+	req = data;
+
+	if (data) free(data);
+
+	return 0;
+}
 int Peer::sendResponse(Peer::Device& dev, const string data){
 	int err = 0;
 
@@ -241,6 +254,14 @@ void Peer::Client(){
 
 	cout << "Received " << resp << " from " << nodes[0].getAddr() << endl;
 
+	err = this->sendReqWait4Resp(nodes[0], "New data to be sent\n", resp);
+	if (err > 0){
+		cout << "Client Error: sendReqWait4Resp Failed with " << err << endl;
+		return;
+	}
+
+	cout << "Received " << resp << " from " << nodes[0].getAddr() << endl;
+
 	this->endComm(nodes[0]);
 }
 
@@ -261,15 +282,37 @@ void Peer::Server(){
 	cout << "Server Notice: Sock " << localDevices[0].getRecSock() << endl;
 
 	Peer::Device client;
-	string req;
-	err = this->listen4Req(localDevices[0], client, req);
+	err = this->listen4Req(localDevices[0], client);
 	if (err > 0){
 		cout << "Server Error: listen4Req Failed with " << err << endl;
 		return;
 	}
+
+	string req;
+	err = this->fetchRequestData(localDevices[0], req);
+	if (err > 0){
+		cout << "Server Error: fetchRequestData Failed with " << err << endl;
+		return;
+	}
+
 	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << " PORT " << client.getSendSock() << endl;
 
 	err = this->sendResponse(client, "Rec Data\n");
+	if (err > 0){
+		cout << "Server Error: sendResponse Failed with " << err << endl;
+		return;
+	}
+
+	err = this->fetchRequestData(localDevices[0], req);
+	if (err > 0){
+		cout << "Server Error: fetchRequestData Failed with " << err << endl;
+		return;
+	}
+
+	cout << localDevices[0].getAddr() << " received " << req << " from " << client.getAddr() << " PORT " << client.getSendSock() << endl;
+
+
+	err = this->sendResponse(client, "new data\n");
 	if (err > 0){
 		cout << "Server Error: sendResponse Failed with " << err << endl;
 		return;

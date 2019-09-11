@@ -45,7 +45,8 @@ class Peer{
 		// TODO: create a class for request and response
 		int sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp);
 		int initServer(Peer::Device& dev);
-		int listen4Req(Peer::Device& dev, Peer::Device& client, string& req);
+		int listen4Req(Peer::Device& dev, Peer::Device& client);
+		int fetchRequestData(const Peer::Device& dev, string& req);
 		int sendResponse(Peer::Device& dev, string data);
 		void endComm(Peer::Device& dev);
 
