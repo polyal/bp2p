@@ -349,14 +349,14 @@ int listen4Req(int sock, char addr[ADDR_SIZE], int * const err){
     *err = -1;
 
     if (sock < 0){
-        printf("Receive Error: Invalid Input.\n");
+        printf("Listen Error: Invalid Input.\n");
         goto listen4ReqCleanup;
     }
 
     // put socket into listening modeq
     status = listen(sock, MAX_CON_DEVS);
     if (status == -1){
-        printf("Receive Error: Cannot listen for connections on socket. %d \n", errno);
+        printf("Listen Error: Cannot listen for connections on socket. %d \n", errno);
         *err = errno;
         goto listen4ReqCleanup;
     }
@@ -364,13 +364,13 @@ int listen4Req(int sock, char addr[ADDR_SIZE], int * const err){
     // accept one connection
     client = accept(sock, (struct sockaddr *)&clientAddr, &opt);
     if (client == -1){
-        printf("Receive Error: Failed to accept message. %d \n", errno);
+        printf("Listen Error: Failed to accept message. %d \n", errno);
         *err = errno;
         goto listen4ReqCleanup;
     }
 
     ba2str( &clientAddr.rc_bdaddr, cAddr );
-    printf("Receive Notice: accepted connection from %s \n", cAddr);
+    printf("Listen Notice: accepted connection from %s \n", cAddr);
     memcpy(addr, cAddr, ADDR_SIZE-1);
     addr[ADDR_SIZE-1] = '\0';
 
@@ -399,7 +399,7 @@ int fetchRequestData(int sock, char ** const data, int * const size){
         goto fetchRequestDataCleanup;
     }
 
-    printf("Server Notice: Read message:\n%s\n", buff);
+    printf("Receive Notice: Read message:\n%s\n", buff);
     *data = malloc(sizeof(char)*bytesRead);
     if (*data == NULL){
         printf("Receive Error: Failed to return data\n");

@@ -289,7 +289,7 @@ void Peer::Server(){
 	}
 
 	string req;
-	err = this->fetchRequestData(localDevices[0], req);
+	err = this->fetchRequestData(client, req);
 	if (err > 0){
 		cout << "Server Error: fetchRequestData Failed with " << err << endl;
 		return;
@@ -303,7 +303,7 @@ void Peer::Server(){
 		return;
 	}
 
-	err = this->fetchRequestData(localDevices[0], req);
+	err = this->fetchRequestData(client, req);
 	if (err > 0){
 		cout << "Server Error: fetchRequestData Failed with " << err << endl;
 		return;
