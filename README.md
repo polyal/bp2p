@@ -3,7 +3,7 @@
 Requirements
 bluez
 zlib
-libarchive
+libarchive-dev
 libbz2-dev
 libssl-dev
 
