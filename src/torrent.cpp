@@ -21,7 +21,7 @@ extern "C" {
 using namespace std;
 
 const string Torrent::torrentDir = "torrents/";
-const string Torrent::torrentFileDir = "torrentFiles/";
+const string Torrent::torrentFileDir = "torrentData/";
 
 string bytesToHex(char* bytes, int len){
 	std::stringstream digest;
@@ -87,7 +87,7 @@ Torrent::Torrent(const string& torrentName){
 
 	readTorrentFromFile(torrentName);
 	deserialize(serializedObj, true);
-	unpackage (filename);
+	unpackage (fullpath);
 }
 
 Torrent::Torrent(){
@@ -113,15 +113,21 @@ int Torrent::createTorrent (const string& torrentName, const vector<string>& fil
 
 int Torrent::createPackage(const string& torrentName, const vector<string>& files){
 	int ret = 0;
-	const char* cstrTorrent = torrentName.c_str();
+	string torrentPath;
+	const char* cstrTorrentData;
 	vector<const char*> cstrFiles;
     cstrFiles.reserve(files.size());
+
+    torrentPath = torrentFileDir + torrentName;
+    cstrTorrentData = torrentPath.c_str();
+
+    cout << cstrTorrentData << endl;
 	
 	for(auto& file: files)
     	cstrFiles.push_back(file.c_str());
 	cstrFiles.push_back(NULL); // last entry needs to be NULL
 
-	ret = package(cstrTorrent, cstrFiles.data());
+	ret = package(cstrTorrentData, cstrFiles.data());
 
 	if (ret != 0){
 		cout << "Packaging Error" << endl;
@@ -130,6 +136,7 @@ int Torrent::createPackage(const string& torrentName, const vector<string>& file
 
 	// set filename instance
 	filename = torrentName;
+	fullpath = torrentPath;
 	
 	return ret;
 }
@@ -151,11 +158,11 @@ int Torrent::generateChunks(){
 	int length = 0;
 
 	// need to call createPackage() first
-	if (filename.empty())
+	if (fullpath.empty())
 		return -1;
 
 	// generate chunk hashes
-	ret = computeSha256FileChunks(filename.c_str(), &digest, &length);
+	ret = computeSha256FileChunks(fullpath.c_str(), &digest, &length);
 
 	//convert hash chunks to hex strings
 	int i = 0;
@@ -197,12 +204,12 @@ int Torrent::generateFileHash(){
 	const char* cFilename;
 	char digest[65];
 
-	if (filename.empty()){
+	if (fullpath.empty()){
 		cout << "File Hash Input Error: invalid input" << endl;
 		return -1;
 	}
 
-	cFilename = this->filename.c_str();
+	cFilename = this->fullpath.c_str();
 	err = computeSha256File(cFilename, digest);
 
 	if (err > 0){
@@ -246,6 +253,7 @@ void Torrent::deserialize(string& serializedObj, bool create){
 	filename = jobj["filename"].get<std::string>();
 	numPieces = jobj["numPieces"];
 	uid = jobj["uid"];
+	fullpath = torrentFileDir + filename;
 
 	cout << "filename " << filename << ", num Pieces " << numPieces << endl;
 
@@ -314,6 +322,21 @@ void Torrent::readTorrentFromFile(const string& torrentName){
  		cout << "Read Torrent Error: cant open file" << endl;
     
 	serializedObj = data;
+}
+
+bool Torrent::isTorrentComplete(){
+	bool complete = true;
+	if (chunks.empty())
+		return false;
+
+	for(auto it = chunks.begin(); it != chunks.end(); it++) {
+    	if (get<1>(*it) == false){
+    		complete = false;
+    		break;
+    	}
+	}
+
+	return complete;
 }
 
 

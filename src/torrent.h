@@ -31,6 +31,7 @@ class Torrent {
 
 		int numPieces;
 		string filename;
+		string fullpath;
 		string torrentLocation;
 		string uid;
 		vector<tuple<string, bool>> chunks;
@@ -68,4 +69,6 @@ class Torrent {
 		void dumpToTorrentFile ();
 
 		void readTorrentFromFile(const string& torrentName);
+
+		bool isTorrentComplete();
 };

@@ -59,4 +59,9 @@ packageTest:
 
 # cleanup out dir
 clean:
-	rm out/* torrents/*
+	rm out/*
+
+# cleanup out dir
+cleanall:
+	rm out/* torrents/* torrentData/*
+
