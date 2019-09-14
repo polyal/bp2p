@@ -27,10 +27,12 @@ class Torrent {
 	private:
 		static const int chunkSize = 32768;  //256 kilobyte chunk size
 		static const string torrentDir;
+		static const string torrentFileDir;
 
 		int numPieces;
 		string filename;
 		string torrentLocation;
+		string uid;
 		vector<tuple<string, bool>> chunks;
 
 		nlohmann::json jobj;
@@ -52,6 +54,9 @@ class Torrent {
 		
  		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
 		int generateChunks();
+
+		// uses uses filename to hash the whole file.  This is used as a uid for the torrent
+		int generateFileHash();
 
 		// if create is true, all the chunks are marked as existing
 		void serialize(bool create);

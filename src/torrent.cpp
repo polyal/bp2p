@@ -21,6 +21,7 @@ extern "C" {
 using namespace std;
 
 const string Torrent::torrentDir = "torrents/";
+const string Torrent::torrentFileDir = "torrentFiles/";
 
 string bytesToHex(char* bytes, int len){
 	std::stringstream digest;
@@ -103,6 +104,7 @@ int Torrent::createTorrent (const string& torrentName, const vector<string>& fil
 
 	createPackage(torrentName, files);
 	generateChunks();
+	generateFileHash();
 	serialize(true);
 	dumpToTorrentFile();
 
@@ -190,6 +192,31 @@ int Torrent::generateChunks(){
     return 0;
 }
 
+int Torrent::generateFileHash(){
+	int err = 0;
+	const char* cFilename;
+	char digest[65];
+
+	if (filename.empty()){
+		cout << "File Hash Input Error: invalid input" << endl;
+		return -1;
+	}
+
+	cFilename = this->filename.c_str();
+	err = computeSha256File(cFilename, digest);
+
+	if (err > 0){
+		cout << "File Hash Error: couldn't hash file." << endl;
+		return -1;
+	}
+
+	//convert hash to hex strings
+	uid = bytesToHex(digest, 32);
+	cout << uid << endl;
+
+	return 0;
+}
+
 void Torrent::serialize(bool create){
 	if (filename.empty() || numPieces == 0 || chunks.empty()){
 		cout << "Serialize Input Error: invalid input" << endl;
@@ -197,6 +224,7 @@ void Torrent::serialize(bool create){
 	}
 
 	jobj["filename"] = filename;
+	jobj["uid"] = uid;
 	jobj["numPieces"] = numPieces;
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
@@ -217,6 +245,7 @@ void Torrent::deserialize(string& serializedObj, bool create){
 
 	filename = jobj["filename"].get<std::string>();
 	numPieces = jobj["numPieces"];
+	uid = jobj["uid"];
 
 	cout << "filename " << filename << ", num Pieces " << numPieces << endl;
 

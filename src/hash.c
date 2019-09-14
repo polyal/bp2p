@@ -22,10 +22,10 @@ void sha256_hash_string (unsigned char hash[SHA256_DIGEST_LENGTH], char outputBu
     outputBuffer[64] = 0;
 }
 
-int sha256_file(char *path, char outputBuffer[65])
+int computeSha256File(const char * const path, char digest[65])
 {
     FILE *file = fopen(path, "rb");
-    if(!file) return -534;
+    if(!file) return 1;
 
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
@@ -40,7 +40,7 @@ int sha256_file(char *path, char outputBuffer[65])
     }
     SHA256_Final(hash, &sha256);
 
-    sha256_hash_string(hash, outputBuffer);
+    sha256_hash_string(hash, digest);
     fclose(file);
     free(buffer);
     return 0;
