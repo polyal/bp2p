@@ -13,6 +13,9 @@ extern "C" {
 
 using namespace std;
 
+const string Peer::commString = "bp2p";
+const string Peer::commSeparator = "||";
+
 Peer::Peer(){
 
 }
@@ -179,6 +182,98 @@ void Peer::endComm(Peer::Device& dev){
 	}
 }
 
+void Peer::tokenize(const string& text, const string& sep, vector<string>& tokens){
+	size_t pos = 0;
+	size_t prevPos = 0;
+
+	while ((pos = text.find(sep, pos)) != string::npos){
+		int len = pos - prevPos;
+
+		string token = text.substr(prevPos, len);
+		tokens.push_back(token);
+
+		pos = pos + 2;
+		prevPos = pos;
+	}
+
+	// get last string in the list
+	if (pos > 0){
+		string token = text.substr(prevPos);
+		tokens.push_back(token);
+	}
+}
+
+void Peer::parseTorrentList(const string& resp, vector<string>& torrentList){
+	tokenize(resp, commSeparator, torrentList);
+}
+
+int Peer::requestTorrentList(Peer::Device& dev){
+	int err = 0;
+	string req, resp;
+	int reqType = torrentList;
+	vector<string> torrentNames;
+
+	req = commString + commSeparator + to_string(reqType);
+
+	err = this->sendReqWait4Resp(nodes[0], req, resp);
+	if (err > 0){
+		cout << "Client Error: sendReqWait4Resp Failed with " << err << endl;
+		return err;
+	}
+
+	parseTorrentList(resp, torrentNames);
+	dev.addTorrentNames(torrentNames);
+
+	return 0;
+}
+
+Peer::requestType Peer::getReqTypeFromReq(const string& req){
+	size_t pos = 0;
+	string prefix = commString + commSeparator;
+	string strReqType;
+	int iReqType;
+	requestType reqType;
+
+	if ((pos = req.find(prefix)) == string::npos || req.length() <= prefix.length()){
+		cout << "Bad Request" << endl;
+		return badReq;
+	}
+
+	strReqType = req.substr(prefix.length());
+	try {
+    	iReqType = std::stoi(strReqType);
+	}
+	catch (...) {
+		cout << "Bad Request" << endl;
+	    return badReq;
+	}
+	reqType = static_cast<Peer::requestType>(iReqType);
+
+	return reqType;
+}
+
+bool Peer::processRequest(const string& req, string& resp){
+	requestType reqType;
+
+	reqType = getReqTypeFromReq(req);
+
+	switch(reqType) {
+	    case torrentFile:
+	        cout << "Bad Request" << endl;
+	        break;
+	    case chunk:
+	        cout << "Bad Request" << endl;
+	        break;
+	    case torrentList:
+	    	cout << "Bad Request" << endl;
+	    	break;
+	    default:
+	    	cout << "Bad Request" << endl;
+	}
+
+	return true;
+}
+
 
 ///////////////////////////////////////////////////////////
 // defintions for device class
@@ -226,6 +321,10 @@ void Peer::Device::setSendSock(int sock){
 
 void Peer::Device::setRecSock(int sock){
 	this->recSock = sock;
+}
+
+void Peer::Device::addTorrentNames(vector<string> torrentNames){
+	this->torrentNames = torrentNames;
 }
 
 void Peer::Client(){
@@ -325,7 +424,13 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
-	me.Server();
+	/*vector<string> torrentList;
+	string resp = "file1||file2||file3||data||moredata||andthatsit";
+	me.parseTorrentList(resp, torrentList);
+
+	for (uint i = 0; i < torrentList.size(); i++){
+		cout << torrentList[i] << endl;
+	}*/
 
     return 0;
 }

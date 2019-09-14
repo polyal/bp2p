@@ -12,6 +12,7 @@ class Peer{
 			int id = -1;
 			string addr;
 			string name;
+			vector<string> torrentNames;
 
 		public:
 			Device ();
@@ -27,13 +28,27 @@ class Peer{
 			void setSendSock(int sock);
 			void setRecSock(int sock);
 
+			void addTorrentNames(vector<string> torrentNames);
+
 
 
 		};
 
 	private:
+		static const string commString;
+		static const string commSeparator;
+
 		vector<Device> nodes;
 		vector<Device> localDevices;
+
+		typedef enum _requestType {
+			badReq,
+			torrentFile, 
+			chunk,
+			torrentList 
+		} requestType;
+
+		Peer::requestType getReqTypeFromReq(const string& resp);
 
 	public:
 		Peer();
@@ -42,7 +57,6 @@ class Peer{
 		void findLocalDevices();
 
 		int connect2Node(Peer::Device& dev);
-		// TODO: create a class for request and response
 		int sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp);
 		int initServer(Peer::Device& dev);
 		int listen4Req(Peer::Device& dev, Peer::Device& client);
@@ -50,11 +64,18 @@ class Peer{
 		int sendResponse(Peer::Device& dev, string data);
 		void endComm(Peer::Device& dev);
 
+		void parseTorrentList(const string& resp, vector<string>& torrentList);
+		int requestTorrentList(Peer::Device& dev);
+
+		bool processRequest(const string& req);
+
+		//TODO: make a class for this tokenizer
+		void tokenize(const string& text, const string& sep, vector<string>& tokens);
+
 
 		// testing functions
 		void Client();
 		void Server();
-
 
 };
 
