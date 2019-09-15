@@ -16,7 +16,6 @@ using namespace std;
 
 const string Peer::commString = "bp2p";
 const string Peer::commSeparator = "||";
-const string Peer::applicationDir = "/bp2p/";
 
 Peer::Peer(){
 
@@ -256,17 +255,20 @@ bool Peer::processRequest(const string& req, string& resp){
 	return true;
 }
 
-int Peer::getTorrentList(vector<string>& torrentNames){
-	string home = getApplicationPath();
-	cout << home << endl;
+int Peer::processTorrentListReq(){
 	return 0;
 }
 
+void Peer::getTorrentList(vector<string>& torrentNames){
+	torrentNames = Torrent::getTorrentNames();
 
-string Peer::getApplicationPath(){
-	string home = Utils::getHomeDir();
-	return home + applicationDir;
+	for(auto const& filename: torrentNames) {
+		cout << filename << endl;
+		Torrent tor {filename};
+		cout << "name: " << tor.getFilename() << endl;
+	}
 }
+
 
 
 ///////////////////////////////////////////////////////////
@@ -418,15 +420,14 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
+	/*string torrentName {"NewTorrent"};
+	string file1 {"test/test1"};
+	string file2 {"test/test2"};
+	string file3 {"test/test3"};
+	vector<string> files{file1, file2, file3};
+	Torrent t {torrentName, files};*/
 	vector<string> torrentNames;
-	int ret = me.getTorrentList(torrentNames);
-	/*vector<string> torrentList;
-	string resp = "file1||file2||file3||data||moredata||andthatsit";
-	me.parseTorrentList(resp, torrentList);
-
-	for (uint i = 0; i < torrentList.size(); i++){
-		cout << torrentList[i] << endl;
-	}*/
+	me.getTorrentList(torrentNames);
 
     return 0;
 }

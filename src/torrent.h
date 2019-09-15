@@ -71,4 +71,9 @@ class Torrent {
 		void readTorrentFromFile(const string& torrentName);
 
 		bool isTorrentComplete();
+
+		string getFilename();
+
+		static string getTorrentsPath();
+		static vector<string> getTorrentNames();
 };

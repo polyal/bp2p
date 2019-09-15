@@ -11,12 +11,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "utils.h"
 
 // include c libs
 extern "C" {
 #include "package.h"
 #include "hash.h"
 }
+
+#define DEBUG 0
 
 using namespace std;
 
@@ -80,14 +83,23 @@ Torrent::Torrent(const string& torrentName, const vector<string>& files){
 }
 
 Torrent::Torrent(const string& torrentName){
+	string torrentsPath, fullpath;
+
 	if (torrentName.empty()){
 		cout << "Error: Torrent Name Invalid" << endl;
 		return;
 	}
 
-	readTorrentFromFile(torrentName);
-	deserialize(serializedObj, true);
-	unpackage (fullpath);
+	torrentsPath = getTorrentsPath();
+	fullpath =  torrentsPath + torrentName;
+	cout << torrentName << " " << fullpath << endl;
+
+	if (Utils::doesFileExist(fullpath)){
+		cout << "ecists" << endl;
+		readTorrentFromFile(fullpath);
+		deserialize(serializedObj, true);
+		//unpackage (fullpath);
+	}
 }
 
 Torrent::Torrent(){
@@ -299,18 +311,15 @@ void Torrent::dumpToTorrentFile (){
 }
 
 void Torrent::readTorrentFromFile(const string& torrentName){
-	string fullpath;
-
 	if (torrentDir.empty() || torrentName.empty()){
 		cout << "Read Torrent File: input error" << endl;
 		return;
 	}
-	fullpath = torrentDir + torrentName;
 
-	cout << "Read torrent: " << fullpath << endl;
+	cout << "Read torrent: " << torrentName << endl;
 
 	string data;
- 	ifstream fTorrent{fullpath};
+ 	ifstream fTorrent{torrentName};
 
  	if (fTorrent.is_open()){
  		// this should always only be one line
@@ -339,8 +348,34 @@ bool Torrent::isTorrentComplete(){
 	return complete;
 }
 
+string Torrent::getFilename(){
+	return this->filename;
+}
 
+string Torrent::getTorrentsPath(){
+	string appPath = Utils::getApplicationPath();
+	return appPath + torrentDir;
+}
 
+vector<string> Torrent::getTorrentNames(){
+	int ret;
+	string torrentsPath = getTorrentsPath();
+	vector<string> torrentNames;
+
+	ret = Utils::listFileInDir(torrentsPath, torrentNames);
+	if (ret > 0){
+		cout << "getTorrentNames error: " << ret << endl;
+	}
+
+	/*for(auto const& value: torrentNames) {
+		cout << value << endl;
+	}
+	cout << "done" << endl;*/
+
+    return torrentNames;
+}
+
+#if DEBUG == 1
 int main(int argc, char *argv[]){
 	if (argc < 2){
 		cout << "Usage: IMPORT: ./a.out [torrent]\n       EXPORT: ./a.out [torrent] [file1 | file2 | ...]" << endl;
@@ -365,3 +400,4 @@ int main(int argc, char *argv[]){
 
     return 0;
 }
+#endif

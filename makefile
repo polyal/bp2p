@@ -8,8 +8,10 @@ blueLibs = -lbluetooth
 
 default: utils bluetooth torrent
 	g++ -std=c++1y -Wall src/node.cpp -Ilib/json/include -o out/a.out \
-	out/blue.o out/utils.o \
-	$(blueLibs)
+	out/blue.o out/utils.o out/torrent.o \
+	$(foreach obj, $(cobjs), out/$(obj)) \
+	$(blueLibs) \
+	$(libs)
 	
 
 bluetooth:
@@ -30,7 +32,7 @@ hash:
 	gcc -Wall -c src/hash.c
 
 utils:
-	gcc -Wall -c src/utils.cpp;
+	g++ -std=c++1y -Wall -c src/utils.cpp;
 	mv utils.o out/utils.o
 
 # moves obj files from root/ to out/
@@ -50,6 +52,7 @@ bluetoohTest:
 
 torrentTest: package hash mvCobjs
 	g++ -std=c++1y -Wall src/torrent.cpp -Ilib/json/include -o out/a.out \
+	out/utils.o \
 	$(foreach obj, $(cobjs), out/$(obj)) \
 	$(libs)
 

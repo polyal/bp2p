@@ -69,7 +69,8 @@ class Peer{
 
 		// request processing
 		bool processRequest(const string& req, string& resp);
-		int getTorrentList(vector<string>& torrentNames);
+		int processTorrentListReq();
+		void getTorrentList(vector<string>& torrentNames);
 
 		static const string applicationDir;
 		string getApplicationPath();
