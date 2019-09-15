@@ -67,10 +67,12 @@ class Peer{
 		void parseTorrentList(const string& resp, vector<string>& torrentList);
 		int requestTorrentList(Peer::Device& dev);
 
-		bool processRequest(const string& req);
+		// request processing
+		bool processRequest(const string& req, string& resp);
+		int getTorrentList(vector<string>& torrentNames);
 
-		//TODO: make a class for this tokenizer
-		void tokenize(const string& text, const string& sep, vector<string>& tokens);
+		static const string applicationDir;
+		string getApplicationPath();
 
 
 		// testing functions

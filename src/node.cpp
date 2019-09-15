@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "utils.h"
 #include "torrent.h"
 
 // include c libs
@@ -15,6 +16,7 @@ using namespace std;
 
 const string Peer::commString = "bp2p";
 const string Peer::commSeparator = "||";
+const string Peer::applicationDir = "/bp2p/";
 
 Peer::Peer(){
 
@@ -182,29 +184,9 @@ void Peer::endComm(Peer::Device& dev){
 	}
 }
 
-void Peer::tokenize(const string& text, const string& sep, vector<string>& tokens){
-	size_t pos = 0;
-	size_t prevPos = 0;
-
-	while ((pos = text.find(sep, pos)) != string::npos){
-		int len = pos - prevPos;
-
-		string token = text.substr(prevPos, len);
-		tokens.push_back(token);
-
-		pos = pos + 2;
-		prevPos = pos;
-	}
-
-	// get last string in the list
-	if (pos > 0){
-		string token = text.substr(prevPos);
-		tokens.push_back(token);
-	}
-}
 
 void Peer::parseTorrentList(const string& resp, vector<string>& torrentList){
-	tokenize(resp, commSeparator, torrentList);
+	Utils::tokenize(resp, commSeparator, torrentList);
 }
 
 int Peer::requestTorrentList(Peer::Device& dev){
@@ -259,19 +241,31 @@ bool Peer::processRequest(const string& req, string& resp){
 
 	switch(reqType) {
 	    case torrentFile:
-	        cout << "Bad Request" << endl;
+	        cout << "Torrent File" << endl;
 	        break;
 	    case chunk:
-	        cout << "Bad Request" << endl;
+	        cout << "Chunk" << endl;
 	        break;
 	    case torrentList:
-	    	cout << "Bad Request" << endl;
+	    	cout << "Torrent List" << endl;
 	    	break;
 	    default:
 	    	cout << "Bad Request" << endl;
 	}
 
 	return true;
+}
+
+int Peer::getTorrentList(vector<string>& torrentNames){
+	string home = getApplicationPath();
+	cout << home << endl;
+	return 0;
+}
+
+
+string Peer::getApplicationPath(){
+	string home = Utils::getHomeDir();
+	return home + applicationDir;
 }
 
 
@@ -424,6 +418,8 @@ void Peer::Server(){
 int main(int argc, char *argv[]){
 	Peer me{};
 
+	vector<string> torrentNames;
+	int ret = me.getTorrentList(torrentNames);
 	/*vector<string> torrentList;
 	string resp = "file1||file2||file3||data||moredata||andthatsit";
 	me.parseTorrentList(resp, torrentList);

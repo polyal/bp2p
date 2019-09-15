@@ -6,9 +6,9 @@ inclJson = -Ilib/json/include
 blueLibs = -lbluetooth
 
 
-default: bluetooth torrent
+default: utils bluetooth torrent
 	g++ -std=c++1y -Wall src/node.cpp -Ilib/json/include -o out/a.out \
-	out/blue.o \
+	out/blue.o out/utils.o \
 	$(blueLibs)
 	
 
@@ -28,6 +28,10 @@ package:
 
 hash:
 	gcc -Wall -c src/hash.c
+
+utils:
+	gcc -Wall -c src/utils.cpp;
+	mv utils.o out/utils.o
 
 # moves obj files from root/ to out/
 mvObjs:
