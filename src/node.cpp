@@ -256,6 +256,22 @@ bool Peer::processRequest(const string& req, string& resp){
 	return true;
 }
 
+void Peer::processTorrentFileReq(const string& torrentName, string& resp){
+	resp = getSerialzedTorrent(torrentName);
+}
+
+string Peer::getSerialzedTorrent(const string& torrentName){
+	Torrent torrent {torrentName};
+	string serializedTorrent = "";
+
+	if (!torrent.getFilename().empty()){
+		torrent.serialize(true);
+		serializedTorrent = torrent.getSerializedTorrent();
+	}
+	
+	return serializedTorrent;
+}
+
 void Peer::processTorrentListReq(string& resp){
 	vector<string> torrentNames;
 
@@ -449,8 +465,10 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	string torrentNames;
-	me.processTorrentListReq(torrentNames);
+	string torrentName{"NewTorrent"};
+	string resp;
+	me.processTorrentFileReq(torrentName, resp);
+	cout << "serialized Torrent: " << torrentName << endl << resp << endl;
 
     return 0;
 }

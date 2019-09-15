@@ -73,7 +73,9 @@ class Torrent {
 		bool isTorrentComplete();
 
 		string getFilename();
+		string getSerializedTorrent();
 
 		static string getTorrentsPath();
 		static vector<string> getTorrentNames();
+
 };

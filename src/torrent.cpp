@@ -97,7 +97,7 @@ Torrent::Torrent(const string& torrentName){
 	if (Utils::doesFileExist(fullpath)){
 		cout << "ecists" << endl;
 		readTorrentFromFile(fullpath);
-		deserialize(serializedObj, true);
+		deserialize(serializedObj, false);
 		//unpackage (fullpath);
 	}
 }
@@ -350,6 +350,10 @@ bool Torrent::isTorrentComplete(){
 
 string Torrent::getFilename(){
 	return this->filename;
+}
+
+string Torrent::getSerializedTorrent(){
+	return this->serializedObj;
 }
 
 string Torrent::getTorrentsPath(){
