@@ -247,6 +247,7 @@ bool Peer::processRequest(const string& req, string& resp){
 	        break;
 	    case torrentList:
 	    	cout << "Torrent List" << endl;
+	    	processTorrentListReq(resp);
 	    	break;
 	    default:
 	    	cout << "Bad Request" << endl;
@@ -255,20 +256,42 @@ bool Peer::processRequest(const string& req, string& resp){
 	return true;
 }
 
-int Peer::processTorrentListReq(){
-	return 0;
+void Peer::processTorrentListReq(string& resp){
+	vector<string> torrentNames;
+
+	getTorrentList(torrentNames);
+	resp = serializeTorrentList(torrentNames);
+	cout << "resp: " << resp << endl;
 }
 
 void Peer::getTorrentList(vector<string>& torrentNames){
-	torrentNames = Torrent::getTorrentNames();
+	vector<string> torrentFiles;
+	torrentFiles = Torrent::getTorrentNames();
 
-	for(auto const& filename: torrentNames) {
-		cout << filename << endl;
+	for(auto const& filename: torrentFiles) {
 		Torrent tor {filename};
-		cout << "name: " << tor.getFilename() << endl;
+		string torrentName = tor.getFilename();
+		if (!torrentName.empty())
+			torrentNames.push_back(torrentName);
+		cout << "file: " << filename << " torrent: " << torrentName << endl;
 	}
 }
 
+string Peer::serializeTorrentList(const vector<string>& torrentNames){
+	string serializedList = "";
+
+	for(auto const& torrentName: torrentNames) {
+		serializedList += torrentName;
+		serializedList += commSeparator;
+	}
+
+	if (serializedList.size() > 2){
+		serializedList.pop_back();
+		serializedList.pop_back();
+	}
+
+	return serializedList;
+}
 
 
 ///////////////////////////////////////////////////////////
@@ -426,8 +449,8 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	vector<string> torrentNames;
-	me.getTorrentList(torrentNames);
+	string torrentNames;
+	me.processTorrentListReq(torrentNames);
 
     return 0;
 }
