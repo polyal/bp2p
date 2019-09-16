@@ -50,6 +50,7 @@ class Peer{
 
 		Peer::requestType getReqTypeFromReq(const string& resp);
 		string serializeTorrentList(const vector<string>& torrentNames);
+		string getTorrentNameFromReq(const string& req);
 		string getSerialzedTorrent(const string& torrentName);
 
 	public:
@@ -70,7 +71,7 @@ class Peer{
 		int requestTorrentList(Peer::Device& dev);
 
 		// request processing
-		void processTorrentFileReq(const string& torrentName, string& resp);
+		void processTorrentFileReq(const string& req, string& resp);
 
 		bool processRequest(const string& req, string& resp);
 		void processTorrentListReq(string& resp);

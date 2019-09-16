@@ -215,6 +215,7 @@ Peer::requestType Peer::getReqTypeFromReq(const string& req){
 	int iReqType;
 	requestType reqType;
 
+	// make sure request comes in proper format
 	if ((pos = req.find(prefix)) == string::npos || req.length() <= prefix.length()){
 		cout << "Bad Request" << endl;
 		return badReq;
@@ -256,8 +257,24 @@ bool Peer::processRequest(const string& req, string& resp){
 	return true;
 }
 
-void Peer::processTorrentFileReq(const string& torrentName, string& resp){
+void Peer::processTorrentFileReq(const string& req, string& resp){
+	string torrentName = "";
+
+	torrentName = getTorrentNameFromReq(req);
 	resp = getSerialzedTorrent(torrentName);
+}
+
+string Peer::getTorrentNameFromReq(const string& req){
+	vector<string> tokens;
+	string torrentName = "";
+
+	Utils::tokenize(req, commSeparator, tokens);
+
+	if (tokens.size() > 2){
+		torrentName = tokens[2];
+	}
+
+	return torrentName;
 }
 
 string Peer::getSerialzedTorrent(const string& torrentName){
@@ -465,10 +482,10 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	string torrentName{"NewTorrent"};
+	string req{"bp2p||2||NewTorrent"};
 	string resp;
-	me.processTorrentFileReq(torrentName, resp);
-	cout << "serialized Torrent: " << torrentName << endl << resp << endl;
+	me.processTorrentFileReq(req, resp);
+	cout << "serialized Torrent: " << req << endl << resp << endl;
 
     return 0;
 }
