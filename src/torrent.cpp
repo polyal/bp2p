@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <iomanip>
 #include <fstream>
 
@@ -25,47 +24,6 @@ using namespace std;
 
 const string Torrent::torrentFileDir = "torrents/";
 const string Torrent::torrentDataDir = "torrentData/";
-
-string bytesToHex(char* bytes, int len){
-	std::stringstream digest;
-
-	digest.setf(std::ios_base::hex, std::ios::basefield);
-	digest.fill('0');
-	for (int i = 0; i<len; i++)
-	{
-		digest << std::setw(2) << (unsigned int)(unsigned char)(bytes[i]);
-	}
-
-	const std::string ret = digest.str();
-
-	return ret;
-}
-
-unsigned int value(char c)
-{
-	if (c >= '0' && c <= '9') { return c - '0'; }
-	if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
-	if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
-
-	return -1; // Error!
-}
-
-//we suppose the size is alwazs going to be even as it is supposed to be an encrypted value
-//converts cstring to
-char* hexToBytes(const string& strhex, int* size){
-	const char* str = strhex.c_str();
-	int bufSize = strhex.length() / 2;
-
-	char* buf = new char[bufSize];
-
-	for (int i = 0; i < bufSize; i++){
-		buf[i] = value(str[2 * i]) * 16 + value(str[2 * i + 1]);
-	}
-
-	*size = bufSize;
-
-	return  buf;
-}
 
 
 Torrent::Torrent(const string& torrentName, const vector<string>& files){
@@ -176,7 +134,7 @@ int Torrent::generateChunks(){
 	//convert hash chunks to hex strings
 	int i = 0;
 	for (i = 0; i < length; i++){
-		string strdigest = bytesToHex(digest[0], 32);
+		string strdigest = Utils::bytesToHex(digest[0], 32);
 		cout << strdigest << endl;
 
 		auto keyValPair = make_tuple(strdigest, true);
@@ -227,7 +185,7 @@ int Torrent::generateFileHash(){
 	}
 
 	//convert hash to hex strings
-	this->uid = bytesToHex(digest, 32);
+	this->uid = Utils::bytesToHex(digest, 32);
 	cout << uid << endl;
 
 	return 0;

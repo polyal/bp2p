@@ -15,4 +15,9 @@ class Utils{
 		static void converToFullpath(const string& relPath, string& fullPath);
 		static int isRegulaFile(const string& path);
 		static int listFileInDir(const string& dirName, vector<string>& filenames);
+
+		// hex and byte utils
+		static string bytesToHex(char* bytes, int len);
+		static unsigned int value(char c);
+		static char* hexToBytes(const string& strhex, int* size);
 };
