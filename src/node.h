@@ -52,6 +52,8 @@ class Peer{
 		string serializeTorrentList(const vector<string>& torrentNames);
 		string getTorrentNameFromReq(const string& req);
 		string getSerialzedTorrent(const string& torrentName);
+		int getChunkNumFromReq(const string& req);
+		vector<char> retrieveChunk(const string& torrentName, const int chunkNum);
 
 	public:
 		Peer();
@@ -72,6 +74,8 @@ class Peer{
 
 		// request processing
 		void processTorrentFileReq(const string& req, string& resp);
+
+		void processChunkReq(const string& req, string& resp);
 
 		bool processRequest(const string& req, string& resp);
 		void processTorrentListReq(string& resp);

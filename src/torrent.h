@@ -26,13 +26,12 @@ using namespace std;
 class Torrent {
 	private:
 		static const int chunkSize = 32768;  //256 kilobyte chunk size
-		static const string torrentDir;
 		static const string torrentFileDir;
+		static const string torrentDataDir;
 
 		int numPieces;
-		string filename;
+		string name;
 		string fullpath;
-		string torrentLocation;
 		string uid;
 		vector<tuple<string, bool>> chunks;
 
@@ -74,8 +73,10 @@ class Torrent {
 
 		string getFilename();
 		string getSerializedTorrent();
+		vector<char> RetrieveChunk(const int chunkNum);
 
 		static string getTorrentsPath();
+		static string getTorrentDataPath();
 		static vector<string> getTorrentNames();
 
 };

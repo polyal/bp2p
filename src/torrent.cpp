@@ -23,8 +23,8 @@ extern "C" {
 
 using namespace std;
 
-const string Torrent::torrentDir = "torrents/";
-const string Torrent::torrentFileDir = "torrentData/";
+const string Torrent::torrentFileDir = "torrents/";
+const string Torrent::torrentDataDir = "torrentData/";
 
 string bytesToHex(char* bytes, int len){
 	std::stringstream digest;
@@ -69,10 +69,9 @@ char* hexToBytes(const string& strhex, int* size){
 
 
 Torrent::Torrent(const string& torrentName, const vector<string>& files){
-	numPieces = 0;
-	filename = "";
-	torrentLocation = "";
-	serializedObj = "";
+	this->numPieces = 0;
+	this->name = "";
+	this->serializedObj = "";
 
 	if (torrentName.empty() || files.empty()){
 		cout << "Error: Torrent Name or Files array empty" << endl;
@@ -83,15 +82,14 @@ Torrent::Torrent(const string& torrentName, const vector<string>& files){
 }
 
 Torrent::Torrent(const string& torrentName){
-	string torrentsPath, fullpath;
+	string fullpath;
 
 	if (torrentName.empty()){
 		cout << "Error: Torrent Name Invalid" << endl;
 		return;
 	}
 
-	torrentsPath = getTorrentsPath();
-	fullpath =  torrentsPath + torrentName;
+	fullpath = getTorrentsPath() + torrentName;
 	cout << torrentName << " " << fullpath << endl;
 
 	if (Utils::doesFileExist(fullpath)){
@@ -103,9 +101,8 @@ Torrent::Torrent(const string& torrentName){
 }
 
 Torrent::Torrent(){
-	numPieces = 0;
-	filename[0] = '\0';
-	torrentLocation[0] = '\0';
+	this->numPieces = 0;
+	this->name = "";
 }
 
 int Torrent::createTorrent (const string& torrentName, const vector<string>& files){
@@ -125,21 +122,21 @@ int Torrent::createTorrent (const string& torrentName, const vector<string>& fil
 
 int Torrent::createPackage(const string& torrentName, const vector<string>& files){
 	int ret = 0;
-	string torrentPath;
-	const char* cstrTorrentData;
+	string torrentDataFullPath;
+	const char* cstrTorrentDataFullPath;
 	vector<const char*> cstrFiles;
     cstrFiles.reserve(files.size());
 
-    torrentPath = torrentFileDir + torrentName;
-    cstrTorrentData = torrentPath.c_str();
+    torrentDataFullPath = getTorrentDataPath() + torrentName;
+    cstrTorrentDataFullPath = torrentDataFullPath.c_str();
 
-    cout << cstrTorrentData << endl;
+    cout << cstrTorrentDataFullPath << endl;
 	
 	for(auto& file: files)
     	cstrFiles.push_back(file.c_str());
 	cstrFiles.push_back(NULL); // last entry needs to be NULL
 
-	ret = package(cstrTorrentData, cstrFiles.data());
+	ret = package(cstrTorrentDataFullPath, cstrFiles.data());
 
 	if (ret != 0){
 		cout << "Packaging Error" << endl;
@@ -147,8 +144,8 @@ int Torrent::createPackage(const string& torrentName, const vector<string>& file
 	}
 
 	// set filename instance
-	filename = torrentName;
-	fullpath = torrentPath;
+	this->name = torrentName;
+	this->fullpath = torrentDataFullPath;
 	
 	return ret;
 }
@@ -170,7 +167,7 @@ int Torrent::generateChunks(){
 	int length = 0;
 
 	// need to call createPackage() first
-	if (fullpath.empty())
+	if (this->fullpath.empty())
 		return -1;
 
 	// generate chunk hashes
@@ -184,7 +181,7 @@ int Torrent::generateChunks(){
 
 		auto keyValPair = make_tuple(strdigest, true);
 
-		chunks.push_back(keyValPair);
+		this->chunks.push_back(keyValPair);
 	}
 
 	// free up digest mem
@@ -206,7 +203,7 @@ int Torrent::generateChunks(){
     }
 
     // object initializations
-    numPieces = length;
+    this->numPieces = length;
 
     return 0;
 }
@@ -216,7 +213,7 @@ int Torrent::generateFileHash(){
 	const char* cFilename;
 	char digest[65];
 
-	if (fullpath.empty()){
+	if (this->fullpath.empty()){
 		cout << "File Hash Input Error: invalid input" << endl;
 		return -1;
 	}
@@ -230,48 +227,48 @@ int Torrent::generateFileHash(){
 	}
 
 	//convert hash to hex strings
-	uid = bytesToHex(digest, 32);
+	this->uid = bytesToHex(digest, 32);
 	cout << uid << endl;
 
 	return 0;
 }
 
 void Torrent::serialize(bool create){
-	if (filename.empty() || numPieces == 0 || chunks.empty()){
+	if (this->name.empty() || this->numPieces == 0 || this->chunks.empty()){
 		cout << "Serialize Input Error: invalid input" << endl;
 		return;
 	}
 
-	jobj["filename"] = filename;
-	jobj["uid"] = uid;
-	jobj["numPieces"] = numPieces;
+	jobj["name"] = this->name;
+	jobj["uid"] = this->uid;
+	jobj["numPieces"] = this->numPieces;
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
-	for(i = 0; i != chunks.size(); i++) {
+	for(i = 0; i != this->chunks.size(); i++) {
 		if (create)
     		jobj[to_string(i)] = {get<0>(chunks[i]), true};
     	else
     		jobj[to_string(i)] = {get<0>(chunks[i]), get<1>(chunks[i])};
 	}
 
-	serializedObj = jobj.dump();
+	this->serializedObj = jobj.dump();
 	cout << "json ::\n" << serializedObj << endl;
 }
 
 void Torrent::deserialize(string& serializedObj, bool create){
 	this->serializedObj = serializedObj;
-	jobj = nlohmann::json::parse(serializedObj);
+	this->jobj = nlohmann::json::parse(serializedObj);
 
-	filename = jobj["filename"].get<std::string>();
-	numPieces = jobj["numPieces"];
-	uid = jobj["uid"];
-	fullpath = torrentFileDir + filename;
+	this->name = this->jobj["name"].get<std::string>();
+	this->numPieces = this->jobj["numPieces"];
+	this->uid = this->jobj["uid"];
+	this->fullpath = Torrent::getTorrentDataPath() + this->name;
 
-	cout << "filename " << filename << ", num Pieces " << numPieces << endl;
+	cout << "name " << this->name << ", num Pieces " << numPieces << endl;
 
 	int i = 0;
-	for (i = 0; i < numPieces; i++) {
-		auto hashpair = jobj[to_string(i)];
+	for (i = 0; i < this->numPieces; i++) {
+		auto hashpair = this->jobj[to_string(i)];
   		std::cout << hashpair << endl;
 
   		tuple<string, bool> keyValPair;
@@ -279,10 +276,10 @@ void Torrent::deserialize(string& serializedObj, bool create){
   			keyValPair = make_tuple(hashpair[0], false);
 		else
 			keyValPair = make_tuple(hashpair[0], hashpair[1]);
-		chunks.push_back(keyValPair);
+		this->chunks.push_back(keyValPair);
 	}
 
-	for(auto const& value: chunks) {
+	for(auto const& value: this->chunks) {
 		cout << get<0>(value) << " " << get<1>(value) << endl;
 	}
 }
@@ -290,12 +287,12 @@ void Torrent::deserialize(string& serializedObj, bool create){
 void Torrent::dumpToTorrentFile (){
 	string fullpath;
 
-	if (torrentDir.empty() || filename.empty() || serializedObj.empty()){
+	if (this->name.empty() || this->serializedObj.empty()){
 		cout << "Dump Error: input error" << endl;
 		return;
 	}
 
-	fullpath = torrentDir + filename;
+	fullpath = Torrent::getTorrentsPath() + this->name;
 
 	cout << "Write Torrent: " << fullpath << endl;
 
@@ -311,7 +308,7 @@ void Torrent::dumpToTorrentFile (){
 }
 
 void Torrent::readTorrentFromFile(const string& torrentName){
-	if (torrentDir.empty() || torrentName.empty()){
+	if (torrentName.empty()){
 		cout << "Read Torrent File: input error" << endl;
 		return;
 	}
@@ -330,7 +327,7 @@ void Torrent::readTorrentFromFile(const string& torrentName){
  	else
  		cout << "Read Torrent Error: cant open file" << endl;
     
-	serializedObj = data;
+	this->serializedObj = data;
 }
 
 bool Torrent::isTorrentComplete(){
@@ -338,7 +335,7 @@ bool Torrent::isTorrentComplete(){
 	if (chunks.empty())
 		return false;
 
-	for(auto it = chunks.begin(); it != chunks.end(); it++) {
+	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++) {
     	if (get<1>(*it) == false){
     		complete = false;
     		break;
@@ -348,8 +345,29 @@ bool Torrent::isTorrentComplete(){
 	return complete;
 }
 
+vector<char> Torrent::RetrieveChunk(const int chunkNum){
+	vector<char> chunk(chunkSize);
+
+	ifstream fTorrent {this->fullpath, ifstream::binary};
+	if (fTorrent.is_open()){
+		fTorrent.seekg (chunkNum * this->chunkSize);
+		fTorrent.read (&chunk[0], this->chunkSize);
+		
+	}
+
+	if (fTorrent)
+      std::cout << "all characters read successfully.";
+    else{
+      std::cout << "error: only " << fTorrent.gcount() << " could be read" << strerror(errno) << endl;
+      chunk[fTorrent.gcount()] = '\0';
+    }
+	fTorrent.close();
+
+	return chunk;
+}
+
 string Torrent::getFilename(){
-	return this->filename;
+	return this->name;
 }
 
 string Torrent::getSerializedTorrent(){
@@ -358,7 +376,12 @@ string Torrent::getSerializedTorrent(){
 
 string Torrent::getTorrentsPath(){
 	string appPath = Utils::getApplicationPath();
-	return appPath + torrentDir;
+	return appPath + torrentFileDir;
+}
+
+string Torrent::getTorrentDataPath(){
+	string appPath = Utils::getApplicationPath();
+	return appPath + torrentDataDir;
 }
 
 vector<string> Torrent::getTorrentNames(){
