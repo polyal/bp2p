@@ -5,6 +5,7 @@
 #include <fstream>
 #include "utils.h"
 #include "torrent.h"
+#include "torrentFileReq.h"
 
 // include c libs
 extern "C" {
@@ -192,7 +193,7 @@ void Peer::parseTorrentList(const string& resp, vector<string>& torrentList){
 int Peer::requestTorrentList(Peer::Device& dev){
 	int err = 0;
 	string req, resp;
-	int reqType = torrentList;
+	int reqType = 0;// torrentList;  actualy request type
 	vector<string> torrentNames;
 
 	req = commString + commSeparator + to_string(reqType);
@@ -208,184 +209,6 @@ int Peer::requestTorrentList(Peer::Device& dev){
 
 	return 0;
 }
-
-Peer::requestType Peer::getReqTypeFromReq(const string& req){
-	size_t pos = 0;
-	string prefix = commString + commSeparator;
-	string strReqType;
-	int iReqType;
-	requestType reqType;
-
-	// make sure request comes in proper format
-	if ((pos = req.find(prefix)) == string::npos || req.length() <= prefix.length()){
-		cout << "Bad Request" << endl;
-		return badReq;
-	}
-
-	strReqType = req.substr(prefix.length());
-	try {
-    	iReqType = std::stoi(strReqType);
-	}
-	catch (...) {
-		cout << "Bad Request" << endl;
-	    return badReq;
-	}
-	reqType = static_cast<Peer::requestType>(iReqType);
-
-	return reqType;
-}
-
-bool Peer::processRequest(const string& req, string& resp){
-	requestType reqType;
-
-	reqType = getReqTypeFromReq(req);
-
-	switch(reqType) {
-	    case torrentFile:
-	        cout << "Torrent File" << endl;
-	        processTorrentFileReq(req, resp);
-	        break;
-	    case chunk:
-	        cout << "Chunk" << endl;
-	        processChunkReq(req, resp);
-	        break;
-	    case torrentList:
-	    	cout << "Torrent List" << endl;
-	    	processTorrentListReq(resp);
-	    	break;
-	    default:
-	    	cout << "Bad Request" << endl;
-	    	return false;
-	}
-
-	return true;
-}
-
-void Peer::processChunkReq(const string& req, string& resp){
-	string torrentName = "";
-	int chunkNum = -1;
-	vector<char> chunk;
-
-	torrentName = getTorrentNameFromReq(req);
-	chunkNum = getChunkNumFromReq(req);
-	chunk = retrieveChunk(torrentName, chunkNum);
-
-	resp = chunk.data();
-
-	string filename = Torrent::getTorrentDataPath() + "download";
-	ofstream fTorrent {filename};
-
-	if (fTorrent.is_open()){
-		fTorrent.write(chunk.data(), chunk.size());
- 		fTorrent.close();
- 		Torrent dowload{};
- 		dowload.unpackage(filename);
-	}
-	else{
-		cout << "Dump Error: error opening output torrent file" << endl;
-	}
-}
-
-vector<char> Peer::retrieveChunk(const string& torrentName, const int chunkNum){
-	Torrent torrent {torrentName};
-	vector<char> chunk;
-
-	if (!torrent.getFilename().empty()){
-		torrent.serialize(true);
-		chunk = torrent.RetrieveChunk(chunkNum);
-	}
-	
-	return chunk;
-} 
-
-int Peer::getChunkNumFromReq(const string& req){
-	vector<string> tokens;
-	int chunkNum = -1;
-
-	Utils::tokenize(req, commSeparator, tokens);
-
-	if (tokens.size() > 3){
-		try {
-    		chunkNum = stoi(tokens[3]);
-		}
-		catch (...) {
-			cout << "Bad Chunk Num" << endl;
-		    chunkNum = -1;
-		}
-	}
-
-	return chunkNum;
-}
-
-void Peer::processTorrentFileReq(const string& req, string& resp){
-	string torrentName = "";
-
-	torrentName = getTorrentNameFromReq(req);
-	resp = getSerialzedTorrent(torrentName);
-}
-
-string Peer::getTorrentNameFromReq(const string& req){
-	vector<string> tokens;
-	string torrentName = "";
-
-	Utils::tokenize(req, commSeparator, tokens);
-
-	if (tokens.size() > 2){
-		torrentName = tokens[2];
-	}
-
-	return torrentName;
-}
-
-string Peer::getSerialzedTorrent(const string& torrentName){
-	Torrent torrent {torrentName};
-	string serializedTorrent = "";
-
-	if (!torrent.getFilename().empty()){
-		torrent.serialize(true);
-		serializedTorrent = torrent.getSerializedTorrent();
-	}
-	
-	return serializedTorrent;
-}
-
-void Peer::processTorrentListReq(string& resp){
-	vector<string> torrentNames;
-
-	getTorrentList(torrentNames);
-	resp = serializeTorrentList(torrentNames);
-	cout << "resp: " << resp << endl;
-}
-
-void Peer::getTorrentList(vector<string>& torrentNames){
-	vector<string> torrentFiles;
-	torrentFiles = Torrent::getTorrentNames();
-
-	for(auto const& filename: torrentFiles) {
-		Torrent tor {filename};
-		string torrentName = tor.getFilename();
-		if (!torrentName.empty())
-			torrentNames.push_back(torrentName);
-		cout << "file: " << filename << " torrent: " << torrentName << endl;
-	}
-}
-
-string Peer::serializeTorrentList(const vector<string>& torrentNames){
-	string serializedList = "";
-
-	for(auto const& torrentName: torrentNames) {
-		serializedList += torrentName;
-		serializedList += commSeparator;
-	}
-
-	if (serializedList.size() > 2){
-		serializedList.pop_back();
-		serializedList.pop_back();
-	}
-
-	return serializedList;
-}
-
 
 ///////////////////////////////////////////////////////////
 // defintions for device class
@@ -542,10 +365,10 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	string req{"bp2p||2||Torrent||0"};
+	/*string req{"bp2p||2||Torrent||0"};
 	string resp;
 	me.processChunkReq(req, resp);
-	cout << "serialized Torrent: " << req << endl << resp << endl;
+	cout << "serialized Torrent: " << req << endl << resp << endl;*/
 
     return 0;
 }

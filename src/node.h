@@ -41,20 +41,6 @@ class Peer{
 		vector<Device> nodes;
 		vector<Device> localDevices;
 
-		typedef enum _requestType {
-			badReq,
-			torrentFile, 
-			chunk,
-			torrentList 
-		} requestType;
-
-		Peer::requestType getReqTypeFromReq(const string& resp);
-		string serializeTorrentList(const vector<string>& torrentNames);
-		string getTorrentNameFromReq(const string& req);
-		string getSerialzedTorrent(const string& torrentName);
-		int getChunkNumFromReq(const string& req);
-		vector<char> retrieveChunk(const string& torrentName, const int chunkNum);
-
 	public:
 		Peer();
 
@@ -71,16 +57,7 @@ class Peer{
 
 		void parseTorrentList(const string& resp, vector<string>& torrentList);
 		int requestTorrentList(Peer::Device& dev);
-
-		// request processing
-		void processTorrentFileReq(const string& req, string& resp);
-
-		void processChunkReq(const string& req, string& resp);
-
-		bool processRequest(const string& req, string& resp);
-		void processTorrentListReq(string& resp);
-		void getTorrentList(vector<string>& torrentNames);
-
+		
 		static const string applicationDir;
 		string getApplicationPath();
 
