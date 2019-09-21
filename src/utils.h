@@ -1,3 +1,9 @@
+#ifndef UTILS_H
+#define UTILS_H
+
+#include <vector>
+#include <string>
+
 using namespace std;
 
 class Utils{
@@ -21,3 +27,5 @@ class Utils{
 		static unsigned int value(char c);
 		static char* hexToBytes(const string& strhex, int* size);
 };
+
+#endif

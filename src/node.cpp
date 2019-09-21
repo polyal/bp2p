@@ -4,8 +4,7 @@
 #include <vector>
 #include <fstream>
 #include "utils.h"
-#include "torrent.h"
-#include "torrentFileReq.h"
+#include "rrfactory.h"
 
 // include c libs
 extern "C" {
@@ -182,6 +181,15 @@ void Peer::endComm(Peer::Device& dev){
 
 	if (err > 0){
 		cout << "endComm Rec Error: " << err << endl;
+	}
+}
+
+void Peer::processRequest(const vector<char>& req, vector<char>& resp){
+	unique_ptr<RRPacket> packet = RRFactory::create(req);
+
+	if (packet){
+		packet->processRequest();
+		resp = packet->getResp();
 	}
 }
 

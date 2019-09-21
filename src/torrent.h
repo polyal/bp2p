@@ -14,6 +14,9 @@
 **
 **********************************************************/
 
+#ifndef TORRENT_H
+#define TORRENT_H
+
 #include <iostream>
 #include <linux/limits.h>
 #include <vector>
@@ -80,3 +83,5 @@ class Torrent {
 		static vector<string> getTorrentNames();
 
 };
+
+#endif

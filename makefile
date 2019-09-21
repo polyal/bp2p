@@ -6,19 +6,23 @@ inclJson = -Ilib/json/include
 blueLibs = -lbluetooth
 
 
-default: utils bluetooth torrent rrpcaket
+default: utils bluetooth torrent rrpacket
 	g++ -std=c++1y -Wall src/node.cpp \
 	-Ilib/json/include -o out/a.out \
 	out/blue.o out/utils.o out/torrent.o \
-	out/rrpacket.o out/torrentFileReq.o \
+	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
 	$(foreach obj, $(cobjs), out/$(obj)) \
 	$(blueLibs) \
 	$(libs)
 
-rrpcaket:
-	g++ -std=c++1y -Wall -c -Ilib/json/include src/rrpacket.cpp src/torrentFileReq.cpp;
+rrpacket:
+	g++ -std=c++1y -Wall -c -Ilib/json/include \
+	src/rrfactory.cpp src/rrpacket.cpp src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp;
+	mv rrfactory.o out/rrfactory.o;
 	mv rrpacket.o out/rrpacket.o;
 	mv torrentFileReq.o out/torrentFileReq.o;
+	mv torrentListReq.o out/torrentListReq.o;
+	mv chunkReq.o out/chunkReq.o;
 
 bluetooth:
 	gcc -Wall -c src/blue.c;

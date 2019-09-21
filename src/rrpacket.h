@@ -1,3 +1,6 @@
+#ifndef RRPACKET_H
+#define RRPACKET_H
+
 // request reponse packet class
 #include <vector>
 #include <string>
@@ -23,32 +26,9 @@ class RRPacket {
 		RRPacket();
 		RRPacket(const vector<char>& req);
 
-		//static unique_ptr<RRPacket> create(const vector<char>& req);
+		vector<char> getResp();
 
 		virtual void processRequest() = 0;
-
-	private:
-		static requestType getReqTypeFromReq(const vector<char>& req);
-		template<typename T, typename... Args> unique_ptr<T> make_unique(Args&&... args);
 };
 
-/*class TorrentListReq : public RRpacket {
-	public:
-		TorrentListReq();
-		TorrentListReq(const vector<char>& req);
-
-	private:
-		void getTorrentList(vector<string>& torrentNames);
-		void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
-};
-
-class ChunkReq : public RRpacket {
-	public:
-		ChunkReq();
-		ChunkReq(const vector<char>& req);
-
-	private:
-		void getTorrentNameFromReq(string& torrentName);
-		int getChunkNumFromReq(const string& req);
-		void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk);
-};*/
+#endif
