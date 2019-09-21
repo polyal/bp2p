@@ -13,5 +13,5 @@ class ChunkReq : public RRPacket {
 	private:
 		void getTorrentNameFromReq(string& torrentName);
 		int getChunkNumFromReq(const string& req);
-		void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk);
+		void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size);
 };

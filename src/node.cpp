@@ -373,10 +373,15 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	/*string req{"bp2p||2||Torrent||0"};
-	string resp;
-	me.processChunkReq(req, resp);
-	cout << "serialized Torrent: " << req << endl << resp << endl;*/
+	RRPacket::requestType reqType = RRPacket::chunk;
+	string req{"bp2p||"};
+	req = req + to_string(static_cast<int>(reqType));
+	req = req + "||Torrent||0";
+	vector<char> vResp = {};
+	vector<char> vReq(req.begin(), req.end());
+	me.processRequest(vReq, vResp);
+	string resp(vResp.begin(), vResp.end());
+	cout << "serialized Torrent: " << req << endl;// << resp << endl;
 
     return 0;
 }

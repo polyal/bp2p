@@ -303,7 +303,7 @@ bool Torrent::isTorrentComplete(){
 	return complete;
 }
 
-vector<char> Torrent::RetrieveChunk(const int chunkNum){
+vector<char> Torrent::RetrieveChunk(const int& chunkNum, int& size){
 	vector<char> chunk(chunkSize);
 
 	ifstream fTorrent {this->fullpath, ifstream::binary};
@@ -317,7 +317,7 @@ vector<char> Torrent::RetrieveChunk(const int chunkNum){
       std::cout << "all characters read successfully.";
     else{
       std::cout << "error: only " << fTorrent.gcount() << " could be read" << strerror(errno) << endl;
-      chunk[fTorrent.gcount()] = '\0';
+      size = fTorrent.gcount();
     }
 	fTorrent.close();
 

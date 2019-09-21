@@ -18,9 +18,9 @@ class RRPacket {
 
 		typedef enum _requestType {
 			badReq,
+			torrentList,
 			torrentFile, 
-			chunk,
-			torrentList 
+			chunk
 		} requestType;
 
 		RRPacket();

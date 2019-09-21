@@ -12,13 +12,13 @@ ChunkReq::ChunkReq(const vector<char>& req):RRPacket(req){
 
 void ChunkReq::processRequest(){
 	string torrentName = "";
-	int chunkNum = -1;
+	int chunkNum = -1, size = 0;
 	vector<char> chunk;
 	string strReq {this->req.begin(), this->req.end()};
 
-	getTorrentNameFromReq(strReq);
+	getTorrentNameFromReq(torrentName);
 	chunkNum = getChunkNumFromReq(strReq);
-	retrieveChunk(torrentName, chunkNum, chunk);
+	retrieveChunk(torrentName, chunkNum, chunk, size);
 
 	resp = chunk;
 
@@ -27,7 +27,7 @@ void ChunkReq::processRequest(){
 	ofstream fTorrent {filename};
 
 	if (fTorrent.is_open()){
-		fTorrent.write(chunk.data(), chunk.size());
+		fTorrent.write(chunk.data(), size);
  		fTorrent.close();
  		Torrent dowload{};
  		dowload.unpackage(filename);
@@ -68,11 +68,11 @@ int ChunkReq::getChunkNumFromReq(const string& req){
 	return chunkNum;
 }
 
-void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk){
+void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size){
 	Torrent torrent {torrentName};
 
 	if (!torrent.getFilename().empty()){
 		torrent.serialize(true);
-		chunk = torrent.RetrieveChunk(chunkNum);
+		chunk = torrent.RetrieveChunk(chunkNum, size);
 	}
 }

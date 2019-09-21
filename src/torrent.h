@@ -76,7 +76,7 @@ class Torrent {
 
 		string getFilename();
 		string getSerializedTorrent();
-		vector<char> RetrieveChunk(const int chunkNum);
+		vector<char> RetrieveChunk(const int& chunkNum, int& size);
 
 		static string getTorrentsPath();
 		static string getTorrentDataPath();
