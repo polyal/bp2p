@@ -41,3 +41,10 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 		serializedList.pop_back();
 	}
 }
+
+void TorrentListReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
+}

@@ -23,7 +23,7 @@ void ChunkReq::processRequest(){
 	resp = chunk;
 
 	// testing purposes
-	string filename = Torrent::getTorrentDataPath() + "download";
+	/*string filename = Torrent::getTorrentDataPath() + "download";
 	ofstream fTorrent {filename};
 
 	if (fTorrent.is_open()){
@@ -34,7 +34,7 @@ void ChunkReq::processRequest(){
 	}
 	else{
 		cout << "Dump Error: error opening output torrent file" << endl;
-	}
+	}*/
 }
 
 void ChunkReq::getTorrentNameFromReq(string& torrentName){
@@ -75,4 +75,19 @@ void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vec
 		torrent.serialize(true);
 		chunk = torrent.RetrieveChunk(chunkNum, size);
 	}
+}
+
+void ChunkReq::createRequest(const string& torrentName, const int& chunkNum){
+	this->torrentName = torrentName;
+	this->chunkNum = chunkNum;
+	createRequest();
+}
+
+void ChunkReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::chunk));
+	request += RRPacket::commSeparator + this->torrentName;
+	request += RRPacket::commSeparator + to_string(this->chunkNum);
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
 }

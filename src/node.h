@@ -56,6 +56,7 @@ class Peer{
 		void endComm(Peer::Device& dev);
 
 		void processRequest(const vector<char>& req, vector<char>& resp);
+		void createRequest();
 
 		void parseTorrentList(const string& resp, vector<string>& torrentList);
 		int requestTorrentList(Peer::Device& dev);

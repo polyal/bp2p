@@ -4,6 +4,9 @@
 #include <vector>
 #include <fstream>
 #include "utils.h"
+#include "torrentFileReq.h"
+#include "torrentListReq.h"
+#include "chunkReq.h"
 #include "rrfactory.h"
 
 // include c libs
@@ -218,6 +221,23 @@ int Peer::requestTorrentList(Peer::Device& dev){
 	return 0;
 }
 
+void Peer::createRequest(){
+	ChunkReq req1;
+	string torrentName{"TorrentName"};
+	req1.createRequest(torrentName, 2);
+
+	TorrentFileReq req2;
+	req2.createRequest(torrentName);
+
+	TorrentListReq req3;
+	req3.createRequest();
+
+	string strreq1{req1.req.begin(), req1.req.end()};
+	string strreq2{req2.req.begin(), req2.req.end()};
+	string strreq3{req3.req.begin(), req3.req.end()};
+	cout << strreq1 << endl << strreq2 << endl << strreq3 << endl;
+}
+
 ///////////////////////////////////////////////////////////
 // defintions for device class
 
@@ -373,7 +393,9 @@ int main(int argc, char *argv[]){
 	string file3 {"test/test3"};
 	vector<string> files{file1, file2, file3};
 	Torrent t {torrentName, files};*/
-	RRPacket::requestType reqType = RRPacket::chunk;
+
+
+	/*RRPacket::requestType reqType = RRPacket::chunk;
 	string req{"bp2p||"};
 	req = req + to_string(static_cast<int>(reqType));
 	req = req + "||Torrent||0";
@@ -381,7 +403,9 @@ int main(int argc, char *argv[]){
 	vector<char> vReq(req.begin(), req.end());
 	me.processRequest(vReq, vResp);
 	string resp(vResp.begin(), vResp.end());
-	cout << "serialized Torrent: " << req << endl;// << resp << endl;
+	cout << "serialized Torrent: " << req << endl;// << resp << endl;*/
+
+	me.createRequest();
 
     return 0;
 }

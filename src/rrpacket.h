@@ -29,6 +29,7 @@ class RRPacket {
 		vector<char> getResp();
 
 		virtual void processRequest() = 0;
+		virtual void createRequest() = 0;
 };
 
 #endif

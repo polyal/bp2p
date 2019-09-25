@@ -4,9 +4,11 @@
 
 
 TorrentFileReq::TorrentFileReq(){
+	torrentName = "";
 }
 
 TorrentFileReq::TorrentFileReq(const vector<char>& req) : RRPacket(req){
+	torrentName = "";
 }
 
 void TorrentFileReq::processRequest (){
@@ -38,4 +40,17 @@ void TorrentFileReq::getSerialzedTorrent(const string& torrentName, string& seri
 		torrent.serialize(true);
 		serializedTorrent = torrent.getSerializedTorrent();
 	}
+}
+
+void TorrentFileReq::createRequest(const string& torrentName){
+	this->torrentName = torrentName;
+	createRequest();
+}
+
+void TorrentFileReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
+	request += RRPacket::commSeparator + this->torrentName;
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
 }
