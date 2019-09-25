@@ -91,3 +91,7 @@ void ChunkReq::createRequest(){
 
 	std::copy(request.begin(), request.end(), std::back_inserter(req));
 }
+
+void ChunkReq::processRespose(){
+
+}

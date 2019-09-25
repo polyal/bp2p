@@ -11,8 +11,9 @@ class ChunkReq : public RRPacket {
 		ChunkReq();
 		ChunkReq(const vector<char>& req);
 
-		void processRequest();
 		void createRequest(const string& torrentName, const int& chunkNum);
+		void processRequest();
+		void processRespose();
 
 	private:
 		string torrentName;

@@ -1,5 +1,4 @@
 #include "torrentFileReq.h"
-#include "torrent.h"
 #include "utils.h"
 
 
@@ -53,4 +52,14 @@ void TorrentFileReq::createRequest(){
 	request += RRPacket::commSeparator + this->torrentName;
 
 	std::copy(request.begin(), request.end(), std::back_inserter(req));
+}
+
+void TorrentFileReq::processRespose(){
+	string resp{resp.begin(), resp.end()};
+
+	Torrent torrent;
+	torrent.createTorrentFromSerializedObj(resp);
+	if (torrent.isValid()){
+		this->torrent = torrent;
+	}
 }

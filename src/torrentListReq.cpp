@@ -1,4 +1,5 @@
 #include <string>
+#include "utils.h"
 #include "torrent.h"
 #include "torrentListReq.h"
 
@@ -6,6 +7,13 @@ TorrentListReq::TorrentListReq(){
 }
 
 TorrentListReq::TorrentListReq(const vector<char>& req):RRPacket(req){
+}
+
+void TorrentListReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
 }
 
 void TorrentListReq::processRequest(){
@@ -42,9 +50,13 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 	}
 }
 
-void TorrentListReq::createRequest(){
-	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
+void TorrentListReq::processRespose(){
+	vector<string> torrentList;
+	string resp{this->resp.begin(), this->resp.end()};
+	parseTorrentList(resp, torrentList);
+	this->torrentList = torrentList;
+}
 
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
+void TorrentListReq::parseTorrentList(const string& resp, vector<string>& torrentList){
+	Utils::tokenize(resp, commSeparator, torrentList);
 }

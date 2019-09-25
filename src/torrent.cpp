@@ -61,6 +61,29 @@ Torrent::Torrent(const string& torrentName){
 Torrent::Torrent(){
 	this->numPieces = 0;
 	this->name = "";
+	this->fullpath = "";
+	this->uid = "";
+	this->serializedObj = "";
+}
+
+Torrent::Torrent(const Torrent& torrent){
+	this->numPieces = torrent.numPieces;
+	this->name = torrent.name;
+	this->fullpath = torrent.fullpath;
+	this->uid = torrent.uid;
+	copy(torrent.chunks.begin(), torrent.chunks.end(), back_inserter(this->chunks));
+	this->jobj = torrent.jobj;
+	this->serializedObj = torrent.serializedObj;
+}
+
+void Torrent::createTorrentFromSerializedObj(const string& serializedObj){
+	if (serializedObj.empty()){
+		cout << "Create Torrent From Serialized Obj Error: invalid input" << endl;
+		return;
+	}
+
+	deserialize(serializedObj, false);
+	dumpToTorrentFile();
 }
 
 int Torrent::createTorrent (const string& torrentName, const vector<string>& files){
@@ -213,7 +236,7 @@ void Torrent::serialize(bool create){
 	cout << "json ::\n" << serializedObj << endl;
 }
 
-void Torrent::deserialize(string& serializedObj, bool create){
+void Torrent::deserialize(const string& serializedObj, const bool create){
 	this->serializedObj = serializedObj;
 	this->jobj = nlohmann::json::parse(serializedObj);
 
@@ -288,21 +311,6 @@ void Torrent::readTorrentFromFile(const string& torrentName){
 	this->serializedObj = data;
 }
 
-bool Torrent::isTorrentComplete(){
-	bool complete = true;
-	if (chunks.empty())
-		return false;
-
-	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++) {
-    	if (get<1>(*it) == false){
-    		complete = false;
-    		break;
-    	}
-	}
-
-	return complete;
-}
-
 vector<char> Torrent::RetrieveChunk(const int& chunkNum, int& size){
 	vector<char> chunk(chunkSize);
 
@@ -322,6 +330,42 @@ vector<char> Torrent::RetrieveChunk(const int& chunkNum, int& size){
 	fTorrent.close();
 
 	return chunk;
+}
+
+bool Torrent::isComplete(){
+	bool complete = true;
+	if (chunks.empty())
+		return false;
+
+	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++) {
+    	if (get<1>(*it) == false){
+    		complete = false;
+    		break;
+    	}
+	}
+
+	return complete;
+}
+
+bool Torrent::isValid(){
+	return (numPieces > 0
+			&& !name.empty()
+			&& !fullpath.empty()
+			&& !uid.empty()
+			&& !chunks.empty()
+			&& !serializedObj.empty());
+}
+
+Torrent& Torrent::operator=(const Torrent& torrent){
+	this->numPieces = torrent.numPieces;
+	this->name = torrent.name;
+	this->fullpath = torrent.fullpath;
+	this->uid = torrent.uid;
+	copy(torrent.chunks.begin(), torrent.chunks.end(), back_inserter(this->chunks));
+	this->jobj = torrent.jobj;
+	this->serializedObj = torrent.serializedObj;
+
+    return *this;  // Return a reference to myself.
 }
 
 string Torrent::getFilename(){

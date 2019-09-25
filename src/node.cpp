@@ -197,7 +197,7 @@ void Peer::processRequest(const vector<char>& req, vector<char>& resp){
 }
 
 
-void Peer::parseTorrentList(const string& resp, vector<string>& torrentList){
+/*void Peer::parseTorrentList(const string& resp, vector<string>& torrentList){
 	Utils::tokenize(resp, commSeparator, torrentList);
 }
 
@@ -219,7 +219,7 @@ int Peer::requestTorrentList(Peer::Device& dev){
 	dev.addTorrentNames(torrentNames);
 
 	return 0;
-}
+}*/
 
 void Peer::createRequest(){
 	ChunkReq req1;

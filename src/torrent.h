@@ -43,9 +43,12 @@ class Torrent {
 
  	public:
  		Torrent();
+ 		Torrent(const Torrent& torrent);
  		Torrent(const string& torrentName); // takes the filename of an already existing torrent
  		Torrent(const string& torrentName, const vector<string>& files); // takes a list of files to be packaged
 
+		// takes a serialized torrent, deserialzes, then dumps it to a torrent file 
+		void createTorrentFromSerializedObj(const string& serializedObj);
 
  		// takes the filename of a file to be converted into a torrent
 		int createTorrent (const string& archive, const vector<string>& files);
@@ -65,14 +68,17 @@ class Torrent {
 		void serialize(bool create);
 
 		// if create is true, all chunks are marked as nonexisting, meaning it is a nre torrent
-		void deserialize(string& serializedObj, bool create);
+		void deserialize(const string& serializedObj, const bool create);
 
 		// uses the serialized instance varaible to create a torrent file
 		void dumpToTorrentFile ();
 
 		void readTorrentFromFile(const string& torrentName);
 
-		bool isTorrentComplete();
+		bool isComplete();
+		bool isValid();
+
+		Torrent& operator=(const Torrent& torrent);
 
 		string getFilename();
 		string getSerializedTorrent();

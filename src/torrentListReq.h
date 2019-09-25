@@ -12,12 +12,17 @@ class TorrentListReq : public RRPacket {
 		TorrentListReq();
 		TorrentListReq(const vector<char>& req);
 
-		void processRequest();
 		void createRequest();
+		void processRequest();
+		void processRespose();
+
+		vector<string> torrentList;
 
 	private:
 		void getTorrentList(vector<string>& torrentNames);
 		void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
+
+		void parseTorrentList(const string& resp, vector<string>& torrentList);
 };
 
 #endif

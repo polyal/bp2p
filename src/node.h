@@ -58,8 +58,8 @@ class Peer{
 		void processRequest(const vector<char>& req, vector<char>& resp);
 		void createRequest();
 
-		void parseTorrentList(const string& resp, vector<string>& torrentList);
-		int requestTorrentList(Peer::Device& dev);
+		/*void parseTorrentList(const string& resp, vector<string>& torrentList);
+		int requestTorrentList(Peer::Device& dev);*/
 		
 		static const string applicationDir;
 		string getApplicationPath();
