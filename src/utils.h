@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ class Utils{
 		static void converToFullpath(const string& relPath, string& fullPath);
 		static int isRegulaFile(const string& path);
 		static int listFileInDir(const string& dirName, vector<string>& filenames);
+		static unsigned long long filesize(const char* filename);
 
 		// hex and byte utils
 		static string bytesToHex(char* bytes, int len);

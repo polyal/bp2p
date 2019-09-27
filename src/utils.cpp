@@ -100,6 +100,12 @@ int Utils::listFileInDir(const string& dirName, vector<string>& filenames){
 	return 0;
 }
 
+unsigned long long Utils::filesize(const char* filename)
+{
+	std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+	return static_cast<unsigned long long>(in.tellg()); 
+}
+
 
 string Utils::bytesToHex(char* bytes, int len){
 	std::stringstream digest;

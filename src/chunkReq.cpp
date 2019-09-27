@@ -10,6 +10,21 @@ ChunkReq::ChunkReq(){
 ChunkReq::ChunkReq(const vector<char>& req):RRPacket(req){
 }
 
+void ChunkReq::createRequest(const string& torrentName, const int& chunkNum){
+	this->torrentName = torrentName;
+	this->chunkNum = chunkNum;
+	createRequest();
+}
+
+void ChunkReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::chunk));
+	request += RRPacket::commSeparator + this->torrentName;
+	request += RRPacket::commSeparator + to_string(this->chunkNum);
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
+}
+
 void ChunkReq::processRequest(){
 	string torrentName = "";
 	int chunkNum = -1, size = 0;
@@ -77,21 +92,19 @@ void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vec
 	}
 }
 
-void ChunkReq::createRequest(const string& torrentName, const int& chunkNum){
-	this->torrentName = torrentName;
-	this->chunkNum = chunkNum;
-	createRequest();
-}
-
-void ChunkReq::createRequest(){
-	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::chunk));
-	request += RRPacket::commSeparator + this->torrentName;
-	request += RRPacket::commSeparator + to_string(this->chunkNum);
-
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
+void ChunkReq::processRespose(const vector<char>& chunk, const int& size){
+	this->chunk = chunk;
+	this->size = size;
+	processRespose();
 }
 
 void ChunkReq::processRespose(){
+	Torrent torrent{torrentName};
 
+	if (!torrent.torrentDataExists()){
+		torrent.createTorrentDataFile();
+	}
+	else{
+		torrent.putChunk(this->chunk, this->chunkNum);		
+	}
 }

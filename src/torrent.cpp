@@ -64,6 +64,7 @@ Torrent::Torrent(){
 	this->fullpath = "";
 	this->uid = "";
 	this->serializedObj = "";
+	this->size = 0;
 }
 
 Torrent::Torrent(const Torrent& torrent){
@@ -74,6 +75,7 @@ Torrent::Torrent(const Torrent& torrent){
 	copy(torrent.chunks.begin(), torrent.chunks.end(), back_inserter(this->chunks));
 	this->jobj = torrent.jobj;
 	this->serializedObj = torrent.serializedObj;
+	this->size = torrent.size;
 }
 
 void Torrent::createTorrentFromSerializedObj(const string& serializedObj){
@@ -124,9 +126,10 @@ int Torrent::createPackage(const string& torrentName, const vector<string>& file
 		return ret;
 	}
 
-	// set filename instance
+	// set instance variables
 	this->name = torrentName;
 	this->fullpath = torrentDataFullPath;
+	this->size = Utils::filesize(cstrTorrentDataFullPath);
 	
 	return ret;
 }
@@ -223,6 +226,7 @@ void Torrent::serialize(bool create){
 	jobj["name"] = this->name;
 	jobj["uid"] = this->uid;
 	jobj["numPieces"] = this->numPieces;
+	jobj["size"] = this->size;
 
 	std::vector<tuple<string, bool>>::size_type i = 0;
 	for(i = 0; i != this->chunks.size(); i++) {
@@ -243,6 +247,7 @@ void Torrent::deserialize(const string& serializedObj, const bool create){
 	this->name = this->jobj["name"].get<std::string>();
 	this->numPieces = this->jobj["numPieces"];
 	this->uid = this->jobj["uid"];
+	this->size = this->jobj["size"];
 	this->fullpath = Torrent::getTorrentDataPath() + this->name;
 
 	cout << "name " << this->name << ", num Pieces " << numPieces << endl;
@@ -332,6 +337,21 @@ vector<char> Torrent::RetrieveChunk(const int& chunkNum, int& size){
 	return chunk;
 }
 
+void Torrent::createTorrentDataFile(){
+	string fullpath = getTorrentDataPath() + this->name;
+	std::ofstream ofs(fullpath, std::ios::binary | std::ios::out);
+    ofs.seekp(this->size-1);
+    ofs.write("", 1);
+}
+
+void Torrent::putChunk(const vector<char>& chunk, const int& chunkNum){
+	string fullpath = getTorrentDataPath() + this->name;
+	unsigned long long pos = (this->chunkSize * chunkNum) - 1;
+	std::ofstream ofs(fullpath, std::ios::binary | std::ios::out);
+    ofs.seekp(pos);
+    ofs.write(chunk.data(), 1);
+}
+
 bool Torrent::isComplete(){
 	bool complete = true;
 	if (chunks.empty())
@@ -354,6 +374,11 @@ bool Torrent::isValid(){
 			&& !uid.empty()
 			&& !chunks.empty()
 			&& !serializedObj.empty());
+}
+
+bool Torrent::torrentDataExists(){
+	string fullpath = getTorrentDataPath() + this->name;
+	return Utils::doesFileExist(fullpath);
 }
 
 Torrent& Torrent::operator=(const Torrent& torrent){

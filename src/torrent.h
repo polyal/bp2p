@@ -37,6 +37,7 @@ class Torrent {
 		string fullpath;
 		string uid;
 		vector<tuple<string, bool>> chunks;
+		unsigned long long size;
 
 		nlohmann::json jobj;
 		string serializedObj;
@@ -75,8 +76,13 @@ class Torrent {
 
 		void readTorrentFromFile(const string& torrentName);
 
+		// torrent data creation methods
+		void createTorrentDataFile();
+		void putChunk(const vector<char>& chunk, const int& chunkNum);
+
 		bool isComplete();
 		bool isValid();
+		bool torrentDataExists();
 
 		Torrent& operator=(const Torrent& torrent);
 
