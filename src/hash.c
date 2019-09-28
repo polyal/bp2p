@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <openssl/sha.h>
 
 #include "hash.h"
 
@@ -86,7 +85,7 @@ int computeSha256FileChunks(const char* const path, char*** const digest, int* c
     long numChunks = (fileSize % CHUNK) ? (fileSize / CHUNK) + 1 : fileSize / CHUNK;
     *length = numChunks;
 
-    *digest = malloc(sizeof(char) * numChunks);
+    *digest = malloc(sizeof(char*) * numChunks);
     if (*digest == NULL) return ENOMEM;
     for (i = 0; i < numChunks; i++){
         (*digest)[i] = malloc(sizeof(char) * SHA256_DIGEST_LENGTH);
@@ -99,9 +98,11 @@ int computeSha256FileChunks(const char* const path, char*** const digest, int* c
     while((bytesRead = fread(buffer, 1, CHUNK, fp)))
     {
         computeSha256(buffer, (*digest)[i], bytesRead);
+        memset(buffer, 0, CHUNK);
         //printf("%d %lx \n", i, (*digest)[i]);
         i++;
     }
+    free(buffer);
 
     return 0;
 }

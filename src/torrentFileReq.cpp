@@ -10,6 +10,20 @@ TorrentFileReq::TorrentFileReq(const vector<char>& req) : RRPacket(req){
 	torrentName = "";
 }
 
+void TorrentFileReq::createRequest(const string& torrentName){
+	this->torrentName = torrentName;
+	createRequest();
+}
+
+void TorrentFileReq::createRequest(){
+	string prefix = RRPacket::commString + RRPacket::commSeparator;
+	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
+	request += RRPacket::commSeparator + this->torrentName;
+
+	std::copy(request.begin(), request.end(), std::back_inserter(req));
+	cout << "create: " << request << endl;
+}
+
 void TorrentFileReq::processRequest (){
 	string torrentName = "";
 	string strResp;
@@ -18,6 +32,7 @@ void TorrentFileReq::processRequest (){
 	getSerialzedTorrent(torrentName, strResp);
 
 	std::copy(strResp.begin(), strResp.end(), std::back_inserter(resp));
+	cout << "resp: " << strResp << endl;
 }
 
 void TorrentFileReq::getTorrentNameFromReq(string& torrentName){
@@ -41,25 +56,16 @@ void TorrentFileReq::getSerialzedTorrent(const string& torrentName, string& seri
 	}
 }
 
-void TorrentFileReq::createRequest(const string& torrentName){
-	this->torrentName = torrentName;
-	createRequest();
-}
-
-void TorrentFileReq::createRequest(){
-	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
-	request += RRPacket::commSeparator + this->torrentName;
-
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
-}
-
-void TorrentFileReq::processRespose(){
-	string resp{resp.begin(), resp.end()};
-
+void TorrentFileReq::processResponse(){
+	string strresp{resp.begin(), resp.end()};
+	cout << "start respoProess: " << endl;
 	Torrent torrent;
-	torrent.createTorrentFromSerializedObj(resp);
+	torrent.createTorrentFromSerializedObj(strresp);
+	cout << "1 respoProess: " << endl;
 	if (torrent.isValid()){
 		this->torrent = torrent;
+		//this->torrent.name += "!!!";
+		//cout << "2 respoProess: " << endl;
+		//this->torrent.dumpToTorrentFile();
 	}
 }

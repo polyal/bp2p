@@ -33,7 +33,7 @@ class Torrent {
 		static const string torrentDataDir;
 
 		int numPieces;
-		string name;
+		
 		string fullpath;
 		string uid;
 		vector<tuple<string, bool>> chunks;
@@ -43,6 +43,7 @@ class Torrent {
 		string serializedObj;
 
  	public:
+ 		string name;
  		Torrent();
  		Torrent(const Torrent& torrent);
  		Torrent(const string& torrentName); // takes the filename of an already existing torrent
@@ -78,7 +79,7 @@ class Torrent {
 
 		// torrent data creation methods
 		void createTorrentDataFile();
-		void putChunk(const vector<char>& chunk, const int& chunkNum);
+		void putChunk(const vector<char>& chunk, int size, int chunkNum);
 
 		bool isComplete();
 		bool isValid();
@@ -88,7 +89,7 @@ class Torrent {
 
 		string getFilename();
 		string getSerializedTorrent();
-		vector<char> RetrieveChunk(const int& chunkNum, int& size);
+		vector<char> getChunk(const int& chunkNum, int& size);
 
 		static string getTorrentsPath();
 		static string getTorrentDataPath();

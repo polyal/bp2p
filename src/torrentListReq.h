@@ -14,7 +14,7 @@ class TorrentListReq : public RRPacket {
 
 		void createRequest();
 		void processRequest();
-		void processRespose();
+		void processResponse();
 
 		vector<string> torrentList;
 

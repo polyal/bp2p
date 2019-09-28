@@ -51,7 +51,6 @@ Torrent::Torrent(const string& torrentName){
 	cout << torrentName << " " << fullpath << endl;
 
 	if (Utils::doesFileExist(fullpath)){
-		cout << "ecists" << endl;
 		readTorrentFromFile(fullpath);
 		deserialize(serializedObj, false);
 		//unpackage (fullpath);
@@ -160,11 +159,8 @@ int Torrent::generateChunks(){
 	//convert hash chunks to hex strings
 	int i = 0;
 	for (i = 0; i < length; i++){
-		string strdigest = Utils::bytesToHex(digest[0], 32);
-		cout << strdigest << endl;
-
+		string strdigest = Utils::bytesToHex(digest[i], SHA256_DIGEST_LENGTH);
 		auto keyValPair = make_tuple(strdigest, true);
-
 		this->chunks.push_back(keyValPair);
 	}
 
@@ -212,7 +208,6 @@ int Torrent::generateFileHash(){
 
 	//convert hash to hex strings
 	this->uid = Utils::bytesToHex(digest, 32);
-	cout << uid << endl;
 
 	return 0;
 }
@@ -237,7 +232,7 @@ void Torrent::serialize(bool create){
 	}
 
 	this->serializedObj = jobj.dump();
-	cout << "json ::\n" << serializedObj << endl;
+	//cout << "json ::\n" << serializedObj << endl;
 }
 
 void Torrent::deserialize(const string& serializedObj, const bool create){
@@ -255,7 +250,7 @@ void Torrent::deserialize(const string& serializedObj, const bool create){
 	int i = 0;
 	for (i = 0; i < this->numPieces; i++) {
 		auto hashpair = this->jobj[to_string(i)];
-  		std::cout << hashpair << endl;
+  		//std::cout << hashpair << endl;
 
   		tuple<string, bool> keyValPair;
   		if (create)
@@ -265,9 +260,9 @@ void Torrent::deserialize(const string& serializedObj, const bool create){
 		this->chunks.push_back(keyValPair);
 	}
 
-	for(auto const& value: this->chunks) {
+	/*for(auto const& value: this->chunks) {
 		cout << get<0>(value) << " " << get<1>(value) << endl;
-	}
+	}*/
 }
 
 void Torrent::dumpToTorrentFile (){
@@ -280,10 +275,7 @@ void Torrent::dumpToTorrentFile (){
 
 	fullpath = Torrent::getTorrentsPath() + this->name;
 
-	cout << "Write Torrent: " << fullpath << endl;
-
 	ofstream fTorrent {fullpath};
-
 	if (fTorrent.is_open()){
 		fTorrent << serializedObj;
  		fTorrent.close();
@@ -299,15 +291,13 @@ void Torrent::readTorrentFromFile(const string& torrentName){
 		return;
 	}
 
-	cout << "Read torrent: " << torrentName << endl;
-
 	string data;
  	ifstream fTorrent{torrentName};
-
  	if (fTorrent.is_open()){
  		// this should always only be one line
- 		while(getline(fTorrent, data))
-	        cout << data << endl;
+ 		while(getline(fTorrent, data)){
+	        //cout << data << endl;
+ 		}
 		fTorrent.close();
  	}
  	else
@@ -316,22 +306,21 @@ void Torrent::readTorrentFromFile(const string& torrentName){
 	this->serializedObj = data;
 }
 
-vector<char> Torrent::RetrieveChunk(const int& chunkNum, int& size){
+vector<char> Torrent::getChunk(const int& chunkNum, int& size){
 	vector<char> chunk(chunkSize);
 
 	ifstream fTorrent {this->fullpath, ifstream::binary};
 	if (fTorrent.is_open()){
 		fTorrent.seekg (chunkNum * this->chunkSize);
 		fTorrent.read (&chunk[0], this->chunkSize);
-		
 	}
 
 	if (fTorrent)
       std::cout << "all characters read successfully.";
     else{
       std::cout << "error: only " << fTorrent.gcount() << " could be read" << strerror(errno) << endl;
-      size = fTorrent.gcount();
     }
+    size = fTorrent.gcount();
 	fTorrent.close();
 
 	return chunk;
@@ -344,12 +333,14 @@ void Torrent::createTorrentDataFile(){
     ofs.write("", 1);
 }
 
-void Torrent::putChunk(const vector<char>& chunk, const int& chunkNum){
+void Torrent::putChunk(const vector<char>& chunk, int size, int chunkNum){
 	string fullpath = getTorrentDataPath() + this->name;
-	unsigned long long pos = (this->chunkSize * chunkNum) - 1;
+	unsigned long long pos = (this->chunkSize * chunkNum);
 	std::ofstream ofs(fullpath, std::ios::binary | std::ios::out);
-    ofs.seekp(pos);
-    ofs.write(chunk.data(), 1);
+	if (ofs.is_open()){
+    	ofs.seekp(pos);
+    	ofs.write(chunk.data(), size);
+	}
 }
 
 bool Torrent::isComplete(){

@@ -30,7 +30,7 @@ class RRPacket {
 
 		virtual void createRequest() = 0;
 		virtual void processRequest() = 0;
-		virtual void processRespose() = 0;
+		virtual void processResponse() = 0;
 };
 
 #endif

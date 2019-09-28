@@ -16,7 +16,7 @@ class TorrentFileReq : public RRPacket {
 
 		void createRequest(const string& torrentName);
 		void processRequest();
-		void processRespose();
+		void processResponse();
 
 	private:
 		Torrent torrent;

@@ -14,6 +14,8 @@ void TorrentListReq::createRequest(){
 	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
 
 	std::copy(request.begin(), request.end(), std::back_inserter(req));
+	string strreq{req.begin(), req.end()};
+	cout << "create: " << strreq << endl;
 }
 
 void TorrentListReq::processRequest(){
@@ -24,6 +26,8 @@ void TorrentListReq::processRequest(){
 	serializeTorrentList(torrentNames, serializedList);
 
 	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->resp));
+	string strreq{req.begin(), req.end()};
+	cout << "process: " << strreq << endl;
 }
 
 void TorrentListReq::getTorrentList(vector<string>& torrentNames){
@@ -50,11 +54,16 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 	}
 }
 
-void TorrentListReq::processRespose(){
+void TorrentListReq::processResponse(){
 	vector<string> torrentList;
 	string resp{this->resp.begin(), this->resp.end()};
 	parseTorrentList(resp, torrentList);
 	this->torrentList = torrentList;
+	cout << "procResp: ";
+	for (auto const& tor : torrentList){
+		cout << tor << " ";
+	}
+	cout << endl;
 }
 
 void TorrentListReq::parseTorrentList(const string& resp, vector<string>& torrentList){

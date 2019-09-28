@@ -35,7 +35,10 @@ void ChunkReq::processRequest(){
 	chunkNum = getChunkNumFromReq(strReq);
 	retrieveChunk(torrentName, chunkNum, chunk, size);
 
-	resp = chunk;
+	this->resp = chunk;
+	this->size = size;
+
+	cout << "processRequest " << this->size << endl;
 
 	// testing purposes
 	/*string filename = Torrent::getTorrentDataPath() + "download";
@@ -88,23 +91,27 @@ void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vec
 
 	if (!torrent.getFilename().empty()){
 		torrent.serialize(true);
-		chunk = torrent.RetrieveChunk(chunkNum, size);
+		chunk = torrent.getChunk(chunkNum, size);
 	}
 }
 
-void ChunkReq::processRespose(const vector<char>& chunk, const int& size){
+void ChunkReq::processResponse(const vector<char>& chunk, const int& size){
 	this->chunk = chunk;
 	this->size = size;
-	processRespose();
+	cout << "process response" << chunk.size() << " " << size << endl;
+	processResponse();
 }
 
-void ChunkReq::processRespose(){
+void ChunkReq::processResponse(){
 	Torrent torrent{torrentName};
 
+	torrent.name = torrentName + "!!!";
+	torrent.serialize(false);
+
 	if (!torrent.torrentDataExists()){
+		cout << "doesnt exist " << endl;
 		torrent.createTorrentDataFile();
 	}
-	else{
-		torrent.putChunk(this->chunk, this->chunkNum);		
-	}
+	cout << "put " << this->chunk.size() << " " << this->size << " " << this->chunkNum << endl;
+	torrent.putChunk(this->chunk, this->size, this->chunkNum);		
 }

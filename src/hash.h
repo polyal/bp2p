@@ -1,3 +1,5 @@
+#include <openssl/sha.h>
+
 ///////////////////////////////////////////////////////////
 //
 //  Hashes a file in chunks of size 32768 bytes into a

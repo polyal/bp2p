@@ -14,13 +14,13 @@ class ChunkReq : public RRPacket {
 
 		void createRequest(const string& torrentName, const int& chunkNum);
 		void processRequest();
-		void processRespose(const vector<char>& chunk, const int& size);
-
+		void processResponse(const vector<char>& chunk, const int& size);
+		int size = -1;
 	private:
 		string torrentName;
 		vector<char> chunk;
 		int chunkNum = -1;
-		int size = -1;
+		
 
 		void createRequest();
 
@@ -28,7 +28,7 @@ class ChunkReq : public RRPacket {
 		int getChunkNumFromReq(const string& req);
 		void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size);
 
-		void processRespose();
+		void processResponse();
 };
 
 #endif
