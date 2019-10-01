@@ -336,9 +336,9 @@ void Torrent::createTorrentDataFile(){
 void Torrent::putChunk(const vector<char>& chunk, int size, int chunkNum){
 	string fullpath = getTorrentDataPath() + this->name;
 	unsigned long long pos = (this->chunkSize * chunkNum);
-	std::ofstream ofs(fullpath, std::ios::binary | std::ios::out);
+	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
 	if (ofs.is_open()){
-    	ofs.seekp(pos);
+    	ofs.seekp(pos, std::ios_base::beg);
     	ofs.write(chunk.data(), size);
 	}
 }
