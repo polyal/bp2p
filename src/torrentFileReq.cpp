@@ -49,11 +49,13 @@ void TorrentFileReq::getTorrentNameFromReq(string& torrentName){
 
 void TorrentFileReq::getSerialzedTorrent(const string& torrentName, string& serializedTorrent){
 	Torrent torrent {torrentName};
-
-	if (!torrent.getFilename().empty()){
+	if (torrent.open())
+		serializedTorrent = torrent.getSerializedTorrent();
+	// rewrite this with public functions
+	/*if (!torrent.getFilename().empty()){
 		torrent.serialize(true);
 		serializedTorrent = torrent.getSerializedTorrent();
-	}
+	}*/
 }
 
 void TorrentFileReq::processResponse(){

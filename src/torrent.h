@@ -27,74 +27,172 @@
 using namespace std;
 
 class Torrent {
-	private:
-		static const int chunkSize = 32768;  //256 kilobyte chunk size
-		static const string torrentFileDir;
-		static const string torrentDataDir;
+private:
+	static const int chunkSize = 32768;  //256 kilobyte chunk size
+	static const string torrentFileDir;
+	static const string torrentDataDir;
+	
+	vector<string> files;                // files in torrent
+	string packagePath;                  // path to the package
+	string torrentPath;                  // path to the torrent
+	string uid;                          // hash of the package used as UID
+	int numPieces;                       // total num chunks needed to construct package
+	vector<tuple<string, bool>> chunks;  // chunks that the [ackage is made up of
+	unsigned long long size;             // size of the package
 
-		int numPieces;
+	nlohmann::json jobj;                 // json object representing the torrent
+	string serializedObj;                // serialzed version of the json object
+
+public:
+	string name; // temporarily public for testing
+	Torrent();
+
+	///////////////////////////////////////////////////////////
+	//  Ititializes invariant for creating a new torrent.
+	//
+	//  name:  the name of the new torrent
+	//  files: files which are going to be included in the new torrent
+	Torrent(const string& name, const vector<string>& files);
+
+	///////////////////////////////////////////////////////////
+	//  Ititializes invariant for opening an existing torrent.
+	//
+	//  name:  the name of the new torrent
+	//  files: files which are going to be included in the new torrent
+	Torrent(const string& name);
+
+	///////////////////////////////////////////////////////////
+	//  Copy constructor
+	//
+	//  torrent: the torrent to be duplicated
+	Torrent(const Torrent& torrent);
 		
-		string fullpath;
-		string uid;
-		vector<tuple<string, bool>> chunks;
-		unsigned long long size;
 
-		nlohmann::json jobj;
-		string serializedObj;
 
- 	public:
- 		string name;
- 		Torrent();
- 		Torrent(const Torrent& torrent);
- 		Torrent(const string& torrentName); // takes the filename of an already existing torrent
- 		Torrent(const string& torrentName, const vector<string>& files); // takes a list of files to be packaged
+	///////////////////////////////////////////////////////////
+	//  Creates a torrent.
+	//
+	//  name:  the name of the new torrent
+	//  files: files which are going to be included in the new torrent
+	//
+	//  returns true on success
+	bool create(const string& name, const vector<string>& files);
 
-		// takes a serialized torrent, deserialzes, then dumps it to a torrent file 
-		void createTorrentFromSerializedObj(const string& serializedObj);
+	///////////////////////////////////////////////////////////
+	//  Creates a torrent using the name provided and the list
+	//  files.  Used in conjuction with the
+	//	Torrent(const string& name, const vector<string>& files)
+	//  constructor.
+	//
+	//  returns true on success
+	bool create();
 
- 		// takes the filename of a file to be converted into a torrent
-		int createTorrent (const string& archive, const vector<string>& files);
+	///////////////////////////////////////////////////////////
+	//  Opens an existing torrent and populates torrent object.
+	//
+	//  name:  name of the torrent to be opened
+	//
+	//  returns true on success
+	bool open(const string& name);
 
-		// takes the name of the archive to be created and a list of files to be archived abd compressed
-		int createPackage(const string& archive, const vector<string>& files);
-
-		int unpackage (const string& packageName);
+	///////////////////////////////////////////////////////////
+	//  Opens an existing torrent and populates torrent object.
+	//  Used in conjuction with the constructor that takes the 
+	//  torrent name.
+	//
+	//  returns true on success
+	bool open();
 		
- 		// uses filename instance variable to generate chunks from and fills the chunks vector instance variable
-		int generateChunks();
+	///////////////////////////////////////////////////////////
+	//  Creates a torrent from a serialized json object stored
+	//  as a string that represents the torrent. 
+	//  This is used when a torrent is received as a string 
+	//  across a channel and needs to be reconsteructed.
+	//
+	//  returns true on success
+	bool createTorrentFromSerializedObj(const string& serializedObj);
 
-		// uses uses filename to hash the whole file.  This is used as a uid for the torrent
-		int generateFileHash();
 
-		// if create is true, all the chunks are marked as existing
-		void serialize(bool create);
+	///////////////////////////////////////////////////////////
+	//  Retreives a chunk from a torrent package
+	//
+	//  chunkNum:  The piece of the file to be returned
+	//  size:      The size of the piece
+	//
+	//  returns the requested chunk or empty list of invalid
+	vector<char> getChunk(const int& chunkNum, int& size);
 
-		// if create is true, all chunks are marked as nonexisting, meaning it is a nre torrent
-		void deserialize(const string& serializedObj, const bool create);
+	///////////////////////////////////////////////////////////
+	//  Puts a chunk of data into a torrent package
+	//
+	//  chunk:    The piece of the package to be inserted
+	//  size:     The size of the piece
+	//  chunkNum: The chunk index
+	void putChunk(const vector<char>& chunk, const int size, const int chunkNum);
 
-		// uses the serialized instance varaible to create a torrent file
-		void dumpToTorrentFile ();
+	///////////////////////////////////////////////////////////
+	//  Creates an empty package of the appropriate size
+	void createTorrentDataFile();
 
-		void readTorrentFromFile(const string& torrentName);
+	bool isComplete();
+	bool isValid();
+	bool torrentDataExists();
 
-		// torrent data creation methods
-		void createTorrentDataFile();
-		void putChunk(const vector<char>& chunk, int size, int chunkNum);
+	Torrent& operator=(const Torrent& torrent);
 
-		bool isComplete();
-		bool isValid();
-		bool torrentDataExists();
+	string getFilename();
+	string getSerializedTorrent();
 
-		Torrent& operator=(const Torrent& torrent);
+	static string getTorrentsPath();
+	static string getTorrentDataPath();
+	static vector<string> getTorrentNames();
 
-		string getFilename();
-		string getSerializedTorrent();
-		vector<char> getChunk(const int& chunkNum, int& size);
+private:
+	////////////////////////////////////////////////////////////
+	//  Creates a package containing the files that were 
+	//  specified in a call to the constructor or
+	//  a call to createTorrent.
+	int package();
 
-		static string getTorrentsPath();
-		static string getTorrentDataPath();
-		static vector<string> getTorrentNames();
+	////////////////////////////////////////////////////////////
+	//  Unpacked a package.
+	int unpackage ();
 
+	////////////////////////////////////////////////////////////
+	//  divides the package into chunks that can be transfered
+	//  accross a channel and checked against a hash
+	int generateChunks();
+
+	////////////////////////////////////////////////////////////
+	//  hashes the contents of the package.  This is used
+	//  as a UID for the torrent
+	int generateFileHash();
+
+	////////////////////////////////////////////////////////////
+	//  Serializes the contents of the torrent object to be
+	//  stored in a file or transported across a channel
+	void serialize();
+
+	////////////////////////////////////////////////////////////
+	//  Deserializes a string into a torrent object
+	//
+	//  create:  set to true to indicate tge torrent is being
+	//           created for the first time.  All chunks will
+	//           be set to false, indicating the user doesn't
+	//           own them
+	void deserialize(const bool create);
+
+	////////////////////////////////////////////////////////////
+	//  Writes the serialized torrent into a file, therefore,
+	//  creating a torrent file
+	void dumpToTorrentFile();
+
+	////////////////////////////////////////////////////////////
+	//  Reads a torrent from a torrent file and populates the
+	//  serialzied torrent object
+	//
+	//  torrentPath:  full path to the torrent file to be read in
+	void readTorrentFromFile(const string& torrentPath);
 };
 
 #endif

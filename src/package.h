@@ -20,4 +20,4 @@ int package(const char* const archive, const char * const * const filename);
 *                and unarchived
 *
 **********************************************************/
-int depackage(const char* const packageName);
+int unpackage(const char* const packageName);

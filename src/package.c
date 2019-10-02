@@ -186,7 +186,7 @@ int package(const char* const archive, const char *const *const filename){
     return ret;
 }
 
-int depackage(const char* const packageName){
+int unpackage(const char* const packageName){
     int ret;
     
     FILE* source = fopen(packageName, "rb");

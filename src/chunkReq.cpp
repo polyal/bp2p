@@ -88,30 +88,26 @@ int ChunkReq::getChunkNumFromReq(const string& req){
 
 void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size){
 	Torrent torrent {torrentName};
-
-	if (!torrent.getFilename().empty()){
-		torrent.serialize(true);
+	if (torrent.open())
 		chunk = torrent.getChunk(chunkNum, size);
-	}
+	else
+		cout << "retreive chunk failed" << endl;
 }
 
 void ChunkReq::processResponse(const vector<char>& chunk, const int& size){
 	this->chunk = chunk;
 	this->size = size;
-	cout << "process response" << chunk.size() << " " << size << endl;
 	processResponse();
 }
 
 void ChunkReq::processResponse(){
 	Torrent torrent{torrentName};
-
-	torrent.name = torrentName + "!!!";
-	torrent.serialize(false);
-
-	if (!torrent.torrentDataExists()){
-		cout << "doesnt exist " << endl;
-		torrent.createTorrentDataFile();
+	if (torrent.open())
+	{
+		torrent.name = torrentName + "!!!"; // for testing only
+		if (!torrent.torrentDataExists())
+			torrent.createTorrentDataFile();
+		torrent.putChunk(this->chunk, this->size, this->chunkNum);
 	}
 	cout << "put " << this->chunk.size() << " " << this->size << " " << this->chunkNum << endl;
-	torrent.putChunk(this->chunk, this->size, this->chunkNum);		
 }
