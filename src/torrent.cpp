@@ -172,7 +172,7 @@ int Torrent::generateChunks()
 {
 	int ret = 0;
 	char** digest = NULL;
-	int length = 0;
+	unsigned int length = 0;
 
 	// need to call createPackage() first
 	if (this->packagePath.empty())
@@ -180,17 +180,16 @@ int Torrent::generateChunks()
 
 	// generate chunk hashes and convert them to hex strings
 	ret = computeSha256FileChunks(packagePath.c_str(), &digest, &length);
-	for (int i = 0; i < length; i++)
+	for (unsigned int i = 0; i < length; i++)
 	{
 		string strdigest = Utils::bytesToHex(digest[i], SHA256_DIGEST_LENGTH);
-		auto keyValPair = make_tuple(strdigest, true);
-		this->chunks.push_back(keyValPair);
+		this->chunks.push_back(Chunk{i, strdigest, true});
 	}
 
 	// free up digest mem
     if (digest)
     {
-        for (int i = 0; i < length; i++)
+        for (unsigned int i = 0; i < length; i++)
         {
             if (digest[i])
                 free(digest[i]);
@@ -249,7 +248,7 @@ void Torrent::serialize()
 	jobj["numPieces"] = this->numPieces;
 	jobj["size"] = this->size;
 	for(unsigned int i = 0; i != this->chunks.size(); i++)
-    		jobj[to_string(i)] = {get<0>(chunks[i]), get<1>(chunks[i])};
+    		jobj[to_string(i)] = {chunks[i].hash, chunks[i].exists};
 	this->serializedObj = jobj.dump();
 }
 
@@ -267,16 +266,17 @@ void Torrent::deserialize(const bool create)
 	this->uid = this->jobj["uid"];
 	this->size = this->jobj["size"];
 	this->packagePath = Torrent::getTorrentDataPath() + this->name;
-	for (int i = 0; i < this->numPieces; i++)
+	for (unsigned int i = 0; i < this->numPieces; i++)
 	{
+		unsigned int index = i;
 		auto hashpair = this->jobj[to_string(i)];
-  		tuple<string, bool> keyValPair;
-  		if (create)
-  			keyValPair = make_tuple(hashpair[0], false);
-		else
-			keyValPair = make_tuple(hashpair[0], hashpair[1]);
-		this->chunks.push_back(keyValPair);
+  		string hash = hashpair[0];
+  		bool exists = false;
+  		if (!create)
+			exists = hashpair[1];
+		this->chunks.push_back(Chunk{index, hash, exists});
 	}
+	sort(chunks.begin(), chunks.end(), Chunk::cmp);
 }
 
 void Torrent::dumpToTorrentFile()
@@ -343,13 +343,14 @@ bool Torrent::isComplete(){
 	if (chunks.empty())
 		return false;
 
-	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++) {
-    	if (get<1>(*it) == false){
+	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++)
+	{
+    	if (it->exists == false)
+    	{
     		complete = false;
     		break;
     	}
 	}
-
 	return complete;
 }
 

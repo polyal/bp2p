@@ -26,18 +26,30 @@
 
 using namespace std;
 
-class Torrent {
+class Torrent
+{
 private:
 	static const int chunkSize = 32768;  //256 kilobyte chunk size
 	static const string torrentFileDir;
 	static const string torrentDataDir;
+
+	struct Chunk
+	{
+		unsigned int index;
+		string hash;
+		bool exists;
+		Chunk(unsigned int index, string hash, bool exists) 
+		: index{index}, hash{hash}, exists{exists} {}
+
+		static bool cmp(const Chunk& first, const Chunk& second){return first.index < second.index;}
+	};
 	
 	vector<string> files;                // files in torrent
 	string packagePath;                  // path to the package
 	string torrentPath;                  // path to the torrent
 	string uid;                          // hash of the package used as UID
-	int numPieces;                       // total num chunks needed to construct package
-	vector<tuple<string, bool>> chunks;  // chunks that the [ackage is made up of
+	unsigned int numPieces;                       // total num chunks needed to construct package
+	vector<Chunk> chunks;  // chunks that the [ackage is made up of
 	unsigned long long size;             // size of the package
 
 	nlohmann::json jobj;                 // json object representing the torrent
