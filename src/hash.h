@@ -1,4 +1,9 @@
 #include <openssl/sha.h>
+#include <vector>
+#include <string>
+#include <memory>
+
+using namespace std;
 
 ///////////////////////////////////////////////////////////
 //
@@ -20,3 +25,48 @@ int computeSha256FileChunks(const char* const path, char*** const digest, unsign
 //  char digest[65]: function allocated pointer to 2d array
 //  
 int computeSha256File(const char * const path, char digest[65]);
+
+
+
+
+
+class Hash
+{
+protected:
+	vector<char> hash;
+	string strHash;
+
+public:
+	Hash();
+
+	virtual void init() = 0;
+	virtual void update(const vector<char>& buff, const int size) = 0;
+	virtual vector<char> final() = 0;
+	virtual vector<char> computeHash(const vector<char>& buff, const int size) = 0;
+};
+
+class Sha256 : public Hash
+{
+private:
+	SHA256_CTX ctx;
+
+public:
+	Sha256();
+
+	void init();
+	void update(const vector<char>& buff, const int size);
+	vector<char> final();
+	vector<char> computeHash(const vector<char>& buff, const int size);
+};
+
+class FileHasher
+{
+private:
+	vector<char> hash;
+	string strHash;
+
+public:
+	FileHasher();
+
+	int computeSha256Hash();
+};

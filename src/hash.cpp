@@ -6,7 +6,7 @@
 #include "hash.h"
 
 #define CHUNK 32768
-#define DEBUG 0
+#define DEBUG 1
 
 
 void sha256_hash_string (unsigned char hash[SHA256_DIGEST_LENGTH], char outputBuffer[65])
@@ -29,7 +29,7 @@ int computeSha256File(const char * const path, char digest[65])
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
     SHA256_Init(&sha256);
-    unsigned char *buffer = malloc(CHUNK);
+    unsigned char* buffer = (unsigned char*)malloc(CHUNK);
     if(!buffer) return 1;
 
     int bytesRead = 0;
@@ -85,16 +85,16 @@ int computeSha256FileChunks(const char* const path, char*** const digest, unsign
     long numChunks = (fileSize % CHUNK) ? (fileSize / CHUNK) + 1 : fileSize / CHUNK;
     *length = numChunks;
 
-    *digest = malloc(sizeof(char*) * numChunks);
+    *digest = (char**)malloc(sizeof(char*) * numChunks);
     if (*digest == NULL) return ENOMEM;
     for (i = 0; i < numChunks; i++){
-        (*digest)[i] = malloc(sizeof(char) * SHA256_DIGEST_LENGTH);
+        (*digest)[i] = (char*)malloc(sizeof(char) * SHA256_DIGEST_LENGTH);
         if ((*digest)[i] == NULL) return ENOMEM;
     }
 
     i = 0;
     int bytesRead = 0;
-    char *buffer = malloc(CHUNK);
+    char *buffer = (char*)malloc(CHUNK);
     while((bytesRead = fread(buffer, 1, CHUNK, fp)))
     {
         computeSha256(buffer, (*digest)[i], bytesRead);
@@ -107,18 +107,67 @@ int computeSha256FileChunks(const char* const path, char*** const digest, unsign
     return 0;
 }
 
+
+
+/**********************************************************
+**********************************************************/
+
+Hash::Hash()
+{
+    hash.reserve(SHA256_DIGEST_LENGTH);
+    strHash = "";
+}
+
+
+void Sha256::init()
+{
+    SHA256_Init(&this->ctx);
+}
+
+void Sha256::update(const vector<char>& buff, const int size)
+{
+    SHA256_Update(&this->ctx, buff.data(), size);
+}
+
+vector<char> Sha256::final()
+{
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_Final(hash, &this->ctx);
+    vector<char> temp (hash, hash+SHA256_DIGEST_LENGTH);
+    this->hash = temp;
+    return this->hash;
+}
+
+vector<char> Sha256::computeHash(const vector<char>& buff, const int size)
+{
+    init();
+    update(buff, size);
+    return final();
+}
+
+
+int FileHasher::computeSha256Hash()
+{
+
+
+    return 0;
+}
+
 #if DEBUG == 1
 int main (int argc, char **argv)
 {
+    if (argc < 2)
+        return 0;
+
     argv++;
     char* filename = *argv;
     printf("%s \n", filename);
 
     char** digest = NULL;
-    int length = 0;
+    unsigned int length = 0;
     computeSha256FileChunks(filename, &digest, &length);
 
-    int i = 0;
+    unsigned int i = 0;
     if (digest){
         for (i = 0; i < length; i++){
             if (digest[i])
