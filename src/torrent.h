@@ -40,8 +40,6 @@ private:
 		bool exists;
 		Chunk(unsigned int index, string hash, bool exists) 
 		: index{index}, hash{hash}, exists{exists} {}
-
-		static bool cmp(const Chunk& first, const Chunk& second){return first.index < second.index;}
 	};
 	
 	vector<string> files;                // files in torrent
