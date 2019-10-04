@@ -65,14 +65,17 @@ class Sha256FileHasher
 {
 private:
 	static const int chunkSize = 32768;
+	string filename;
 	vector<Sha256> chunkHashs;
 	Sha256 fileHash;
 
 public:
 	Sha256FileHasher();
+	Sha256FileHasher(const string& filename);
 
-	vector<Sha256> computeFileChunkHash(const string& filename);
-	Sha256 computeFileHash(const string& filename);
+	void open(const string& filename);
+	vector<Sha256> computeFileChunkHash();
+	Sha256 computeFileHash();
 	vector<string> chunkHashsToString();
 	string fileHashToString();
 };

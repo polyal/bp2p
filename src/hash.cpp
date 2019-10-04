@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <iostream>
 #include <fstream>
 #include "utils.h"
 #include "hash.h"
@@ -163,12 +164,31 @@ vector<char> Sha256::computeHash(const vector<char>& buff, const int size)
     return this->hash;
 }
 
-vector<Sha256> Sha256FileHasher::computeFileChunkHash(const string& filename)
+Sha256FileHasher::Sha256FileHasher()
 {
+    this->filename = "";
+}
+
+Sha256FileHasher::Sha256FileHasher(const string& filename)
+{
+    this->filename = filename;
+}
+
+void Sha256FileHasher::open(const string& filename)
+{
+    this->filename = filename;
+}
+
+vector<Sha256> Sha256FileHasher::computeFileChunkHash()
+{
+    if (this->filename.empty())
+        return this->chunkHashs;
     vector<Sha256> chunkHashs;                  // stores hashes of chunks
     vector<char> fileChunk (chunkSize, 0);      // stores a chunk of the file for hashing
-    ifstream file {filename, ifstream::binary};
-    while(file.read(fileChunk.data(), fileChunk.size())) {
+    ifstream file {this->filename, ifstream::binary};
+    while(!file.eof())
+    {
+        file.read(fileChunk.data(), fileChunk.size());
         streamsize size = file.gcount();
         Sha256 chunkHash;
         chunkHash.computeHash(fileChunk, size);
@@ -178,13 +198,16 @@ vector<Sha256> Sha256FileHasher::computeFileChunkHash(const string& filename)
     return this->chunkHashs;
 }
 
-Sha256 Sha256FileHasher::computeFileHash(const string& filename)
+Sha256 Sha256FileHasher::computeFileHash()
 {
+    if (this->filename.empty())
+        return this->fileHash;
     Sha256 fileHash;
     fileHash.init();
     vector<char> fileChunk (chunkSize, 0);
-    ifstream file {filename, ifstream::binary};
-    while(file.read(fileChunk.data(), fileChunk.size())) {
+    ifstream file {this->filename, ifstream::binary};
+    while(file.read(fileChunk.data(), fileChunk.size()))
+    {
         streamsize size = file.gcount();
         fileHash.update(fileChunk, size);
     }

@@ -172,68 +172,30 @@ int Torrent::unpackage()
 
 int Torrent::generateChunks()
 {
-	int ret = 0;
-	char** digest = NULL;
-	unsigned int length = 0;
-
-	// need to call createPackage() first
+	this->chunks.clear();
 	if (this->packagePath.empty())
 		return -1;
 
-	// generate chunk hashes and convert them to hex strings
-	ret = computeSha256FileChunks(packagePath.c_str(), &digest, &length);
-	for (unsigned int i = 0; i < length; i++)
-	{
-		string strdigest = Utils::bytesToHex(digest[i], SHA256_DIGEST_LENGTH);
-		this->chunks.push_back(Chunk{i, strdigest, true});
-	}
-
-	// free up digest mem
-    if (digest)
-    {
-        for (unsigned int i = 0; i < length; i++)
-        {
-            if (digest[i])
-                free(digest[i]);
-            else
-            	break; // if NULL, malloc failed to allocate memory
-        }
-        free(digest);
-    }
-
-    if (ret != 0)
-    {
-    	cout << "Chunking Error" << endl;
-		return ret;
-    }
-
-    // object initializations
-    this->numPieces = length;
+	Sha256FileHasher fileHasher{this->packagePath};
+	fileHasher.computeFileChunkHash();
+	vector<string> hashs = fileHasher.chunkHashsToString();
+	for (unsigned int i = 0; i < hashs.size(); i++)
+		this->chunks.push_back(Chunk{i, hashs[i], true});
+	this->numPieces = hashs.size();
     return 0;
 }
 
 int Torrent::generateFileHash()
 {
-	int err = 0;
-	const char* cFilename;
-	char digest[65];
-
 	if (this->packagePath.empty())
 	{
 		cout << "File Hash Input Error: invalid input" << endl;
 		return -1;
 	}
 
-	cFilename = this->packagePath.c_str();
-	err = computeSha256File(cFilename, digest);
-	if (err > 0)
-	{
-		cout << "File Hash Error: couldn't hash file." << endl;
-		return -1;
-	}
-
-	//convert hash to hex strings
-	this->uid = Utils::bytesToHex(digest, 32);
+	Sha256FileHasher fileHasher{this->packagePath};
+	fileHasher.computeFileHash();
+	this->uid = fileHasher.fileHashToString();
 	return 0;
 }
 

@@ -395,25 +395,14 @@ void Peer::Server(){
 }
 
 int main(int argc, char *argv[]){
-	/*string torrentName {"large"};
+	/*string torrentName {"large2"};
 	string file1 {"test/test1"};
 	string file2 {"test/test2"};
 	string file3 {"test/test3"};
 	string file4 {"test/large"};
 	vector<string> files{file1, file2, file3, file4};
-	Torrent t {torrentName, files};*/
-
-
-	/*RRPacket::requestType reqType = RRPacket::chunk;
-	string req{"bp2p||"};
-	req = req + to_string(static_cast<int>(reqType));
-	req = req + "||Torrent||0";
-	vector<char> vResp = {};
-	vector<char> vReq(req.begin(), req.end());
-	me.processRequest(vReq, vResp);
-	string resp(vResp.begin(), vResp.end());
-	cout << "serialized Torrent: " << req << endl;// << resp << endl;*/
-
+	Torrent t {torrentName, files};
+	t.create();*/
 	Peer me{};
 	me.createRequest();
 
