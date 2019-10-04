@@ -61,16 +61,16 @@ public:
 	string toString();
 };
 
-class Sha256FileHasher : protected Sha256
+class Sha256FileHasher
 {
 private:
 	static const int chunkSize = 32768;
-	vector<vector<char>> chunkHashs;
-	vector<char> fileHash;
+	vector<Sha256> chunkHashs;
+	Sha256 fileHash;
 
 public:
 	Sha256FileHasher();
 
-	vector<vector<char>> computeFileChunkHash(const string& filename);
-	vector<char> computeFileHash(const string& filename);
+	vector<Sha256> computeFileChunkHash(const string& filename);
+	Sha256 computeFileHash(const string& filename);
 };

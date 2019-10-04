@@ -148,7 +148,8 @@ vector<char> Sha256::computeHash(const vector<char>& buff, const int size)
 {
     init();
     update(buff, size);
-    return final();
+    this->hash = final();
+    return this->hash;
 }
 
 string Sha256::toString()
@@ -157,31 +158,33 @@ string Sha256::toString()
     return this->strHash;
 }
 
-vector<vector<char>> Sha256FileHasher::computeFileChunkHash(const string& filename)
+vector<Sha256> Sha256FileHasher::computeFileChunkHash(const string& filename)
 {
-    vector<vector<char>> chunkHashs;            // stores hashes of chunks
-    vector<char> chunkHash;                     // stores a single hash of a chunk
+    vector<Sha256> chunkHashs;                  // stores hashes of chunks
     vector<char> fileChunk (chunkSize, 0);      // stores a chunk of the file for hashing
     ifstream file {filename, ifstream::binary};
     while(file.read(fileChunk.data(), fileChunk.size())) {
         streamsize size = file.gcount();
-        chunkHash = computeHash(fileChunk, size);
+        Sha256 chunkHash;
+        chunkHash.computeHash(fileChunk, size);
         chunkHashs.push_back(chunkHash);
     }
     this->chunkHashs = chunkHashs;
     return this->chunkHashs;
 }
 
-vector<char> Sha256FileHasher::computeFileHash(const string& filename)
+Sha256 Sha256FileHasher::computeFileHash(const string& filename)
 {
-    init();
+    Sha256 fileHash;
+    fileHash.init();
     vector<char> fileChunk (chunkSize, 0);
     ifstream file {filename, ifstream::binary};
     while(file.read(fileChunk.data(), fileChunk.size())) {
         streamsize size = file.gcount();
-        update(fileChunk, size);
+        fileHash.update(fileChunk, size);
     }
-    this->fileHash = final();
+    fileHash.final();
+    this->fileHash = fileHash;
     return this->fileHash;
 }
 

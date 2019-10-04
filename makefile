@@ -39,7 +39,7 @@ package:
 	gcc -Wall -c src/package.c src/compress.c
 
 hash:
-	gcc -Wall -c src/hash.c
+	g++ -std=c++1y -Wall -Wextra -pedantic -c src/hash.cpp src/utils.cpp
 
 utils:
 	g++ -std=c++1y -Wall -c src/utils.cpp;
