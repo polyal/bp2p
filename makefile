@@ -67,7 +67,7 @@ torrentTest: package hash mvCobjs
 	$(libs)
 
 hashTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/hash.cpp -lcrypto -o out/a.out
+	g++ -std=c++1y -Wall -Wextra -pedantic src/hash.cpp src/utils.cpp -lcrypto -o out/a.out
 
 packageTest:
 	gcc -Wall src/package.c src/compress.c -lz -larchive -o out/a.out

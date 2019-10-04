@@ -43,11 +43,12 @@ public:
 	virtual void update(const vector<char>& buff, const int size) = 0;
 	virtual vector<char> final() = 0;
 	virtual vector<char> computeHash(const vector<char>& buff, const int size) = 0;
+	virtual string toString() = 0;
 };
 
 class Sha256 : public Hash
 {
-private:
+protected:
 	SHA256_CTX ctx;
 
 public:
@@ -57,16 +58,19 @@ public:
 	void update(const vector<char>& buff, const int size);
 	vector<char> final();
 	vector<char> computeHash(const vector<char>& buff, const int size);
+	string toString();
 };
 
-class FileHasher
+class Sha256FileHasher : protected Sha256
 {
 private:
-	vector<char> hash;
-	string strHash;
+	static const int chunkSize = 32768;
+	vector<vector<char>> chunkHashs;
+	vector<char> fileHash;
 
 public:
-	FileHasher();
+	Sha256FileHasher();
 
-	int computeSha256Hash();
+	vector<vector<char>> computeFileChunkHash(const string& filename);
+	vector<char> computeFileHash(const string& filename);
 };
