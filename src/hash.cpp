@@ -8,7 +8,7 @@
 #include "hash.h"
 
 #define CHUNK 32768
-#define DEBUG 1
+#define DEBUG 0
 
 
 void sha256_hash_string (unsigned char hash[SHA256_DIGEST_LENGTH], char outputBuffer[65])
@@ -116,8 +116,19 @@ int computeSha256FileChunks(const char* const path, char*** const digest, unsign
 
 Hash::Hash()
 {
-    hash.reserve(SHA256_DIGEST_LENGTH);
-    strHash = "";
+    this->hash.reserve(SHA256_DIGEST_LENGTH);
+    this->strHash = "";
+}
+
+vector<char> Hash::getBytes()
+{
+    return this->hash;
+}
+
+string Hash::toString()
+{
+    this->strHash = Utils::bytesToHex(this->hash.data(), SHA256_DIGEST_LENGTH);
+    return this->strHash;
 }
 
 Sha256::Sha256() : Hash()
@@ -152,12 +163,6 @@ vector<char> Sha256::computeHash(const vector<char>& buff, const int size)
     return this->hash;
 }
 
-string Sha256::toString()
-{
-    this->strHash = Utils::bytesToHex(this->hash.data(), SHA256_DIGEST_LENGTH);
-    return this->strHash;
-}
-
 vector<Sha256> Sha256FileHasher::computeFileChunkHash(const string& filename)
 {
     vector<Sha256> chunkHashs;                  // stores hashes of chunks
@@ -186,6 +191,22 @@ Sha256 Sha256FileHasher::computeFileHash(const string& filename)
     fileHash.final();
     this->fileHash = fileHash;
     return this->fileHash;
+}
+
+vector<string> Sha256FileHasher::chunkHashsToString()
+{
+    vector<string> hashs;
+    for (auto& chunk : chunkHashs)
+    {
+        string hash = chunk.toString();
+        hashs.push_back(hash);
+    }
+    return hashs;
+}
+
+string Sha256FileHasher::fileHashToString()
+{
+    return fileHash.toString();
 }
 
 

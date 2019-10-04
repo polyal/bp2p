@@ -10,12 +10,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "hash.h"
 #include "utils.h"
 
 // include c libs
 extern "C" {
 #include "package.h"
-#include "hash.h"
 }
 
 #define DEBUG 0

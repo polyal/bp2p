@@ -43,7 +43,8 @@ public:
 	virtual void update(const vector<char>& buff, const int size) = 0;
 	virtual vector<char> final() = 0;
 	virtual vector<char> computeHash(const vector<char>& buff, const int size) = 0;
-	virtual string toString() = 0;
+	virtual vector<char> getBytes();
+	virtual string toString();
 };
 
 class Sha256 : public Hash
@@ -58,7 +59,6 @@ public:
 	void update(const vector<char>& buff, const int size);
 	vector<char> final();
 	vector<char> computeHash(const vector<char>& buff, const int size);
-	string toString();
 };
 
 class Sha256FileHasher
@@ -73,4 +73,6 @@ public:
 
 	vector<Sha256> computeFileChunkHash(const string& filename);
 	Sha256 computeFileHash(const string& filename);
+	vector<string> chunkHashsToString();
+	string fileHashToString();
 };
