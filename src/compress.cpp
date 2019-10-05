@@ -14,6 +14,10 @@
 #include <assert.h>
 #include "compress.h"
 
+#include <vector>
+#include <fstream>
+
+#define DEBUG 1
 
 int compressFile(FILE* const source, FILE* const dest, int level)
 {
@@ -161,3 +165,98 @@ void zerr(int ret)
         fputs("zlib version mismatch!\n", stderr);
     }
 }
+
+
+/**********************************************************
+**********************************************************/
+
+Comprez::Comprez()
+{
+    this->source = "";
+    this->dest = "";
+}
+
+Comprez::Comprez(const string& source)
+{
+    this->source = source;
+    this->dest = source + postFix;
+}
+
+void Comprez::open(const string& source)
+{
+    this->source = source;
+    this->dest = source + postFix;
+}
+
+int Comprez::compress()
+{
+    int ret, flush;
+    unsigned have;
+    vector<char> in(this->chunkSize);
+    vector<char> out(this->chunkSize);
+
+    init();
+    ifstream fSource {this->source, ifstream::binary};
+    ofstream fDest {this->dest, ifstream::binary};
+    if (!fSource.is_open() || !fDest.is_open()) return Z_ERRNO;
+
+    do
+    {
+        !fSource.read(&in[0], in.size());
+        strm.avail_in = fSource.gcount();
+        if (fSource.fail())
+        {
+            (void)deflateEnd(&this->strm);
+            return Z_ERRNO;
+        }
+        flush = fSource.eof() ?  Z_FINISH : Z_NO_FLUSH;
+        this->strm.next_in = reinterpret_cast<unsigned char*>(in.data());
+
+        do
+        {
+            this->strm.avail_out = this->chunkSize;
+            this->strm.next_out = reinterpret_cast<unsigned char*>(out.data());
+
+            ret = deflate(&this->strm, flush); // no bad return value
+            assert(ret != Z_STREAM_ERROR);     // state not clobbered
+
+            have = this->chunkSize - strm.avail_out;
+            unsigned long before = fDest.tellp();
+            fDest.write(out.data(), this->chunkSize);
+            if (fDest.fail() || (unsigned long)fDest.tellp() - before != have)
+            {
+                (void)deflateEnd(&strm);
+                return Z_ERRNO;
+            }
+        } while (strm.avail_out == 0);
+        assert(strm.avail_in == 0);     /* all input will be used */
+    } while(flush != Z_FINISH);
+
+    /* clean up and return */
+    (void)deflateEnd(&strm);
+    return Z_OK;
+}
+
+const string Comprez::postFix = ".z"; 
+
+int Comprez::init()
+{
+    initStreamState();
+    return deflateInit(&this->strm, this->level);
+}
+
+void Comprez::initStreamState()
+{
+    // allocate deflate state 
+    this->strm.zalloc = Z_NULL;
+    this->strm.zfree = Z_NULL;
+    this->strm.opaque = Z_NULL;
+}
+
+
+#if DEBUG == 1
+int main(void)
+{
+    return 0;
+}
+#endif

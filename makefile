@@ -72,6 +72,9 @@ hashTest:
 packageTest:
 	gcc -Wall src/package.c src/compress.c -lz -larchive -o out/a.out
 
+compressTest:
+	g++ -std=c++1y -Wall -Wextra -pedantic src/compress.cpp -lz -o out/a.out
+
 
 
 # cleanup out dir

@@ -1,6 +1,9 @@
+#include <string>
 #include <zlib.h>
 
 #define CHUNK 32768 // 256K
+
+using namespace std;
 
 /* 
   Compress from file source to file dest until EOF on source.
@@ -23,3 +26,27 @@ int compressFile(FILE* const source, FILE* const dest, int level);
 int decompressFile(FILE* const source, FILE* const dest);
 
 void zerr(int ret);
+
+
+class Comprez
+{
+private:
+    static const string postFix; 
+    static const int chunkSize = 32768;
+    static const int level = 11;
+    z_stream strm;
+    string source;
+    string dest;
+
+public:
+    Comprez();
+    Comprez(const string& filename);
+
+    void open(const string& filename);
+    int compress();
+    void decompress();
+
+private:
+    int init();
+    void initStreamState();
+};
