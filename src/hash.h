@@ -6,6 +6,9 @@
 using namespace std;
 
 
+///////////////////////////////////////////////////////////
+//  Abstract Hash class
+//  Defines basic functionality for hashing
 class Hash
 {
 protected:
@@ -23,6 +26,8 @@ public:
 	virtual string toString();
 };
 
+///////////////////////////////////////////////////////////
+//  Sha256 Hashing class
 class Sha256 : public Hash
 {
 protected:
@@ -37,6 +42,8 @@ public:
 	vector<char> computeHash(const vector<char>& buff, const int size);
 };
 
+///////////////////////////////////////////////////////////
+//  Hashes files in chunks or as a whole
 class Sha256FileHasher
 {
 private:
@@ -49,9 +56,9 @@ public:
 	Sha256FileHasher();
 	Sha256FileHasher(const string& filename);
 
-	void open(const string& filename);
-	vector<Sha256> computeFileChunkHash();
-	Sha256 computeFileHash();
-	vector<string> chunkHashsToString();
-	string fileHashToString();
+	void open(const string& filename);     // used in conjuction with no argument constructor
+	vector<Sha256> computeFileChunkHash(); // splits file into chunks, then returns a vector of hashed chunks
+	Sha256 computeFileHash();              // hashes the file as a whole
+	vector<string> chunkHashsToString();   // converts vector of hashes to vector of lists
+	string fileHashToString();             // converts file hash to string
 };
