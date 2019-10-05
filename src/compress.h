@@ -40,9 +40,11 @@ private:
 
 public:
     Comprez();
-    Comprez(const string& filename);
+    Comprez(const string& source);
+    Comprez(const string& source, const string& dest);
 
-    void open(const string& filename);
+    void setup(const string& filename);
+    void setup(const string& source, const string& dest);
     int compress();
     void decompress();
 

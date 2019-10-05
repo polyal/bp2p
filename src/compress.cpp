@@ -182,10 +182,22 @@ Comprez::Comprez(const string& source)
     this->dest = source + postFix;
 }
 
-void Comprez::open(const string& source)
+Comprez::Comprez(const string& source, const string& dest)
+{
+    this->source = source;
+    this->dest = dest;
+}
+
+void Comprez::setup(const string& source)
 {
     this->source = source;
     this->dest = source + postFix;
+}
+
+void Comprez::setup(const string& source, const string& dest)
+{
+    this->source = source;
+    this->dest = dest;
 }
 
 int Comprez::compress()
