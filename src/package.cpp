@@ -26,9 +26,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <iostream>
+#include <string>
+
 #include "compress.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 void write_archive(const char *outname, char const* const* filename)
 {
@@ -168,16 +171,20 @@ int package(const char* const archive, const char *const *const filename){
 
     write_archive("temp", filename);
     
-    FILE* source = fopen("temp", "rb");
-    FILE* dest = fopen(archive, "wb");
+    //FILE* source = fopen("temp", "rb");
+    //FILE* dest = fopen(archive, "wb");
 
     // 9 is the highest compression value
     // we want the file as small as possible for
     // transmission
-    ret = compressFile(source, dest, 9);
+    //ret = compressFile(source, dest, 9);
 
-    fclose(source);
-    fclose(dest);
+    string src{"temp"};
+    Comprez compressor{src, archive};
+    ret = compressor.compress();
+
+    //fclose(source);
+    //fclose(dest);
 
     remove("temp");
 
@@ -226,6 +233,11 @@ int main(int argc, const char **argv)
     const char *outname;
     const char *flag;
 
+    if (argc < 3){
+        cout << "Usage: ./a.out [-c|-e] [package_name] [files_to_package] ..." << endl;
+        return 0;
+    }
+
     argv++;
     flag = *argv++;
     outname = *argv++;
@@ -234,7 +246,7 @@ int main(int argc, const char **argv)
         package(outname, argv);
     }
     else if (strcmp ("-e", flag) == 0){
-        depackage(outname);
+        unpackage(outname);
     }
     else{
         printf("Usage: ./a.out [-c|-e] [package_name] [files_to_package] ...\n");

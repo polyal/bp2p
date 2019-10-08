@@ -17,7 +17,7 @@
 #include <vector>
 #include <fstream>
 
-#define DEBUG 1
+#define DEBUG 0
 
 int compressFile(FILE* const source, FILE* const dest, int level)
 {
@@ -176,34 +176,38 @@ Comprez::Comprez()
     this->dest = "";
 }
 
-Comprez::Comprez(const string& source)
+Comprez::Comprez(const string& source, const int level)
 {
     this->source = source;
     this->dest = source + postFix;
+    this->level = level;
 }
 
-Comprez::Comprez(const string& source, const string& dest)
+Comprez::Comprez(const string& source, const string& dest, const int level)
 {
     this->source = source;
     this->dest = dest;
+    this->level = level;
 }
 
-void Comprez::setup(const string& source)
+void Comprez::setup(const string& source, const int level)
 {
     this->source = source;
     this->dest = source + postFix;
+    this->level = level;
 }
 
-void Comprez::setup(const string& source, const string& dest)
+void Comprez::setup(const string& source, const string& dest, const int level)
 {
     this->source = source;
     this->dest = dest;
+    this->level = level;
 }
 
 int Comprez::compress()
 {
     int ret, flush;
-    unsigned have;
+    unsigned int have;
     vector<char> in(this->chunkSize);
     vector<char> out(this->chunkSize);
 
@@ -215,26 +219,25 @@ int Comprez::compress()
     do
     {
         !fSource.read(&in[0], in.size());
-        strm.avail_in = fSource.gcount();
-        if (fSource.fail())
+        this->strm.avail_in = fSource.gcount();
+        if (fSource.fail() && !fSource.eof())
         {
             (void)deflateEnd(&this->strm);
             return Z_ERRNO;
         }
         flush = fSource.eof() ?  Z_FINISH : Z_NO_FLUSH;
-        this->strm.next_in = reinterpret_cast<unsigned char*>(in.data());
+        this->strm.next_in = reinterpret_cast<unsigned char*>(&in[0]);
 
         do
         {
             this->strm.avail_out = this->chunkSize;
-            this->strm.next_out = reinterpret_cast<unsigned char*>(out.data());
-
+            this->strm.next_out = reinterpret_cast<unsigned char*>(&out[0]);
             ret = deflate(&this->strm, flush); // no bad return value
             assert(ret != Z_STREAM_ERROR);     // state not clobbered
 
-            have = this->chunkSize - strm.avail_out;
+            have = this->chunkSize - this->strm.avail_out;
             unsigned long before = fDest.tellp();
-            fDest.write(out.data(), this->chunkSize);
+            fDest.write(&out[0], have);
             if (fDest.fail() || (unsigned long)fDest.tellp() - before != have)
             {
                 (void)deflateEnd(&strm);

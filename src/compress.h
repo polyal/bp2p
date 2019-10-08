@@ -33,18 +33,18 @@ class Comprez
 private:
     static const string postFix; 
     static const int chunkSize = 32768;
-    static const int level = 11;
+    int level = 9;  // highest compression level
     z_stream strm;
     string source;
     string dest;
 
 public:
     Comprez();
-    Comprez(const string& source);
-    Comprez(const string& source, const string& dest);
+    Comprez(const string& source, const int level = 9);
+    Comprez(const string& source, const string& dest, const int level = 9);
 
-    void setup(const string& filename);
-    void setup(const string& source, const string& dest);
+    void setup(const string& filename, const int level = 9);
+    void setup(const string& source, const string& dest, const int level = 9);
     int compress();
     void decompress();
 
