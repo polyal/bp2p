@@ -28,7 +28,7 @@ int decompressFile(FILE* const source, FILE* const dest);
 void zerr(int ret);
 
 
-class Comprez
+class Ezlib
 {
 private:
     static const string postFix; 
@@ -39,9 +39,9 @@ private:
     string dest;
 
 public:
-    Comprez();
-    Comprez(const string& source, const int level = 9);
-    Comprez(const string& source, const string& dest, const int level = 9);
+    Ezlib();
+    Ezlib(const string& source, const int level = 9);
+    Ezlib(const string& source, const string& dest, const int level = 9);
 
     void setup(const string& filename, const int level = 9);
     void setup(const string& source, const string& dest, const int level = 9);

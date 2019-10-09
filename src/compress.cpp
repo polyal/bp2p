@@ -17,7 +17,6 @@
 #include <vector>
 #include <fstream>
 
-#define DEBUG 0
 
 int compressFile(FILE* const source, FILE* const dest, int level)
 {
@@ -170,41 +169,41 @@ void zerr(int ret)
 /**********************************************************
 **********************************************************/
 
-Comprez::Comprez()
+Ezlib::Ezlib()
 {
     this->source = "";
     this->dest = "";
 }
 
-Comprez::Comprez(const string& source, const int level)
+Ezlib::Ezlib(const string& source, const int level)
 {
     this->source = source;
     this->dest = source + postFix;
     this->level = level;
 }
 
-Comprez::Comprez(const string& source, const string& dest, const int level)
+Ezlib::Ezlib(const string& source, const string& dest, const int level)
 {
     this->source = source;
     this->dest = dest;
     this->level = level;
 }
 
-void Comprez::setup(const string& source, const int level)
+void Ezlib::setup(const string& source, const int level)
 {
     this->source = source;
     this->dest = source + postFix;
     this->level = level;
 }
 
-void Comprez::setup(const string& source, const string& dest, const int level)
+void Ezlib::setup(const string& source, const string& dest, const int level)
 {
     this->source = source;
     this->dest = dest;
     this->level = level;
 }
 
-int Comprez::compress()
+int Ezlib::compress()
 {
     int ret, flush;
     unsigned int have;
@@ -252,26 +251,18 @@ int Comprez::compress()
     return Z_OK;
 }
 
-const string Comprez::postFix = ".z"; 
+const string Ezlib::postFix = ".ez"; 
 
-int Comprez::init()
+int Ezlib::init()
 {
     initStreamState();
     return deflateInit(&this->strm, this->level);
 }
 
-void Comprez::initStreamState()
+void Ezlib::initStreamState()
 {
     // allocate deflate state 
     this->strm.zalloc = Z_NULL;
     this->strm.zfree = Z_NULL;
     this->strm.opaque = Z_NULL;
 }
-
-
-#if DEBUG == 1
-int main(void)
-{
-    return 0;
-}
-#endif

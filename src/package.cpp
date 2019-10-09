@@ -180,7 +180,7 @@ int package(const char* const archive, const char *const *const filename){
     //ret = compressFile(source, dest, 9);
 
     string src{"temp"};
-    Comprez compressor{src, archive};
+    Ezlib compressor{src, archive};
     ret = compressor.compress();
 
     //fclose(source);
