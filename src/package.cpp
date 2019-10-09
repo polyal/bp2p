@@ -196,13 +196,17 @@ int package(const char* const archive, const char *const *const filename){
 int unpackage(const char* const packageName){
     int ret;
     
-    FILE* source = fopen(packageName, "rb");
-    FILE* dest = fopen("temp", "wb");
+    //FILE* source = fopen(packageName, "rb");
+    //FILE* dest = fopen("temp", "wb");
 
-    ret = decompressFile(source, dest);
+    string dest{"temp"};
+    Ezlib decompressor{packageName, dest};
+    ret = decompressor.decompress();
 
-    fclose(source);
-    fclose(dest);
+    //ret = decompressFile(source, dest);
+
+    //fclose(source);
+    //fclose(dest);
     
     if (ret != Z_OK)
         zerr(ret);

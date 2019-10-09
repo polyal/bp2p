@@ -46,9 +46,11 @@ public:
     void setup(const string& filename, const int level = 9);
     void setup(const string& source, const string& dest, const int level = 9);
     int compress();
-    void decompress();
+    int decompress();
 
 private:
-    int init();
-    void initStreamState();
+    int initCompress();
+    void initCompressStreamState();
+    int initDecompress();
+    void initDecompressStreamState();
 };
