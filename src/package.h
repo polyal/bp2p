@@ -1,4 +1,7 @@
+#include <string>
+#include <vector>
 
+using namespace std;
 
 /**********************************************************
 *
@@ -9,7 +12,7 @@
 *            be archived and compressed
 *
 **********************************************************/
-int package(const char* const archive, const char * const * const filename);
+int package(const string& package, const vector<string> filenames);
 
 
 /**********************************************************
@@ -20,4 +23,4 @@ int package(const char* const archive, const char * const * const filename);
 *                and unarchived
 *
 **********************************************************/
-int unpackage(const char* const packageName);
+int unpackage(const string& packageName);

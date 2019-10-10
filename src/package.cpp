@@ -28,7 +28,7 @@
 
 #include <iostream>
 #include <string>
-
+#include "archiver.h"
 #include "compress.h"
 
 #define DEBUG 1
@@ -166,54 +166,35 @@ void extract(const char *filename)
 }
 
 
-int package(const char* const archive, const char *const *const filename){
+int package(const string& package, const vector<string> filenames){
     int ret;
-
-    write_archive("temp", filename);
-    
-    //FILE* source = fopen("temp", "rb");
-    //FILE* dest = fopen(archive, "wb");
-
-    // 9 is the highest compression value
-    // we want the file as small as possible for
-    // transmission
-    //ret = compressFile(source, dest, 9);
-
     string src{"temp"};
-    Ezlib compressor{src, archive};
+    
+    Archiver archiver{src, filenames};
+    archiver.archive();
+    
+    Ezlib compressor{src, package};
     ret = compressor.compress();
-
-    //fclose(source);
-    //fclose(dest);
-
-    remove("temp");
-
     if (ret != Z_OK)
         zerr(ret);
+
+    remove("temp");
     return ret;
 }
 
-int unpackage(const char* const packageName){
+int unpackage(const string& packageName){
     int ret;
     
-    //FILE* source = fopen(packageName, "rb");
-    //FILE* dest = fopen("temp", "wb");
-
     string dest{"temp"};
     Ezlib decompressor{packageName, dest};
     ret = decompressor.decompress();
-
-    //ret = decompressFile(source, dest);
-
-    //fclose(source);
-    //fclose(dest);
-    
     if (ret != Z_OK)
         zerr(ret);
 
-    extract("temp");
-    remove("temp");
+    Archiver archiver{dest};
+    archiver.extract();
 
+    remove("temp");
     return ret;
 }
 
@@ -236,6 +217,7 @@ int main(int argc, const char **argv)
 {
     const char *outname;
     const char *flag;
+    const char** files;
 
     if (argc < 3){
         cout << "Usage: ./a.out [-c|-e] [package_name] [files_to_package] ..." << endl;
@@ -245,12 +227,22 @@ int main(int argc, const char **argv)
     argv++;
     flag = *argv++;
     outname = *argv++;
+    files = argv;
+
+    string packageName{outname};
+    vector<string> filenames;
+    while(*files)
+    {
+        string file{*files};
+        filenames.push_back(file);
+        files++;
+    }
 
     if (strcmp ("-c", flag) == 0){
-        package(outname, argv);
+        package(packageName, filenames);
     }
     else if (strcmp ("-e", flag) == 0){
-        unpackage(outname);
+        unpackage(packageName);
     }
     else{
         printf("Usage: ./a.out [-c|-e] [package_name] [files_to_package] ...\n");
