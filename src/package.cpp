@@ -21,41 +21,88 @@
 #include <string>
 #include "archiver.h"
 #include "compress.h"
+#include "package.h"
 
 #define DEBUG 0
 
-int package(const string& package, const vector<string> filenames){
-    int ret;
-    string src{"temp"};
-    
-    Archiver archiver{src, filenames};
+const string Package::tempName = "temp";
+
+Package::Package()
+{
+    this->name = "";
+}
+
+Package::Package(const string& name)
+{
+    this->name = name;
+}
+
+Package::Package(const string& name, const vector<string> filenames)
+{
+    this->name = name;
+    this->files = filenames;
+}
+
+void Package::setup(const string& name)
+{
+    this->name = name;
+}
+
+void Package::setup(const string& name, const vector<string> filenames)
+{
+    this->name = name;
+    this->files = filenames;
+}
+
+
+int Package::package()
+{
+    archive();
+    int ret = compress();
+    remove("temp");
+    return ret;
+}
+
+int Package::unpackage()
+{
+    int ret = decompress();
+    extract();
+    remove("temp");
+    return ret;
+}
+
+int Package::archive()
+{
+    Archiver archiver{this->tempName, this->files};
     archiver.archive();
-    
-    Ezlib compressor{src, package};
-    ret = compressor.compress();
-    if (ret != Z_OK)
-        zerr(ret);
-
-    remove("temp");
-    return ret;
+    return 0;
 }
 
-int unpackage(const string& packageName){
-    int ret;
-    
-    string dest{"temp"};
-    Ezlib decompressor{packageName, dest};
-    ret = decompressor.decompress();
-    if (ret != Z_OK)
-        zerr(ret);
-
-    Archiver archiver{dest};
+int Package::extract()
+{
+    Archiver archiver{this->tempName};
     archiver.extract();
+    return 0;
+}
 
-    remove("temp");
+
+int Package::compress()
+{
+    Ezlib compressor{this->tempName, this->name};
+    int ret = compressor.compress();
+    if (ret != Z_OK)
+        zerr(ret);
     return ret;
 }
 
+int Package::decompress()
+{
+    Ezlib decompressor{this->name, this->tempName};
+    int ret = decompressor.decompress();
+    if (ret != Z_OK)
+        zerr(ret);
+    return ret;
+}
 
 /****************************************
 *

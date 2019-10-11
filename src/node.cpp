@@ -395,16 +395,16 @@ void Peer::Server(){
 }
 
 int main(int argc, char *argv[]){
-	/*string torrentName {"large2"};
+	string torrentName {"newPackage"};
 	string file1 {"test/test1"};
 	string file2 {"test/test2"};
 	string file3 {"test/test3"};
 	string file4 {"test/large"};
 	vector<string> files{file1, file2, file3, file4};
 	Torrent t {torrentName, files};
-	t.create();*/
-	Peer me{};
-	me.createRequest();
+	t.create();
+	//Peer me{};
+	//me.createRequest();
 
     return 0;
 }

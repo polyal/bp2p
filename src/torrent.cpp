@@ -126,7 +126,6 @@ int Torrent::package()
 {
 	int ret = 0;
 	string packagePath;
-	vector<const char*> cstrFiles;
 
     if (this->name.empty() || this->files.empty())
     	return -1;
@@ -134,7 +133,8 @@ int Torrent::package()
     // prepare package location
 	packagePath = getTorrentDataPath() + this->name;
 
-	ret = ::package(packagePath, this->files);
+	Package package{packagePath, this->files};
+	ret = package.package();
 	if (ret != 0)
 	{
 		cout << "Create Package Error: " << ret << endl;
@@ -149,12 +149,14 @@ int Torrent::package()
 int Torrent::unpackage()
 {
 	string packagePath = getTorrentDataPath() + this->name;
-	if (packagePath.empty())
+	Package package{packagePath, this->files};
+	int ret = package.unpackage();
+	if (ret != 0)
 	{
 		cout << "Depackage Error: invalid input" << endl;
-		return -1;
+		return ret;
 	}
-	return ::unpackage(packagePath);
+	return 0;
 }
 
 

@@ -3,24 +3,30 @@
 
 using namespace std;
 
-/**********************************************************
-*
-*  returns 0 on success
-*
-*  archive:  path of the archived and compressed data
-*  filename: a pointer to an array of filrenames to
-*            be archived and compressed
-*
-**********************************************************/
-int package(const string& package, const vector<string> filenames);
 
+class Package
+{
+private:
+	const static string tempName;
 
-/**********************************************************
-*
-*  returns 0 on success
-*
-*  packageName:  the name of the package to be decompressed
-*                and unarchived
-*
-**********************************************************/
-int unpackage(const string& packageName);
+	string name;
+	vector<string> files;
+
+public:
+	Package();
+	Package(const string& name);
+	Package(const string& name, const vector<string> filenames);
+
+	void setup(const string& name);
+	void setup(const string& name, const vector<string> filenames);
+
+	int package();
+	int unpackage();
+
+private:
+	int archive();
+	int extract();
+	int compress();
+	int decompress();
+
+};
