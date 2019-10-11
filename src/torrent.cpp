@@ -12,11 +12,7 @@
 
 #include "hash.h"
 #include "utils.h"
-
-// include c libs
-extern "C" {
 #include "package.h"
-}
 
 #define DEBUG 0
 
@@ -130,7 +126,6 @@ int Torrent::package()
 {
 	int ret = 0;
 	string packagePath;
-	const char* cstrPackagePath;
 	vector<const char*> cstrFiles;
 
     if (this->name.empty() || this->files.empty())
@@ -138,15 +133,8 @@ int Torrent::package()
 
     // prepare package location
 	packagePath = getTorrentDataPath() + this->name;
-    cstrPackagePath = packagePath.c_str();
 
-    // prepare list of files included in torrent
-	cstrFiles.reserve(files.size());	
-	for(auto& file: files)
-    	cstrFiles.push_back(file.c_str());
-	cstrFiles.push_back(NULL); // last entry must to be NULL
-
-	ret = ::package(cstrPackagePath, cstrFiles.data());
+	ret = ::package(packagePath, this->files);
 	if (ret != 0)
 	{
 		cout << "Create Package Error: " << ret << endl;
@@ -154,7 +142,7 @@ int Torrent::package()
 	}
 
 	this->packagePath = packagePath;
-	this->size = Utils::filesize(cstrPackagePath);
+	this->size = Utils::filesize(packagePath.c_str());
 	return ret;
 }
 
@@ -166,7 +154,7 @@ int Torrent::unpackage()
 		cout << "Depackage Error: invalid input" << endl;
 		return -1;
 	}
-	return ::unpackage(packagePath.c_str());
+	return ::unpackage(packagePath);
 }
 
 

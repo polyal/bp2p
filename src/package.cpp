@@ -22,7 +22,7 @@
 #include "archiver.h"
 #include "compress.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 int package(const string& package, const vector<string> filenames){
     int ret;

@@ -1,5 +1,5 @@
 objs = package.o compress.o hash.o torrent.o
-cobjs = package.o compress.o hash.o
+cobjs = package.o compress.o archiver.o hash.o
 libs = -lz -larchive -lcrypto
 inclJson = -Ilib/json/include
 
@@ -11,24 +11,20 @@ default: utils bluetooth torrent rrpacket
 	-Ilib/json/include -o out/a.out \
 	out/blue.o out/utils.o out/torrent.o \
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
-	$(foreach obj, $(cobjs), out/$(obj)) \
+	out/package.o out/compress.o out/archiver.o out/hash.o \
 	$(blueLibs) \
 	$(libs)
 
 rrpacket:
 	g++ -std=c++1y -Wall -c -Ilib/json/include \
 	src/rrfactory.cpp src/rrpacket.cpp src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp;
-	mv rrfactory.o out/rrfactory.o;
-	mv rrpacket.o out/rrpacket.o;
-	mv torrentFileReq.o out/torrentFileReq.o;
-	mv torrentListReq.o out/torrentListReq.o;
-	mv chunkReq.o out/chunkReq.o;
+	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o -t out/
 
 bluetooth:
 	gcc -Wall -c src/blue.c;
 	mv blue.o out/blue.o
 
-torrent: package hash mvCobjs
+torrent: package hash
 	g++ -std=c++1y -Wall -Wextra -pedantic -c src/torrent.cpp -Ilib/json/include
 	mv torrent.o out/torrent.o
 
@@ -36,10 +32,12 @@ packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
 	ar rvs out/arobj.a $(foreach obj, $(objs), out/$(obj))
 
 package:
-	gcc -Wall -c src/package.c src/compress.c
+	g++ -std=c++1y -Wall -Wextra -pedantic -c src/package.cpp src/archiver.cpp src/compress.cpp
+	mv package.o archiver.o compress.o -t out/
 
 hash:
 	g++ -std=c++1y -Wall -Wextra -pedantic -c src/hash.cpp
+	mv hash.o out/hash.o
 
 utils:
 	g++ -std=c++1y -Wall -c src/utils.cpp;
