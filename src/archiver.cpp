@@ -1,35 +1,35 @@
-#include <iostream>
-#include <fstream>
 #include <archive.h>
 #include <archive_entry.h>
+#include <iostream>
+#include <fstream>
 #include "archiver.h"
 
 #define DEBUG 0
 
 Archiver::Archiver()
 {
-	this->archiveName = "";
+	this->name = "";
 }
 
-Archiver::Archiver(const string& archiveName)
+Archiver::Archiver(const string& name)
 {
-	this->archiveName = archiveName;
+	this->name = name;
 }
 
-Archiver::Archiver(const string& archiveName, const vector<string>& filenames)
+Archiver::Archiver(const string& name, const vector<string>& filenames)
 {
-	this->archiveName = archiveName;
+	this->name = name;
 	this->filenames = filenames;
 }
 
-void Archiver::setup(const string& archiveName)
+void Archiver::setup(const string& name)
 {
-	this->archiveName = archiveName;
+	this->name = name;
 }
 
-void Archiver::setup(const string& archiveName, const vector<string>& filenames)
+void Archiver::setup(const string& name, const vector<string>& filenames)
 {
-	this->archiveName = archiveName;
+	this->name = name;
 	this->filenames = filenames;
 }
 
@@ -40,14 +40,14 @@ int Archiver::archive()
     struct stat st;
     vector<char> buff(8192);
 
-    if (this->archiveName.empty() || this->filenames.empty())
+    if (this->name.empty() || this->filenames.empty())
     	return 0;
 
     // initialize archive structure
     a = archive_write_new();
     //archive_write_add_filter_gzip(a);  use zlib for compression, dont use this
     archive_write_set_format_pax_restricted(a);
-    archive_write_open_filename(a, this->archiveName.c_str());
+    archive_write_open_filename(a, this->name.c_str());
 
     // initialize archive entry 
     entry = archive_entry_new();
@@ -100,7 +100,7 @@ int Archiver::extract()
     archive_write_disk_set_options(ext, flags);
     archive_write_disk_set_standard_lookup(ext);
 
-    if ((r = archive_read_open_filename(a, this->archiveName.c_str(), 10240))){
+    if ((r = archive_read_open_filename(a, this->name.c_str(), 10240))){
         exit(1);
     }
 
@@ -118,7 +118,7 @@ int Archiver::extract()
         if (r < ARCHIVE_OK)
             fprintf(stderr, "%s\n", archive_error_string(ext));
         else if (archive_entry_size(entry) > 0) {
-            r = copyData(a, ext);
+            r = copyArchive(a, ext);
             if (r < ARCHIVE_OK)
                 fprintf(stderr, "%s\n", archive_error_string(ext));
             if (r < ARCHIVE_WARN){
@@ -141,7 +141,7 @@ int Archiver::extract()
 	return 0;
 }
 
-int Archiver::copyData(struct archive *ar, struct archive *aw)
+int Archiver::copyArchive(struct archive *ar, struct archive *aw)
 {
     int r;
     const void *buff;
