@@ -76,6 +76,9 @@ compressTest:
 archiverTest:
 	g++ -std=c++1y -Wall -Wextra -pedantic src/archiver.cpp -larchive -o out/a.out
 
+channelTest:
+	g++ -std=c++1y -Wall -Wextra -pedantic src/blueChannel.cpp -lbluetooth -o out/a.out
+
 
 
 # cleanup out dir
