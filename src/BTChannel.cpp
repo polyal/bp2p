@@ -6,6 +6,7 @@
 #include <bluetooth/rfcomm.h>
 #include <sys/ioctl.h>
 #include <errno.h>
+#include <string.h>
 
 #include <iostream>
 
@@ -17,8 +18,6 @@ const string BTChannel::zaddr = "00:00:00:00:00:00";
 
 BTChannel::BTChannel()
 {
-	omsg.data.resize(this->chunkSize, 0);
-	imsg.data.resize(this->chunkSize, 0);
 	this->addr.rc_family = AF_BLUETOOTH;
     this->addr.rc_channel = 0;
     str2ba( &this->zaddr[0], &this->addr.rc_bdaddr );
@@ -27,6 +26,27 @@ BTChannel::BTChannel()
     str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
 }
 
+BTChannel::BTChannel(struct sockaddr_rc addr, const Message& msg)
+{
+    this->omsg = msg;
+    this->addr.rc_family = addr.rc_family;
+    this->addr.rc_channel = addr.rc_channel;
+    memcpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr, sizeof(bdaddr_t));
+    this->clientAddr.rc_family = AF_BLUETOOTH;
+    this->clientAddr.rc_channel = 0;
+    str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+}
+
+BTChannel::BTChannel(const string& addr, const Message& msg)
+{
+    this->omsg = msg;
+    this->addr.rc_family = AF_BLUETOOTH;
+    this->addr.rc_channel = 0;
+    str2ba( &addr[0], &this->addr.rc_bdaddr );
+    this->clientAddr.rc_family = AF_BLUETOOTH;
+    this->clientAddr.rc_channel = 0;
+    str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+}
 
 void BTChannel::salloc()
 {
