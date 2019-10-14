@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "BTChannel.h"
+#include "btchannel.h"
 
 #define DEBUG 1
 
@@ -46,6 +46,11 @@ BTChannel::BTChannel(const string& addr, const Message& msg)
     this->clientAddr.rc_family = AF_BLUETOOTH;
     this->clientAddr.rc_channel = 0;
     str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+}
+
+BTChannel::~BTChannel()
+{
+    end();
 }
 
 void BTChannel::salloc()
@@ -97,6 +102,11 @@ void BTChannel::accept()
 	int client = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->clientAddr), &size);
     if (client == -1)
         cout << "Listen Error: Failed to accept message. " << errno << endl;
+}
+
+void BTChannel::end()
+{
+    close(this->sock);
 }
 
 

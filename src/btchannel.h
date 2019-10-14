@@ -20,6 +20,7 @@ public:
 	BTChannel();
 	BTChannel(struct sockaddr_rc addr, const Message& msg = Message{});
 	BTChannel(const string& addr, const Message& msg = Message{});
+	~BTChannel();
 	
 	void salloc();
 	void connect();
@@ -30,4 +31,6 @@ public:
 	void bind();
 	void listen();
 	void accept();
+
+	void end();
 };

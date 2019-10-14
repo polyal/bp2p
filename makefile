@@ -77,7 +77,10 @@ archiverTest:
 	g++ -std=c++1y -Wall -Wextra -pedantic src/archiver.cpp -larchive -o out/a.out
 
 channelTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/BTChannel.cpp -lbluetooth -o out/a.out
+	g++ -std=c++1y -Wall -Wextra -pedantic src/btchannel.cpp -lbluetooth -o out/a.out
+
+deviceTest:
+	g++ -std=c++1y -Wall -Wextra -pedantic src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
 
 
 

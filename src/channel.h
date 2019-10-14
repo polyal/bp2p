@@ -10,4 +10,5 @@ public:
 	virtual void bind() = 0;
 	virtual void listen() = 0;
 	virtual void accept() = 0;
+	virtual void end() = 0;
 };
