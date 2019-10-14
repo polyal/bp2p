@@ -13,9 +13,9 @@
 
 #define DEBUG 1
 
-constexpr char BlueChannel::zaddr[];
+constexpr char BTChannel::zaddr[];
 
-BlueChannel::BlueChannel()
+BTChannel::BTChannel()
 {
 	omsg.data.resize(this->chunkSize, 0);
 	imsg.data.resize(this->chunkSize, 0);
@@ -28,28 +28,28 @@ BlueChannel::BlueChannel()
 }
 
 
-void BlueChannel::salloc()
+void BTChannel::salloc()
 {
     this->sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
     if (this->sock == -1)
         cout << "Channel Error: Cannot allocate socket. " << errno << endl;
 }
 
-void BlueChannel::connect()
+void BTChannel::connect()
 {
 	int status = ::connect(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1)
         cout << "Channel Error: Cannot connect to socket. " << errno << endl;
 }
 
-void BlueChannel::write()
+void BTChannel::write()
 {
 	int status = ::write(this->sock, this->omsg.data.data(), this->omsg.size);
     if( status == -1 )
         cout << "sendRequest Error: Write error. " << errno << endl;
 }
 
-void BlueChannel::read()
+void BTChannel::read()
 {
 	int bytesRead = ::read(this->sock, this->imsg.data.data(), this->chunkSize);
     if( bytesRead == -1 )
@@ -57,21 +57,21 @@ void BlueChannel::read()
     this->imsg.size = bytesRead;
 }
 
-void BlueChannel::bind()
+void BTChannel::bind()
 {
 	int status = ::bind(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1)
         cout << "createServer Error: Cannot bind name to socket. " << errno << endl;
 }
 
-void BlueChannel::listen()
+void BTChannel::listen()
 {
 	int status = ::listen(this->sock, 1);
     if (status == -1)
         cout << "Listen Error: Cannot listen for connections on socket. " << errno << endl;
 }
 
-void BlueChannel::accept()
+void BTChannel::accept()
 {
 	socklen_t size = sizeof(this->clientAddr);
 	int client = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->clientAddr), &size);

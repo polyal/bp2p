@@ -11,7 +11,7 @@ struct Message
 };
 
 
-class BlueChannel : public Channel
+class BTChannel : public Channel
 {
 private:
 	static const int chunkSize = 32768;
@@ -24,7 +24,7 @@ private:
 	struct sockaddr_rc clientAddr;
 
 public:
-	BlueChannel();
+	BTChannel();
 	
 	void salloc();
 	void connect();
