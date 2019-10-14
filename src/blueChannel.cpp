@@ -13,7 +13,7 @@
 
 #define DEBUG 1
 
-constexpr char BTChannel::zaddr[];
+const string BTChannel::zaddr = "00:00:00:00:00:00";
 
 BTChannel::BTChannel()
 {

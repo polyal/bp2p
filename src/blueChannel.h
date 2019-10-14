@@ -15,7 +15,7 @@ class BTChannel : public Channel
 {
 private:
 	static const int chunkSize = 32768;
-	static constexpr char zaddr[] = "00:00:00:00:00:00";
+	static const string zaddr;
 
 	Message omsg;  // output
 	Message imsg;  // input
