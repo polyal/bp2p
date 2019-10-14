@@ -1,46 +1,11 @@
-#include <vector>
 #include <string>
+#include "message.h"
 #include "channel.h"
 
 using namespace std;
 
-
 class BTChannel : public Channel
 {
-public:
-	struct Message
-	{
-		Message()
-		{
-			size = chunkSize;
-			data.resize(size);
-		}
-
-		Message(vector<char> m, unsigned int s)
-		{
-			if (m.size() > chunkSize || s > chunkSize || s > m.size()) return; // error
-			size = s;
-			data = m;
-		}
-
-		void create(vector<char> m, unsigned int s)
-		{
-			if (m.size() > chunkSize || s > chunkSize || s > m.size()) return; // error
-			size = s;
-			data = m;
-		}
-
-		Message& operator=(const Message& msg)
-		{
-			this->size = msg.size;
-			this->data = data;
-			return *this;
-		}
-
-		unsigned int size = 0;
-		vector<char> data;
-	};
-
 private:
 	static const unsigned int chunkSize = 32768;
 	static const string zaddr;

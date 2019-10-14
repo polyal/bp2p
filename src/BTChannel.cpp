@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "blueChannel.h"
+#include "BTChannel.h"
 
 #define DEBUG 1
 
