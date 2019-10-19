@@ -1,18 +1,14 @@
 #include <unistd.h>
 #include <sys/socket.h>
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/hci_lib.h>
-#include <bluetooth/rfcomm.h>
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
-
+#include <algorithm>
 #include <iostream>
 
 #include "btchannel.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 const string BTChannel::zaddr = "00:00:00:00:00:00";
 
@@ -20,93 +16,173 @@ BTChannel::BTChannel()
 {
 	this->addr.rc_family = AF_BLUETOOTH;
     this->addr.rc_channel = 0;
-    str2ba( &this->zaddr[0], &this->addr.rc_bdaddr );
+    str2ba(&this->zaddr[0], &this->addr.rc_bdaddr);
     this->clientAddr.rc_family = AF_BLUETOOTH;
     this->clientAddr.rc_channel = 0;
-    str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+    str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
-BTChannel::BTChannel(struct sockaddr_rc addr, const Message& msg)
+BTChannel::BTChannel(const struct sockaddr_rc& addr)
 {
-    this->omsg = msg;
     this->addr.rc_family = addr.rc_family;
     this->addr.rc_channel = addr.rc_channel;
     memcpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr, sizeof(bdaddr_t));
     this->clientAddr.rc_family = AF_BLUETOOTH;
     this->clientAddr.rc_channel = 0;
-    str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+    str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
-BTChannel::BTChannel(const string& addr, const Message& msg)
+BTChannel::BTChannel(const string& addr)
 {
-    this->omsg = msg;
     this->addr.rc_family = AF_BLUETOOTH;
     this->addr.rc_channel = 0;
-    str2ba( &addr[0], &this->addr.rc_bdaddr );
+    str2ba(&addr[0], &this->addr.rc_bdaddr);
     this->clientAddr.rc_family = AF_BLUETOOTH;
     this->clientAddr.rc_channel = 0;
-    str2ba( &this->zaddr[0], &this->clientAddr.rc_bdaddr );
+    str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
 BTChannel::~BTChannel()
 {
-    end();
+    closeClient();
+    closeServer();
 }
 
-void BTChannel::salloc()
+void BTChannel::setAdr(const struct sockaddr_rc& addr)
+{
+    this->addr.rc_family = addr.rc_family;
+    this->addr.rc_channel = addr.rc_channel;
+    memcpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr, sizeof(bdaddr_t));
+}
+
+void BTChannel::setAdr(const string& addr)
+{
+    this->addr.rc_family = AF_BLUETOOTH;
+    this->addr.rc_channel = 0;
+    str2ba(&addr[0], &this->addr.rc_bdaddr);
+}
+
+int BTChannel::salloc()
 {
     this->sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
     if (this->sock == -1)
         cout << "Channel Error: Cannot allocate socket. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::connect()
+int BTChannel::connect()
 {
 	int status = ::connect(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1)
         cout << "Channel Error: Cannot connect to socket. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::write()
+int BTChannel::writeToClient(const Message& msg)
 {
-	int status = ::write(this->sock, this->omsg.data.data(), this->omsg.size);
+    return write(this->clientSock, msg);
+}
+
+int BTChannel::writeToServer(const Message& msg)
+{
+    return write(this->sock, msg);
+}
+
+int BTChannel::write(int sock, const Message& msg)
+{
+    int status = write(sock);
+    this->omsg = msg;
+    return status;
+}
+
+int BTChannel::write(int sock)
+{
+	int status = ::write(sock, this->omsg.data.data(), this->omsg.size);
     if( status == -1 )
-        cout << "sendRequest Error: Write error. " << errno << endl;
+        cout << "Channel Error: Write error. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::read()
+int BTChannel::readFromClient(Message& msg)
 {
-	int bytesRead = ::read(this->sock, this->imsg.data.data(), this->chunkSize);
-    if( bytesRead == -1 )
-        cout << "sendRequest Error: Failed to read message. " << errno << endl;
-    this->imsg.size = bytesRead;
+    return read(this->clientSock, msg);
 }
 
-void BTChannel::bind()
+int BTChannel::readFromServer(Message& msg)
+{
+    return read(this->sock, msg);
+}
+
+int BTChannel::read(int sock, Message& msg)
+{
+    int status = read(sock);
+    msg = this->imsg;
+    return status;
+}
+
+int BTChannel::read(int sock)
+{
+	int bytesRead = ::read(sock, this->imsg.data.data(), this->chunkSize);
+    if( bytesRead == -1 )
+        cout << "Channel Error: Failed to read message. " << errno << endl;
+    this->imsg.size = bytesRead;
+    return errno;
+}
+
+int BTChannel::bind()
 {
 	int status = ::bind(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1)
-        cout << "createServer Error: Cannot bind name to socket. " << errno << endl;
+        cout << "Channel Error: Cannot bind name to socket. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::listen()
+int BTChannel::listen()
 {
 	int status = ::listen(this->sock, 1);
     if (status == -1)
-        cout << "Listen Error: Cannot listen for connections on socket. " << errno << endl;
+        cout << "Channel Error: Cannot listen for connections on socket. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::accept()
+int BTChannel::accept(DeviceDescriptor& dev)
+{
+    int status = accept();
+    dev.sock = this->clientSock;
+    vector<char> cAddr(18, 0);
+    ba2str(&this->clientAddr.rc_bdaddr, &cAddr[0]);
+    transform(cAddr.begin(), cAddr.end(), std::back_inserter(dev.addr),
+               [](char c) {
+                   return c;
+                });
+    return status;
+}
+
+int BTChannel::accept()
 {
 	socklen_t size = sizeof(this->clientAddr);
-	int client = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->clientAddr), &size);
-    if (client == -1)
-        cout << "Listen Error: Failed to accept message. " << errno << endl;
+	this->clientSock = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->clientAddr), &size);
+    if (this->clientSock == -1)
+        cout << "Channel Error: Failed to accept message. " << errno << endl;
+    return errno;
 }
 
-void BTChannel::end()
+int BTChannel::closeClient()
 {
-    close(this->sock);
+    return close(this->clientSock);
+}
+
+int BTChannel::closeServer()
+{
+    return close(this->sock);
+}
+
+int BTChannel::close(int sock)
+{
+    int status = ::close(sock);
+    if (status == -1)
+        cout << "Channel Error: Something went wring closing the socket. " << errno << endl;
+    return errno;
 }
 
 

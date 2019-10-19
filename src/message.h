@@ -1,3 +1,6 @@
+#ifndef MESSAGE_H
+#define MESSAGE_H
+
 #include <vector>
 #include <string>
 
@@ -31,3 +34,5 @@ struct Message
 	unsigned int size = 0;
 	vector<char> data;
 };
+
+#endif

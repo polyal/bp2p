@@ -1,5 +1,10 @@
 #include <string>
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+#include <bluetooth/rfcomm.h>
 #include "message.h"
+#include "deviceDescriptor.h"
 #include "channel.h"
 
 using namespace std;
@@ -13,24 +18,41 @@ private:
 	Message omsg;  // output
 	Message imsg;  // input
 	int sock = -1;
+	int clientSock = -1;
 	struct sockaddr_rc addr;
 	struct sockaddr_rc clientAddr;
 
 public:
 	BTChannel();
-	BTChannel(struct sockaddr_rc addr, const Message& msg = Message{});
-	BTChannel(const string& addr, const Message& msg = Message{});
+	BTChannel(const struct sockaddr_rc& addr);
+	BTChannel(const string& addr);
 	~BTChannel();
-	
-	void salloc();
-	void connect();
-	
-	void write();
-	void read();
 
-	void bind();
-	void listen();
-	void accept();
+	void setAdr(const struct sockaddr_rc& addr);
+	void setAdr(const string& addr);
+	
+	int salloc();
+	int connect();
+	
+	int writeToClient(const Message& msg);
+	int writeToServer(const Message& msg);
+	int readFromClient(Message& msg);
+	int readFromServer(Message& msg);
 
-	void end();
+	int bind();
+	int listen();
+	int accept(DeviceDescriptor& dev);
+
+	int closeClient();
+	int closeServer();
+
+protected:
+	int write(int sock);
+	int read(int sock);
+	int write(int sock, const Message& msg);
+	int read(int sock, Message& msg);
+
+	int accept();
+
+	int close(int sock);
 };
