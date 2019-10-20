@@ -91,8 +91,8 @@ int BTChannel::writeToServer(const Message& msg)
 
 int BTChannel::write(int sock, const Message& msg)
 {
-    int status = write(sock);
     this->omsg = msg;
+    int status = write(sock);
     return status;
 }
 
@@ -123,9 +123,11 @@ int BTChannel::read(int sock, Message& msg)
 
 int BTChannel::read(int sock)
 {
-	int bytesRead = ::read(sock, this->imsg.data.data(), this->chunkSize);
+    vector<char> tmpMsg(this->chunkSize);
+	int bytesRead = ::read(sock,tmpMsg.data(), this->chunkSize);
     if( bytesRead == -1 )
         cout << "Channel Error: Failed to read message. " << errno << endl;
+    this->imsg.data = tmpMsg;
     this->imsg.size = bytesRead;
     return errno;
 }

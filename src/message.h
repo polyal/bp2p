@@ -20,8 +20,8 @@ struct Message
 
 	Message(string m)
 	{
-		size = m.size();
 		copy(m.begin(), m.end(), std::back_inserter(data));
+		size = data.size();
 	}
 
 	void create(vector<char> m, unsigned int s)
@@ -39,7 +39,7 @@ struct Message
 	Message& operator=(const Message& msg)
 	{
 		this->size = msg.size;
-		this->data = data;
+		this->data = msg.data;
 		return *this;
 	}
 
