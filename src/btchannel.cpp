@@ -11,14 +11,15 @@
 #define DEBUG 0
 
 const string BTChannel::zaddr = "00:00:00:00:00:00";
+constexpr bdaddr_t BTChannel::bdAddrAny;
 
 BTChannel::BTChannel()
 {
 	this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 0;
-    str2ba(&this->zaddr[0], &this->addr.rc_bdaddr);
+    this->addr.rc_channel = 1;
+    bacpy(&this->addr.rc_bdaddr, &bdAddrAny);
     this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 0;
+    this->clientAddr.rc_channel = 1;
     str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
@@ -28,17 +29,17 @@ BTChannel::BTChannel(const struct sockaddr_rc& addr)
     this->addr.rc_channel = addr.rc_channel;
     memcpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr, sizeof(bdaddr_t));
     this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 0;
+    this->clientAddr.rc_channel = 1;
     str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
 BTChannel::BTChannel(const string& addr)
 {
     this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 0;
+    this->addr.rc_channel = 1;
     str2ba(&addr[0], &this->addr.rc_bdaddr);
     this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 0;
+    this->clientAddr.rc_channel = 1;
     str2ba(&this->zaddr[0], &this->clientAddr.rc_bdaddr);
 }
 
@@ -58,7 +59,7 @@ void BTChannel::setAdr(const struct sockaddr_rc& addr)
 void BTChannel::setAdr(const string& addr)
 {
     this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 0;
+    this->addr.rc_channel = 1;
     str2ba(&addr[0], &this->addr.rc_bdaddr);
 }
 

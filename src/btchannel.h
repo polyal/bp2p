@@ -14,6 +14,7 @@ class BTChannel : public Channel
 private:
 	static const unsigned int chunkSize = 32768;
 	static const string zaddr;
+	static constexpr bdaddr_t bdAddrAny = {{0, 0, 0, 0, 0, 0}}; // replaces BDADDR_ANY from bluetooth.h
 
 	Message omsg;  // output
 	Message imsg;  // input

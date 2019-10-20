@@ -1,4 +1,4 @@
-
+#include <iostream>
 #include "btdevice.h"
 
 #define DEBUG 1
@@ -90,8 +90,10 @@ int main ()
 	BTDevice myDev;
 	myDev.connect2Device(dev);
 	myDev.sendReqWait4Resp(req, resp);
+	string strresp{resp.data.begin(), resp.data.end()};
+	cout << "Message: " << strresp << endl;
 	myDev.endComm();
-	
+
 	return 0;
 }
 #endif
