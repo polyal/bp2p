@@ -18,10 +18,22 @@ struct Message
 		data = m;
 	}
 
+	Message(string m)
+	{
+		size = m.size();
+		copy(m.begin(), m.end(), std::back_inserter(data));
+	}
+
 	void create(vector<char> m, unsigned int s)
 	{
 		size = s;
 		data = m;
+	}
+
+	void create(string m)
+	{
+		size = m.size();
+		copy(m.begin(), m.end(), std::back_inserter(data));
 	}
 
 	Message& operator=(const Message& msg)

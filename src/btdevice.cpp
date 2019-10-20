@@ -80,6 +80,18 @@ int BTDevice::endComm()
 #if DEBUG == 1
 int main ()
 {
+	string addr = "34:DE:1A:1D:F4:0B";
+	DeviceDescriptor dev{addr};
+
+	string data{"Send this message over\n"};
+	Message req{data};
+	Message resp;
+
+	BTDevice myDev;
+	myDev.connect2Device(dev);
+	myDev.sendReqWait4Resp(req, resp);
+	myDev.endComm();
+	
 	return 0;
 }
 #endif
