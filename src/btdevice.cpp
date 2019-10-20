@@ -80,10 +80,11 @@ int BTDevice::endComm()
 #if DEBUG == 1
 int main ()
 {
+#if 1  // client
 	string addr = "34:DE:1A:1D:F4:0B";
 	DeviceDescriptor dev{addr};
 
-	string data{"Send this message over\n"};
+	string data{"--Client to Server."};
 	Message req{data};
 	Message resp;
 
@@ -93,6 +94,21 @@ int main ()
 	string strresp{resp.data.begin(), resp.data.end()};
 	cout << "Message: " << strresp << endl;
 	myDev.endComm();
+#else  // server
+	string data{"++Server to Client."};
+	Message req;
+	Message resp{data};
+	DeviceDescriptor client;
+
+	BTDevice myDev;
+	myDev.initServer();
+	myDev.listen4Req(client);
+	myDev.fetchRequestData(req);
+	string strreq{req.data.begin(), req.data.end()};
+	cout << "Message: " << strreq << endl;
+	myDev.sendResponse(resp);
+	myDev.endComm();
+#endif
 
 	return 0;
 }
