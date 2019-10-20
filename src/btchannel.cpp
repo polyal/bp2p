@@ -45,8 +45,8 @@ BTChannel::BTChannel(const string& addr)
 
 BTChannel::~BTChannel()
 {
-    closeClient();
-    closeServer();
+    //closeClient();
+    //closeServer();
 }
 
 void BTChannel::setAdr(const struct sockaddr_rc& addr)
