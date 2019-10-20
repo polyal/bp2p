@@ -182,7 +182,7 @@ int BTChannel::closeServer()
 
 int BTChannel::close(int sock)
 {
-    int status = ::close(sock);
+    int status = sock >= 0 ? ::close(sock) : 0;
     if (status == -1)
         cout << "Channel Error: Something went wring closing the socket. " << errno << endl;
     return errno;
