@@ -6,10 +6,11 @@ inclJson = -Ilib/json/include
 blueLibs = -lbluetooth
 
 
-default: utils bluetooth torrent rrpacket
+default: utils device torrent rrpacket
 	g++ -std=c++1y -Wall src/node.cpp \
 	-Ilib/json/include -o out/a.out \
-	out/blue.o out/utils.o out/torrent.o \
+	out/btdevice.o out/btchannel.o \
+	out/utils.o out/torrent.o \
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
 	out/package.o out/compress.o out/archiver.o out/hash.o \
 	$(blueLibs) \
@@ -20,9 +21,13 @@ rrpacket:
 	src/rrfactory.cpp src/rrpacket.cpp src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp;
 	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o -t out/
 
-bluetooth:
-	gcc -Wall -c src/blue.c;
-	mv blue.o out/blue.o
+device: channel
+	g++ -std=c++1y -Wall -Wextra -pedantic -c src/btdevice.cpp
+	mv btdevice.o out/btdevice.o
+
+channel:
+	g++ -std=c++1y -Wall -Wextra -pedantic -c src/btchannel.cpp
+	mv btchannel.o out/btchannel.o
 
 torrent: package hash
 	g++ -std=c++1y -Wall -Wextra -pedantic -c src/torrent.cpp -Ilib/json/include

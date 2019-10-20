@@ -47,27 +47,10 @@ class Peer{
 		void findNearbyDevices();
 		void findLocalDevices();
 
-		int connect2Node(Peer::Device& dev);
-		int sendReqWait4Resp(const Peer::Device& dev, const string req, string& resp);
-		int initServer(Peer::Device& dev);
-		int listen4Req(Peer::Device& dev, Peer::Device& client);
-		int fetchRequestData(const Peer::Device& dev, string& req);
-		int sendResponse(Peer::Device& dev, string data);
-		void endComm(Peer::Device& dev);
-
 		void processRequest(const vector<char>& req, vector<char>& resp);
 		void createRequest();
-
-		/*void parseTorrentList(const string& resp, vector<string>& torrentList);
-		int requestTorrentList(Peer::Device& dev);*/
 		
 		static const string applicationDir;
 		string getApplicationPath();
-
-
-		// testing functions
-		void Client();
-		void Server();
-
 };
 
