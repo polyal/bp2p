@@ -30,13 +30,13 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
         goto findLocalDevicesCleanup;
     }
 
-    devList = malloc(HCI_MAX_DEV * sizeof(*devReq) + sizeof(*devList));
+    devList = malloc(HCI_MAX_DEV * sizeof(*devReq) + sizeof(uint16_t));
     if (!devList) {
         status = errno;
         goto findLocalDevicesCleanup;
     }
 
-    memset(devList, 0, HCI_MAX_DEV * sizeof(*devReq) + sizeof(*devList));
+    memset(devList, 0, HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t));
     devList->dev_num = HCI_MAX_DEV;
     devReq = devList->dev_req;
 
@@ -58,18 +58,18 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
     char addr[ADDR_SIZE] = { 0 };
     for (i = 0; i < devList->dev_num; i++, devReq++) {
         if (hci_test_bit(HCI_UP, &devReq->dev_opt)){
-            //char name[248] = { 0 };
+            char name[248] = { 0 };
             hci_devba(devReq->dev_id, &bdaddr);
             ba2str(&bdaddr, addr);
-            //hci_read_local_name(sock, 248, name, 0);
 
-            // TODO:
-            // add local device name retrieval
+            int sock2dev = hci_open_dev( devReq->dev_id );
+            hci_read_local_name(sock2dev, 248, name, 0);
+            if (sock2dev >= 0) close(sock2dev);
 
             devs[i]->devId = devReq->dev_id;
             memcpy(devs[i]->addr, addr, strlen(addr));
             devs[i]->name[0] = '\0';
-            printf("Find Local Dev: %d %s \n", devs[i]->devId, devs[i]->addr);
+            printf("Find Local Dev: %d %s %s \n", devs[i]->devId, devs[i]->addr, name);
         }       
     }
 

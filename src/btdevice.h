@@ -21,4 +21,9 @@ public:
 	int endComm();
 	int endClientComm();
 	int endServerComm();
+
+	static int findLocalDevs(vector<DeviceDescriptor>& devList);
+	static int getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs);
+	static int HCIDevList2DevDesList(vector<DeviceDescriptor>& devs, struct hci_dev_list_req*& devList, int nDevs);
+	static bool HCIDev2DevDes(DeviceDescriptor& dev, struct hci_dev_req*& devReq);
 };

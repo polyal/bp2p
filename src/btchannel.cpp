@@ -1,6 +1,5 @@
 #include <unistd.h>
 #include <sys/socket.h>
-#include <sys/ioctl.h>
 #include <errno.h>
 #include <string.h>
 #include <algorithm>

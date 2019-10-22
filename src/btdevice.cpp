@@ -1,4 +1,6 @@
 #include <iostream>
+#include <unistd.h>
+#include <sys/ioctl.h>
 #include "btdevice.h"
 
 #define DEBUG 0
@@ -75,6 +77,91 @@ int BTDevice::endComm()
 	status = endClientComm();
     status = endServerComm();
     return status;
+}
+
+int BTDevice::findLocalDevs(vector<DeviceDescriptor>& devs)
+{
+	struct hci_dev_list_req* devList = NULL;
+    int numDevs, status;
+
+    status = getHCIDevList(devList, numDevs);
+    status = HCIDevList2DevDesList(devs, devList, numDevs);
+
+    if (devList) free(devList);
+
+    return status;
+}
+
+int BTDevice::getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs)
+{
+    int status = -1;
+    int sock = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+    if (sock >= 0){
+        devList = reinterpret_cast<struct hci_dev_list_req*>
+        		  (malloc(HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t)));
+	    
+	    if (devList){
+	        memset(devList, 0, HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t));
+    		devList->dev_num = HCI_MAX_DEV;
+
+    		// request list of devices from microcontroller
+		    if (ioctl(sock, HCIGETDEVLIST, (void *) devList) >= 0){
+		    	if (devList->dev_num > 0){
+		  			status = 0;
+		  			numDevs = devList->dev_num;
+		    	}
+		    
+		    }
+
+	    }
+    }
+
+    if (status == -1){
+    	status = errno;
+    	if (sock >= 0) ::close(sock);
+    	if (devList) free(devList);
+    	numDevs = 0;
+    	devList = NULL;
+    }
+
+    return status;
+}
+
+int BTDevice::HCIDevList2DevDesList(vector<DeviceDescriptor>& devs, struct hci_dev_list_req*& devList, int nDevs)
+{
+	if (!devList || nDevs < 1) return -1;
+
+	struct hci_dev_req* devReq = devList->dev_req;
+    for (int i = 0; i < nDevs; i++, devReq++) {
+    	DeviceDescriptor dev;
+        if (HCIDev2DevDes(dev, devReq))
+        	devs.push_back(dev);
+    }
+
+    return 0;
+}
+
+bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, struct hci_dev_req*& devReq)
+{
+	if (!devReq || !hci_test_bit(HCI_UP, &devReq->dev_opt)) return false;
+
+	bdaddr_t bdaddr = {0};
+    vector<char> cAddr(18, 0);
+    vector<char> cName(249, 0);
+    hci_devba(devReq->dev_id, &bdaddr);
+    ba2str(&bdaddr, cAddr.data());
+
+    int sock2dev = hci_open_dev( devReq->dev_id );
+    hci_read_local_name(sock2dev, 249, cName.data(), 0);
+    if (sock2dev >= 0) ::close(sock2dev);
+
+    string addr{cAddr.begin(), cAddr.end()};
+    string name{cName.begin(), cName.end()};
+    dev.create(addr, name, devReq->dev_id);
+
+    cout << "Find Local Dev: " << dev.devID << " " << dev.addr << " " << dev.name << " " << endl;
+
+    return true;
 }
 
 #if DEBUG == 1
