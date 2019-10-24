@@ -1,9 +1,12 @@
 # bp2p
 
 Requirements
-bluez
-zlib
+
+libbluetooth-dev
 libarchive-dev
-libbz2-dev
+libz-dev
 libssl-dev
 
+To get json lib to clone to right dir
+git submodule init
+git submodule update
