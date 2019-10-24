@@ -4,7 +4,7 @@
 class Device
 {
 protected:
-	DeviceDescriptor ddes;
+	DeviceDescriptor des;
 
 public:
 	virtual int connect2Device(const DeviceDescriptor& dev) = 0;

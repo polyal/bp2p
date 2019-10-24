@@ -10,7 +10,6 @@ protected:
 	static const unsigned short maxDevs = 255;  // max devs we can search for
 	static const unsigned short discUnit = 8;   // discovery unit * 1.28sec = time spent searching for devices
 
-	DeviceDescriptor dev;
 	BTChannel channel;
 
 public:

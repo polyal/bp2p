@@ -12,7 +12,7 @@ BTDevice::BTDevice()
 
 BTDevice::BTDevice(const DeviceDescriptor& dev)
 {
-	this->dev = dev;
+	this->des = dev;
 }
 
 int BTDevice::connect2Device(const DeviceDescriptor& dev)
@@ -176,12 +176,12 @@ int BTDevice::findNearbyDevs(vector<DeviceDescriptor>& devs)
 	inquiry_info* inqInf = NULL;
 	int numDevs = 0, status = -1;
     
-    this->dev.sock = hci_open_dev( this->dev.devID);
+    this->des.sock = hci_open_dev(this->des.devID);
     status = getInqInfo(inqInf, numDevs);
     status = inqInfList2DevDesList(devs, inqInf, numDevs);
 
     if (inqInf) free( inqInf );
-    if (this->dev.sock >= 0) close(this->dev.sock);
+    if (this->des.sock >= 0) close(this->des.sock);
 
     return status;
 }
@@ -190,12 +190,12 @@ int BTDevice::getInqInfo(inquiry_info*& inqInf, int& numDevs)
 {
 	int status = -1;
     
-    if (this->dev.devID >= 0 && this->dev.sock >= 0) {
+    if (this->des.devID >= 0 && this->des.sock >= 0) {
 
         inqInf = reinterpret_cast<inquiry_info*>(malloc(sizeof(inquiry_info)* BTDevice::maxDevs));
 	    if (inqInf){
 	    	// perform bluetooth discovery, clear previously discovered devices from cache
-		    numDevs = hci_inquiry(this->dev.devID, discUnit, BTDevice::maxDevs, NULL, &inqInf, IREQ_CACHE_FLUSH);
+		    numDevs = hci_inquiry(this->des.devID, discUnit, BTDevice::maxDevs, NULL, &inqInf, IREQ_CACHE_FLUSH);
 		    status = 0;
 	    }
     }
@@ -220,7 +220,7 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
 
     ba2str(&inqInf.bdaddr, cAddr.data());
-    if (hci_read_remote_name(this->dev.sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
+    if (hci_read_remote_name(this->des.sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
         memcpy(cName.data(), "[unkown]", sizeof("[unkown]"));
 
     string addr{cAddr.begin(), cAddr.end()};
