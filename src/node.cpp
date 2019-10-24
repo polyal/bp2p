@@ -167,10 +167,11 @@ int main(int argc, char *argv[]){
 	//Peer me{};
 	//me.createRequest();
 
-	BTDevice dev;
-
-	vector<DeviceDescriptor> devs;
-	BTDevice::findLocalDevs(devs);
+	vector<DeviceDescriptor> localDevs;
+	vector<DeviceDescriptor> nearbyDevs;
+	BTDevice::findLocalDevs(localDevs);
+	BTDevice dev{localDevs[0]};
+	dev.findNearbyDevs(nearbyDevs);
 
     return 0;
 }
