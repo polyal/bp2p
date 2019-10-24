@@ -60,7 +60,7 @@ struct DeviceDescriptor
 
 	static const unsigned short addrLen = 18;
 	static const unsigned short maxNameLen = 256;
-	//static const string uknownName;
+	inline static const string uknownName = "[unknown]";
 };
 
 //const string DeviceDescriptor::uknownName = "[unknown]";

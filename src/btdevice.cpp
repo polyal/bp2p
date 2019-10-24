@@ -221,7 +221,8 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 
     ba2str(&inqInf.bdaddr, cAddr.data());
     if (hci_read_remote_name(this->des.sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
-        memcpy(cName.data(), "[unkown]", sizeof("[unkown]"));
+        std::copy(DeviceDescriptor::uknownName.begin(), DeviceDescriptor::uknownName.end(),
+         back_inserter(cName));
 
     string addr{cAddr.begin(), cAddr.end()};
     string name{cName.begin(), cName.end()};
