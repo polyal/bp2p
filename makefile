@@ -1,52 +1,54 @@
-objs = package.o compress.o hash.o torrent.o
-cobjs = package.o compress.o archiver.o hash.o
-libs = -lz -larchive -lcrypto
-inclJson = -Ilib/json/include
-
-blueLibs = -lbluetooth
+cc = g++
+cv = -std=c++1z
+wrn = -Wall -Wextra -pedantic
+compile = $(cc) $(cv) $(wrn)
+libs = -lz -larchive -lcrypto -lbluetooth
+incl = -Ilib/json/include
 
 
 default: utils device torrent rrpacket
-	g++ -std=c++1y -Wall src/node.cpp \
-	-Ilib/json/include -o out/a.out \
+	$(compile) src/node.cpp \
+	$(incl) \
+	-o out/a.out \
 	out/btdevice.o out/btchannel.o \
-	out/utils.o out/torrent.o \
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
-	out/package.o out/compress.o out/archiver.o out/hash.o \
-	$(blueLibs) \
+	out/torrent.o out/package.o out/compress.o out/archiver.o out/hash.o \
+	out/utils.o \
 	$(libs)
 
 rrpacket:
-	g++ -std=c++1y -Wall -c -Ilib/json/include \
+	$(compile) -c -Ilib/json/include \
 	src/rrfactory.cpp src/rrpacket.cpp src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp;
 	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o -t out/
 
 device: channel
-	g++ -std=c++1y -Wall -Wextra -pedantic -c src/btdevice.cpp
+	$(compile) -c src/btdevice.cpp
 	mv btdevice.o out/btdevice.o
 
 channel:
-	g++ -std=c++1y -Wall -Wextra -pedantic -c src/btchannel.cpp
+	$(compile) -c src/btchannel.cpp
 	mv btchannel.o out/btchannel.o
 
 torrent: package hash
-	g++ -std=c++1y -Wall -Wextra -pedantic -c src/torrent.cpp -Ilib/json/include
+	$(compile) -c src/torrent.cpp $(incl)
 	mv torrent.o out/torrent.o
 
-packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
-	ar rvs out/arobj.a $(foreach obj, $(objs), out/$(obj))
-
 package:
-	g++ -std=c++1y -Wall -Wextra -pedantic -c src/package.cpp src/archiver.cpp src/compress.cpp
+	$(compile) -c src/package.cpp src/archiver.cpp src/compress.cpp
 	mv package.o archiver.o compress.o -t out/
 
 hash:
-	g++ -std=c++1y -Wall -Wextra -pedantic -c src/hash.cpp
+	$(compile) -c src/hash.cpp
 	mv hash.o out/hash.o
 
 utils:
-	g++ -std=c++1y -Wall -c src/utils.cpp;
+	$(compile) -c src/utils.cpp;
 	mv utils.o out/utils.o
+
+
+
+objs = package.o compress.o hash.o torrent.o
+cobjs = package.o compress.o archiver.o hash.o
 
 # moves obj files from root/ to out/
 mvObjs:
@@ -55,37 +57,38 @@ mvObjs:
 mvCobjs:
 	mv $(cobjs) -t out/
 
+packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
+	ar rvs out/arobj.a $(foreach obj, $(objs), out/$(obj))
 
 
 # compile each module as its own executable
 # make sure to set DEBUG = 1
-
 bluetoohTest:
-	gcc -Wall src/blue.c -lbluetooth -o out/a.out
+	gcc $(wrn) src/blue.c -lbluetooth -o out/a.out
 
 torrentTest: package hash mvCobjs
-	g++ -std=c++1y -Wall src/torrent.cpp -Ilib/json/include -o out/a.out \
+	$(compile) src/torrent.cpp $(incl) -o out/a.out \
 	out/utils.o \
 	$(foreach obj, $(cobjs), out/$(obj)) \
 	$(libs)
 
 hashTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/hash.cpp src/utils.cpp -lcrypto -o out/a.out
+	$(compile) src/hash.cpp src/utils.cpp -lcrypto -o out/a.out
 
 packageTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/package.cpp src/archiver.cpp src/compress.cpp -lz -larchive -o out/a.out
+	$(compile) src/package.cpp src/archiver.cpp src/compress.cpp -lz -larchive -o out/a.out
 
 compressTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/compress.cpp -lz -o out/a.out
+	$(compile) src/compress.cpp -lz -o out/a.out
 
 archiverTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/archiver.cpp -larchive -o out/a.out
+	$(compile) src/archiver.cpp -larchive -o out/a.out
 
 channelTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/btchannel.cpp -lbluetooth -o out/a.out
+	$(compile) src/btchannel.cpp -lbluetooth -o out/a.out
 
 deviceTest:
-	g++ -std=c++1y -Wall -Wextra -pedantic src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
+	$(compile) src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
 
 
 
