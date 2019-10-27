@@ -4,8 +4,6 @@
 
 class TorrentFileReq;
 
-const string RRPacket::commString = "bp2p";
-const string RRPacket::commSeparator = "||";
 
 RRPacket::RRPacket(){
 	req.reserve(chunkSize);

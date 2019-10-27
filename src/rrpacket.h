@@ -11,8 +11,8 @@ using namespace std;
 class RRPacket {
 	public:
 		static const int chunkSize = 32768;  //256 kilobyte chunk size
-		static const string commString;
-		static const string commSeparator;
+		inline static const string commString = "bp2p";
+		inline static const string commSeparator = "||";
 		vector<char> req;
 		vector<char> resp;
 
