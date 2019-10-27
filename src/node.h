@@ -35,8 +35,8 @@ class Peer{
 		};
 
 	private:
-		static const string commString = "bp2p";
-		static const string commSeparator = "||";
+		inline static const string commString = "bp2p";
+		inline static const string commSeparator = "||";
 
 		vector<Device> nodes;
 		vector<Device> localDevices;
