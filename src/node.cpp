@@ -13,8 +13,6 @@
 
 using namespace std;
 
-const string Peer::commString = "bp2p";
-const string Peer::commSeparator = "||";
 
 Peer::Peer(){
 
