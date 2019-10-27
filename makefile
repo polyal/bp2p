@@ -63,7 +63,7 @@ packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
 
 # compile each module as its own executable
 # make sure to set DEBUG = 1
-bluetoohTest:
+blueTest:
 	gcc $(wrn) src/blue.c -lbluetooth -o out/a.out
 
 torrentTest: package hash mvCobjs
