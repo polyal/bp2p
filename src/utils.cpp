@@ -13,7 +13,6 @@
 
 using namespace std;
 
-const string Utils::applicationDir = "/bp2p/";
 
 void Utils::tokenize(const string& text, const string& sep, vector<string>& tokens){
 	size_t pos = 0;

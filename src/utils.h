@@ -10,7 +10,7 @@ using namespace std;
 class Utils{
 	public:
 		// application type utils
-		static const string applicationDir;
+		inline static const string applicationDir = "/bp2p/";
 		static string getHomeDir();
 		static string getApplicationPath();
 
