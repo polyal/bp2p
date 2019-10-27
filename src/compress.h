@@ -27,7 +27,7 @@ void zerr(int ret);
 class Ezlib
 {
 private:
-    static const string ext;
+    inline static const string ext = ".ez"; 
     static const int chunkSize = 32768;
 
     int level = 9;  // highest compression level
