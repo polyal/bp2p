@@ -10,7 +10,7 @@
 #include <errno.h>
 #include "blue.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 
 int findLocalDevices(devInf ** const devs, int * const numDevs){
