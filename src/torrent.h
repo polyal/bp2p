@@ -30,8 +30,8 @@ class Torrent
 {
 private:
 	static const int chunkSize = 32768;  //256 kilobyte chunk size
-	static const string torrentFileDir;
-	static const string torrentDataDir;
+	inline static const string torrentFileDir = "torrents/";
+	inline static const string torrentDataDir = "torrentData/";
 
 	struct Chunk
 	{

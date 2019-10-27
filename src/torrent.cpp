@@ -18,8 +18,6 @@
 
 using namespace std;
 
-const string Torrent::torrentFileDir = "torrents/";
-const string Torrent::torrentDataDir = "torrentData/";
 
 Torrent::Torrent()
 {
