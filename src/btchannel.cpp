@@ -9,8 +9,6 @@
 
 #define DEBUG 0
 
-const string BTChannel::zaddr = "00:00:00:00:00:00";
-constexpr bdaddr_t BTChannel::bdAddrAny;
 
 BTChannel::BTChannel()
 {
