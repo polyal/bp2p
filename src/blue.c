@@ -49,7 +49,7 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
 
     if (devList->dev_num < 1)
         goto findLocalDevicesCleanup;
-
+printf("%d\n", devList->dev_num);
     *devs = malloc(sizeof(devInf)* devList->dev_num);
     if (*devs == NULL) 
         goto findLocalDevicesCleanup;
@@ -66,10 +66,10 @@ int findLocalDevices(devInf ** const devs, int * const numDevs){
             hci_read_local_name(sock2dev, 248, name, 0);
             if (sock2dev >= 0) close(sock2dev);
 
-            devs[i]->devId = devReq->dev_id;
-            memcpy(devs[i]->addr, addr, strlen(addr));
-            devs[i]->name[0] = '\0';
-            printf("Find Local Dev: %d %s %s \n", devs[i]->devId, devs[i]->addr, name);
+            (*devs)[i].devId = devReq->dev_id;
+            memcpy((*devs)[i].addr, addr, strlen(addr));
+            (*devs)[i].name[0] = '\0';
+            printf("Find Local Dev: %d %s %s \n", (*devs)[i].devId, (*devs)[i].addr, name);
         }       
     }
 
