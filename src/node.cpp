@@ -168,8 +168,17 @@ int main(int argc, char *argv[]){
 	vector<DeviceDescriptor> localDevs;
 	vector<DeviceDescriptor> nearbyDevs;
 	BTDevice::findLocalDevs(localDevs);
-	BTDevice dev{localDevs[0]};
-	dev.findNearbyDevs(nearbyDevs);
+
+	vector<BTDevice> devices;
+	for (auto& dd : localDevs){
+		BTDevice dev{dd};
+		dev.enableScan();
+		devices.push_back(dev);
+	}
+
+	for (auto& dev : devices){
+		dev.findNearbyDevs(nearbyDevs);
+	}
 
     return 0;
 }

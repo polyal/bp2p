@@ -34,6 +34,8 @@ public:
 									 const struct hci_dev_list_req* const devList, int nDevs);
 	static bool HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& devReq);
 
+	int enableScan();
+
 private:
 	int getInqInfo(inquiry_info*& inqInf, int& numDevs);
 	int inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquiry_info* const inqInf, int numDevs);

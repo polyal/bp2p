@@ -123,11 +123,11 @@ int BTDevice::getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs)
 
     if (status == -1){
     	status = errno;
-    	if (sock >= 0) ::close(sock);
     	if (devList) free(devList);
     	numDevs = 0;
     	devList = NULL;
     }
+    if (sock >= 0) ::close(sock);
 
     return status;
 }
@@ -230,6 +230,25 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
     cout << "Devices: " << dev.addr << " " << dev.name << endl;
 
     return 0;
+}
+
+int BTDevice::enableScan()
+{
+	int status = -1;
+    struct hci_dev_req dr;
+
+    int sock = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+    if (sock >= 0){
+		dr.dev_id = this->des.devID;
+		dr.dev_opt = SCAN_PAGE | SCAN_INQUIRY;
+		if (ioctl(sock, HCISETSCAN, (unsigned long) &dr) >= 0)
+			status = 0;
+	}
+
+	if (status == -1) status = errno;
+	cout << "enable scan err: " << status << " dev: " << this->des.devID << endl;
+	if (sock >= 0) ::close(sock);
+	return status;
 }
 
 #if DEBUG == 1
