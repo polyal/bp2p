@@ -217,7 +217,7 @@ sendRequestCleanup:
     return status;
 }
 
-int client(const char* const dest, const char* const data, int size){
+int client(const char* const dest, int channel, const char* const data, int size){
     int status = -1;
     struct sockaddr_rc addr = { 0 };
     int sock;
@@ -244,11 +244,27 @@ int client(const char* const dest, const char* const data, int size){
 
     // set the connection parameters (who to connect to)
     addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) 1;
+    addr.rc_channel = (uint8_t) channel;
     str2ba( dest, &addr.rc_bdaddr );
 
     // connect to server
     status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+
+    if (status != 0 && errno == EHOSTDOWN){
+        printf("Client Error: Can't connect to socket. Try again \n");
+        if (sock >= 0) close(sock);
+        else printf("sock %d\n", sock);
+        sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+        status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+    }
+    else if (status != 0 && errno == ECONNREFUSED){
+        channel++;
+        addr.rc_channel = (uint8_t) channel;
+        if (sock >= 0) close(sock);
+        else printf("sock %d\n", sock);
+        sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+        status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+    }
 
     if (status == 0){
         FD_ZERO(&fds);
@@ -450,7 +466,7 @@ int closeSocket(int sock){
     return close(sock);
 }
 
-int server(char addr[ADDR_SIZE], char ** const data, int* const size){
+int server(char addr[ADDR_SIZE], const char* const myAddr, int channel, char ** const data, int* const size){
     int status = -1;
     struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
     char buff[CHUNK] = { 0 };
@@ -475,8 +491,9 @@ int server(char addr[ADDR_SIZE], char ** const data, int* const size){
     // bind socket to port 1 of the first available 
     // local bluetooth adapter
     loc_addr.rc_family = AF_BLUETOOTH;
-    loc_addr.rc_bdaddr = *BDADDR_ANY;
-    loc_addr.rc_channel = (uint8_t) 0;
+    //loc_addr.rc_bdaddr = *BDADDR_ANY;
+    loc_addr.rc_channel = (uint8_t) channel;
+    str2ba(myAddr, &loc_addr.rc_bdaddr);
     status = bind(s, (struct sockaddr *)&loc_addr, sizeof(loc_addr));
     if (status == -1){
         printf("Server Error: Cannot bind name to socket. %d \n", errno);
@@ -566,19 +583,35 @@ serverCleanup:
 int main(int argc, char **argv)
 {
     char addr[ADDR_SIZE] = {0};
+    int channel = 0;
     char* data = NULL;
     devInf *devs = NULL;
     int size = 0;
 
     if (argc < 2){
-        printf("Usage: ./a.out [-c | -s | -f]\n");
+        printf("Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
         return 0;
     }
+    else if (argc < 3){
+        if (strcmp("-f", argv[1]) != 0 && strcmp("-l", argv[1]) != 0){
+            printf("2Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
+            return 0;
+        }
+    }
+    else if (argc < 4){
+        printf("1Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
+        return 0;
+    }
+    else{
+        memcpy(&addr[0], argv[2], ADDR_SIZE);
+        channel = atoi(argv[3]);
+    }
+
 
     if (strcmp ("-c", argv[1]) == 0)
-        client("34:DE:1A:1D:F4:0B", "Send This Data", sizeof("Send This Data"));
+        client(&addr[0], channel, "Send This Data", sizeof("Send This Data"));
     else if (strcmp ("-s", argv[1]) == 0)
-        server(addr, &data, &size);
+        server(addr, &addr[0], channel, &data, &size);
     else if (strcmp ("-f", argv[1]) == 0)
         findDevices(&devs, &size);
     else if (strcmp ("-l", argv[1]) == 0)

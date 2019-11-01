@@ -15,9 +15,9 @@ int findLocalDevices(devInf ** const devs, int * const numDevs);
 
 int findDevices(devInf ** const devs, int * const numDevs);
 
-int client(const char* const dest, const char* const data, int size);
+int client(const char* const dest, int channel, const char* const data, int size);
 
-int server(char addr[ADDR_SIZE], char ** const data, int* const size);
+int server(char addr[ADDR_SIZE], const char* const myAddr, int channel, char ** const data, int* const size);
 
 
 int initServer(int * const err);
