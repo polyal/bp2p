@@ -217,9 +217,10 @@ sendRequestCleanup:
     return status;
 }
 
-int client(const char* const dest, int channel, const char* const data, int size){
+int client(const char* const dest, int channel, const char* const src, int sc, const char* const data, int size){
     int status = -1;
-    struct sockaddr_rc addr = { 0 };
+    struct sockaddr_rc dstAddr = { 0 };
+    struct sockaddr_rc srcAddr = { 0 };
     int sock;
     fd_set fds;
 
@@ -242,28 +243,38 @@ int client(const char* const dest, int channel, const char* const data, int size
         goto clientCleanup;
     }
 
+    srcAddr.rc_family = AF_BLUETOOTH;
+    srcAddr.rc_channel = (uint8_t) sc;
+    str2ba( src, &srcAddr.rc_bdaddr );
+    status = bind(sock, (struct sockaddr *)&srcAddr, sizeof(srcAddr));
+    if (status == -1){
+        printf("Client Error: Cannot bind to local socket. %d \n", errno);
+        status = errno;
+        goto clientCleanup;
+    }
+
     // set the connection parameters (who to connect to)
-    addr.rc_family = AF_BLUETOOTH;
-    addr.rc_channel = (uint8_t) channel;
-    str2ba( dest, &addr.rc_bdaddr );
+    dstAddr.rc_family = AF_BLUETOOTH;
+    dstAddr.rc_channel = (uint8_t) channel;
+    str2ba( dest, &dstAddr.rc_bdaddr );
 
     // connect to server
-    status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+    status = connect(sock, (struct sockaddr *)&dstAddr, sizeof(dstAddr));
 
     if (status != 0 && errno == EHOSTDOWN){
         printf("Client Error: Can't connect to socket. Try again \n");
         if (sock >= 0) close(sock);
         else printf("sock %d\n", sock);
         sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-        status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        status = connect(sock, (struct sockaddr *)&dstAddr, sizeof(dstAddr));
     }
     else if (status != 0 && errno == ECONNREFUSED){
         channel++;
-        addr.rc_channel = (uint8_t) channel;
+        dstAddr.rc_channel = (uint8_t) channel;
         if (sock >= 0) close(sock);
         else printf("sock %d\n", sock);
         sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-        status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+        status = connect(sock, (struct sockaddr *)&dstAddr, sizeof(dstAddr));
     }
 
     if (status == 0){
@@ -583,40 +594,50 @@ serverCleanup:
 int main(int argc, char **argv)
 {
     char addr[ADDR_SIZE] = {0};
+    char src[ADDR_SIZE] = {0};
     int channel = 0;
+    int sc = 0;
     char* data = NULL;
     devInf *devs = NULL;
     int size = 0;
 
     if (argc < 2){
-        printf("Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
+        printf("Usage: ./a.out [-c [dstAddr] [dstCh] [srcAddr] [srcCh]]\n./a.out [-s [locAddr] [locCh]\n./a.out [-l | -f]\n");
         return 0;
     }
     else if (argc < 3){
         if (strcmp("-f", argv[1]) != 0 && strcmp("-l", argv[1]) != 0){
-            printf("2Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
+            printf("Usage: ./a.out [-c [dstAddr] [dstCh] [srcAddr] [srcCh]]\n./a.out [-s [locAddr] [locCh]\n./a.out [-l | -f]\n");
             return 0;
         }
     }
     else if (argc < 4){
-        printf("1Usage: ./a.out [[-c | -s] [addr] [channel] | [-f | -l] \n");
+        printf("Usage: ./a.out [-c [dstAddr] [dstCh] [srcAddr] [srcCh]]\n./a.out [-s [locAddr] [locCh]\n./a.out [-l | -f]\n");
         return 0;
+    }
+    else if (argc < 6){
+        if (strcmp ("-c", argv[1]) == 0){
+            printf("Usage: ./a.out [-c [dstAddr] [dstCh] [srcAddr] [srcCh]]\n./a.out [-s [locAddr] [locCh]\n./a.out [-l | -f]\n");
+            return 0;
+        }
+        memcpy(&addr[0], argv[2], ADDR_SIZE);
+        channel = atoi(argv[3]);
     }
     else{
         memcpy(&addr[0], argv[2], ADDR_SIZE);
         channel = atoi(argv[3]);
+        memcpy(&src[0], argv[4], ADDR_SIZE);
+        sc = atoi(argv[5]);
     }
 
-
     if (strcmp ("-c", argv[1]) == 0)
-        client(&addr[0], channel, "Send This Data", sizeof("Send This Data"));
+        client(&addr[0], channel, src, sc, "Send This Data", sizeof("Send This Data"));
     else if (strcmp ("-s", argv[1]) == 0)
         server(addr, &addr[0], channel, &data, &size);
     else if (strcmp ("-f", argv[1]) == 0)
         findDevices(&devs, &size);
     else if (strcmp ("-l", argv[1]) == 0)
         findLocalDevices(&devs, &size);
-
 
     int i;
     for (i = 0; i < size; i++){
