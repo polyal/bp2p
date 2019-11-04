@@ -9,12 +9,15 @@ class BTDevice : public Device
 protected:
 	static const unsigned short maxDevs = 255;  // max devs we can search for
 	static const unsigned short discUnit = 8;   // discovery unit * 1.28sec = time spent searching for devices
+	unsigned int serverCh = 15;  // server channel
+	unsigned int clientCh = 0;   // client connects to first available channel
 
 	BTChannel channel;
 
 public:
 	BTDevice();
 	BTDevice(const DeviceDescriptor& dev);
+	BTDevice(const string& devAddr);
 
 	int connect2Device(const DeviceDescriptor& dev);
 	int sendReqWait4Resp(const Message& req, Message& resp);

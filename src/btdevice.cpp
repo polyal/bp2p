@@ -1,9 +1,10 @@
 #include <iostream>
+#include <algorithm>
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include "btdevice.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 BTDevice::BTDevice()
 {
@@ -15,11 +16,30 @@ BTDevice::BTDevice(const DeviceDescriptor& dev)
 	this->des = dev;
 }
 
+BTDevice::BTDevice(const string& devAddr)
+{
+	this->des.addr = devAddr;
+	this->des.devID = hci_devid(devAddr.c_str());
+
+	vector<char> cName(249, 0);
+	int sock2dev = hci_open_dev(this->des.devID);
+    hci_read_local_name(sock2dev, 249, cName.data(), 0);
+    if (sock2dev >= 0) ::close(sock2dev);
+    transform(cName.begin(), cName.end(), back_inserter(this->des.name),
+               [](char c) {
+                   return c;
+                });
+
+    cout << "New Device " << this->des.addr << " " << this->des.devID << " " << this->des.name << endl;
+}
+
 int BTDevice::connect2Device(const DeviceDescriptor& dev)
 {
 	int status = 0;
 	status = channel.salloc();
-	channel.setAdr(dev.addr);
+	channel.setCh(this->des.addr, 0);
+	channel.bind();
+	channel.setRemoteCh(dev.addr, 15);
 	status = channel.connect();
 	return status;
 }
@@ -35,6 +55,7 @@ int BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 int BTDevice::initServer()
 {
 	int status = 0;
+	channel.setCh(serverCh);
 	status = channel.salloc();
 	status = channel.bind();
 	return status;
@@ -155,6 +176,7 @@ bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& de
 	bdaddr_t bdaddr = {0};
     vector<char> cAddr(18, 0);
     vector<char> cName(249, 0);
+    
     hci_devba(devReq.dev_id, &bdaddr);
     ba2str(&bdaddr, cAddr.data());
 
@@ -176,13 +198,10 @@ int BTDevice::findNearbyDevs(vector<DeviceDescriptor>& devs)
 	inquiry_info* inqInf = NULL;
 	int numDevs = 0, status = -1;
     
-    this->des.sock = hci_open_dev(this->des.devID);
     status = getInqInfo(inqInf, numDevs);
     status = inqInfList2DevDesList(devs, inqInf, numDevs);
 
     if (inqInf) free( inqInf );
-    if (this->des.sock >= 0) close(this->des.sock);
-
     return status;
 }
 
@@ -190,7 +209,7 @@ int BTDevice::getInqInfo(inquiry_info*& inqInf, int& numDevs)
 {
 	int status = -1;
     
-    if (this->des.devID >= 0 && this->des.sock >= 0) {
+    if (this->des.devID >= 0) {
 
         inqInf = reinterpret_cast<inquiry_info*>(malloc(sizeof(inquiry_info)* BTDevice::maxDevs));
 	    if (inqInf){
@@ -220,9 +239,11 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
 
     ba2str(&inqInf.bdaddr, cAddr.data());
-    if (hci_read_remote_name(this->des.sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
+    int sock = hci_open_dev(this->des.devID);
+    if (hci_read_remote_name(sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
         std::copy(DeviceDescriptor::uknownName.begin(), DeviceDescriptor::uknownName.end(),
          back_inserter(cName));
+    if (sock >= 0) ::close(sock);
 
     string addr{cAddr.begin(), cAddr.end()};
     string name{cName.begin(), cName.end()};
@@ -252,8 +273,60 @@ int BTDevice::enableScan()
 }
 
 #if DEBUG == 1
-int main ()
+int main (int argc, char *argv[])
 {
+	vector<string> args {argv+1, argv+argc};
+	vector<DeviceDescriptor> devs;
+
+	if (args.size() > 0){
+		if (args[0].compare("-l") == 0)
+			BTDevice::findLocalDevs(devs);
+		else if (args[0].compare("-f") == 0 && args.size() > 1){
+			string addr{args[1].begin(), args[1].end()};
+			BTDevice dev{addr};
+			dev.findNearbyDevs(devs);
+		}
+		else if (args[0].compare("-s") == 0 && args.size() > 2){
+			string addr{args[1].begin(), args[1].end()};
+			int channel = stoi(args[2]);
+
+			string data{"++Server to Client."};
+			Message req;
+			Message resp{data};
+			DeviceDescriptor client;
+
+			BTDevice myDev{addr};
+			myDev.initServer();
+			myDev.listen4Req(client);
+			myDev.fetchRequestData(req);
+			string strreq{req.data.begin(), req.data.end()};
+			cout << "Message: " << strreq << endl;
+			myDev.sendResponse(resp);
+			myDev.endComm();
+
+		}
+		else if (args[0].compare("-c") == 0 && args.size() > 4){
+			string addr{args[1].begin(), args[1].end()};
+			int channel = stoi(args[2]);
+			DeviceDescriptor dev{addr};
+
+			string data{"--Client to Server."};
+			Message req{data};
+			Message resp;
+
+			BTDevice myDev;
+			myDev.connect2Device(dev);
+			myDev.sendReqWait4Resp(req, resp);
+			string strresp{resp.data.begin(), resp.data.end()};
+			cout << "Message: " << strresp << endl;
+			myDev.endComm();
+		}
+	}
+	else{
+		cout << "Usage: " << endl;
+	}
+	
+/*
 #if 1  // client
 	string addr = "34:DE:1A:1D:F4:0B";
 	DeviceDescriptor dev{addr};
@@ -283,6 +356,7 @@ int main ()
 	myDev.sendResponse(resp);
 	myDev.endComm();
 #endif
+*/
 
 	return 0;
 }

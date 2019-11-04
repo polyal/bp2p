@@ -19,18 +19,23 @@ private:
 	Message omsg;  // output
 	Message imsg;  // input
 	int sock = -1;
-	int clientSock = -1;
+	int remoteSock = -1;
 	struct sockaddr_rc addr;
-	struct sockaddr_rc clientAddr;
+	struct sockaddr_rc remoteAddr;
 
 public:
 	BTChannel();
 	BTChannel(const struct sockaddr_rc& addr);
-	BTChannel(const string& addr);
+	BTChannel(const string& addr, unsigned int ch = 1);
 	~BTChannel();
 
-	void setAdr(const struct sockaddr_rc& addr);
-	void setAdr(const string& addr);
+	void setCh(const struct sockaddr_rc& addr);
+	void setCh(const string& addr, unsigned int ch = 1);
+	void setCh(unsigned int ch);
+
+	void setRemoteCh(const struct sockaddr_rc& addr);
+	void setRemoteCh(const string& addr, unsigned int ch = 1);
+	void setRemoteCh(unsigned int ch);
 	
 	int salloc();
 	int connect();

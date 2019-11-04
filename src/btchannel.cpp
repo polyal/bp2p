@@ -15,9 +15,9 @@ BTChannel::BTChannel()
 	this->addr.rc_family = AF_BLUETOOTH;
     this->addr.rc_channel = 1;
     bacpy(&this->addr.rc_bdaddr, &bdAddrAny);
-    this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 1;
-    bacpy(&this->clientAddr.rc_bdaddr, &bdAddrAny);
+    this->remoteAddr.rc_family = AF_BLUETOOTH;
+    this->remoteAddr.rc_channel = 1;
+    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
 }
 
 BTChannel::BTChannel(const struct sockaddr_rc& addr)
@@ -25,19 +25,19 @@ BTChannel::BTChannel(const struct sockaddr_rc& addr)
     this->addr.rc_family = addr.rc_family;
     this->addr.rc_channel = addr.rc_channel;
     bacpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr);
-    this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 1;
-    bacpy(&this->clientAddr.rc_bdaddr, &bdAddrAny);
+    this->remoteAddr.rc_family = AF_BLUETOOTH;
+    this->remoteAddr.rc_channel = 1;
+    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
 }
 
-BTChannel::BTChannel(const string& addr)
+BTChannel::BTChannel(const string& addr, unsigned int ch)
 {
     this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 1;
+    this->addr.rc_channel = ch;
     str2ba(&addr[0], &this->addr.rc_bdaddr);
-    this->clientAddr.rc_family = AF_BLUETOOTH;
-    this->clientAddr.rc_channel = 1;
-    bacpy(&this->clientAddr.rc_bdaddr, &bdAddrAny);
+    this->remoteAddr.rc_family = AF_BLUETOOTH;
+    this->remoteAddr.rc_channel = 0;
+    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
 }
 
 BTChannel::~BTChannel()
@@ -46,18 +46,42 @@ BTChannel::~BTChannel()
     //closeServer();
 }
 
-void BTChannel::setAdr(const struct sockaddr_rc& addr)
+void BTChannel::setCh(const struct sockaddr_rc& addr)
 {
     this->addr.rc_family = addr.rc_family;
     this->addr.rc_channel = addr.rc_channel;
     bacpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr);
 }
 
-void BTChannel::setAdr(const string& addr)
+void BTChannel::setCh(const string& addr, unsigned int ch)
 {
     this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 1;
+    this->addr.rc_channel = ch;
     str2ba(&addr[0], &this->addr.rc_bdaddr);
+}
+
+void BTChannel::setCh(unsigned int ch)
+{
+    this->addr.rc_channel = ch;
+}
+
+void BTChannel::setRemoteCh(const struct sockaddr_rc& addr)
+{
+    this->remoteAddr.rc_family = addr.rc_family;
+    this->remoteAddr.rc_channel = addr.rc_channel;
+    bacpy(&this->remoteAddr.rc_bdaddr, &addr.rc_bdaddr);
+}
+
+void BTChannel::setRemoteCh(const string& addr, unsigned int ch)
+{
+    this->remoteAddr.rc_family = AF_BLUETOOTH;
+    this->remoteAddr.rc_channel = ch;
+    str2ba(&addr[0], &this->remoteAddr.rc_bdaddr);
+}
+
+void BTChannel::setRemoteCh(unsigned int ch)
+{
+    this->remoteAddr.rc_channel = ch;
 }
 
 int BTChannel::salloc()
@@ -70,7 +94,7 @@ int BTChannel::salloc()
 
 int BTChannel::connect()
 {
-	int status = ::connect(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
+	int status = ::connect(this->sock, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), sizeof(this->remoteAddr));
     if (status == -1)
         cout << "Channel Error: Cannot connect to socket. " << errno << endl;
     return errno;
@@ -78,7 +102,7 @@ int BTChannel::connect()
 
 int BTChannel::writeToClient(const Message& msg)
 {
-    return write(this->clientSock, msg);
+    return write(this->remoteSock, msg);
 }
 
 int BTChannel::writeToServer(const Message& msg)
@@ -103,7 +127,7 @@ int BTChannel::write(int sock)
 
 int BTChannel::readFromClient(Message& msg)
 {
-    return read(this->clientSock, msg);
+    return read(this->remoteSock, msg);
 }
 
 int BTChannel::readFromServer(Message& msg)
@@ -148,9 +172,8 @@ int BTChannel::listen()
 int BTChannel::accept(DeviceDescriptor& dev)
 {
     int status = accept();
-    dev.sock = this->clientSock;
     vector<char> cAddr(18, 0);
-    ba2str(&this->clientAddr.rc_bdaddr, &cAddr[0]);
+    ba2str(&this->remoteAddr.rc_bdaddr, &cAddr[0]);
     transform(cAddr.begin(), cAddr.end(), std::back_inserter(dev.addr),
                [](char c) {
                    return c;
@@ -160,16 +183,16 @@ int BTChannel::accept(DeviceDescriptor& dev)
 
 int BTChannel::accept()
 {
-	socklen_t size = sizeof(this->clientAddr);
-	this->clientSock = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->clientAddr), &size);
-    if (this->clientSock == -1)
+	socklen_t size = sizeof(this->remoteAddr);
+	this->remoteSock = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), &size);
+    if (this->remoteSock == -1)
         cout << "Channel Error: Failed to accept message. " << errno << endl;
     return errno;
 }
 
 int BTChannel::closeClient()
 {
-    return close(this->clientSock);
+    return close(this->remoteSock);
 }
 
 int BTChannel::closeServer()
