@@ -18,52 +18,6 @@ Peer::Peer(){
 
 }
 
-void Peer::findNearbyDevices(){
-	/*int status = 0;
-	devInf* devs = NULL;
-	int numDevs;
-	vector<Device> devices;
-
-	status = ::findDevices(&devs, &numDevs);
-
-	if (status == 0 && devs && numDevs > 0){
-		devices.reserve(numDevs);
-
-		int i;
-		for (i = 0; i < numDevs; i++){
-			Device dev{devs[i].addr, devs[i].name};
-			devices.push_back(dev);
-		}
-
-		free(devs);
-	}
-
-	nodes.insert( nodes.end(), devices.begin(), devices.end() );*/
-}
-
-void Peer::findLocalDevices(){
-	/*int status = 0;
-	devInf* devs = NULL;
-	int numDevs;
-	vector<Device> devices;
-
-	status = ::findLocalDevices(&devs, &numDevs);
-
-	if (status == 0 && devs && numDevs > 0){
-		devices.reserve(numDevs);
-
-		int i;
-		for (i = 0; i < numDevs; i++){
-			Device dev{devs[i].devId, devs[i].addr, devs[i].name};
-			devices.push_back(dev);
-		}
-
-		free(devs);
-	}
-
-	localDevices = devices;*/
-}
-
 void Peer::processRequest(const vector<char>& req, vector<char>& resp){
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
 
@@ -99,58 +53,6 @@ void Peer::createRequest(){
 	string strreq2{req2.req.begin(), req2.req.end()};
 	string strreq3{req3.req.begin(), req3.req.end()};
 	cout << strreq1 << endl << strreq2 << endl << strreq3 << endl;*/
-}
-
-///////////////////////////////////////////////////////////
-// defintions for device class
-
-Peer::Device::Device(){
-	this->id = -1;
-	this->addr = "";	
-	this->name = "";
-}
-
-Peer::Device::Device(string addr, string name){
-	this->addr = addr;
-	this->name = name;
-}
-
-Peer::Device::Device(int id, string addr, string name){
-	this->id = id;
-	this->addr = addr;
-	this->name = name;
-}
-
-string Peer::Device::getAddr() const{
-	return this->addr;
-}
-
-string Peer::Device::getName() const{
-	return this->name;
-}
-
-int Peer::Device::getChannel() const{
-	return this->channel;
-}
-
-int Peer::Device::getSendSock() const{
-	return this->sendSock;
-}
-
-int Peer::Device::getRecSock() const{
-	return this->recSock;
-}
-
-void Peer::Device::setSendSock(int sock){
-	this->sendSock = sock;
-}
-
-void Peer::Device::setRecSock(int sock){
-	this->recSock = sock;
-}
-
-void Peer::Device::addTorrentNames(vector<string> torrentNames){
-	this->torrentNames = torrentNames;
 }
 
 int main(int argc, char *argv[]){
