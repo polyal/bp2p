@@ -86,14 +86,14 @@ int BTDevice::sendResponse(const Message& resp)
 int BTDevice::endClientComm()
 {
 	int status = 0;
-	status = channel.closeClient();
+	status = channel.closeRemote();
 	return status;
 }
 
 int BTDevice::endServerComm()
 {
 	int status = 0;
-	status = channel.closeServer();
+	status = channel.close();
 	return status;
 }
 

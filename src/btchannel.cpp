@@ -190,14 +190,14 @@ int BTChannel::accept()
     return errno;
 }
 
-int BTChannel::closeClient()
+int BTChannel::closeRemote()
 {
-    return close(this->remoteSock);
+    return ::close(this->remoteSock);
 }
 
-int BTChannel::closeServer()
+int BTChannel::close()
 {
-    return close(this->sock);
+    return ::close(this->sock);
 }
 
 int BTChannel::close(int sock)

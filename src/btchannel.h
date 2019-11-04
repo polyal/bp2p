@@ -49,8 +49,8 @@ public:
 	int listen();
 	int accept(DeviceDescriptor& dev);
 
-	int closeClient();
-	int closeServer();
+	int closeRemote();
+	int close();
 
 protected:
 	int write(int sock);
