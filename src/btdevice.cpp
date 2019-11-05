@@ -20,15 +20,7 @@ BTDevice::BTDevice(const string& devAddr)
 {
 	this->des.addr = devAddr;
 	this->des.devID = hci_devid(devAddr.c_str());
-
-	vector<char> cName(249, 0);
-	int sock2dev = hci_open_dev(this->des.devID);
-    hci_read_local_name(sock2dev, 249, cName.data(), 0);
-    if (sock2dev >= 0) ::close(sock2dev);
-    transform(cName.begin(), cName.end(), back_inserter(this->des.name),
-               [](char c) {
-                   return c;
-                });
+	readLocalName(this->des.name, this->des.devID);
 
     cout << "New Device " << this->des.addr << " " << this->des.devID << " " << this->des.name << endl;
 }
@@ -180,12 +172,10 @@ bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& de
     hci_devba(devReq.dev_id, &bdaddr);
     ba2str(&bdaddr, cAddr.data());
 
-    int sock2dev = hci_open_dev( devReq.dev_id );
-    hci_read_local_name(sock2dev, 249, cName.data(), 0);
-    if (sock2dev >= 0) ::close(sock2dev);
+    string name;
+    readLocalName(name, devReq.dev_id);
 
     string addr{cAddr.begin(), cAddr.end()};
-    string name{cName.begin(), cName.end()};
     dev.create(addr, name, devReq.dev_id);
 
     cout << "Find Local Dev: " << dev.devID << " " << dev.addr << " " << dev.name << " " << endl;
@@ -270,6 +260,18 @@ int BTDevice::enableScan()
 	cout << "enable scan err: " << status << " dev: " << this->des.devID << endl;
 	if (sock >= 0) ::close(sock);
 	return status;
+}
+
+void BTDevice::readLocalName(string& name, int devID)
+{
+	vector<char> cName(249, 0);
+	int sock2dev = hci_open_dev(devID);
+    hci_read_local_name(sock2dev, 249, cName.data(), 0);
+    if (sock2dev >= 0) ::close(sock2dev);
+    transform(cName.begin(), cName.end(), back_inserter(name),
+               [](char c) {
+                   return c;
+                });
 }
 
 #if DEBUG == 1

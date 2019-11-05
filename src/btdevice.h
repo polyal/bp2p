@@ -43,4 +43,6 @@ private:
 	int getInqInfo(inquiry_info*& inqInf, int& numDevs);
 	int inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquiry_info* const inqInf, int numDevs);
 	int inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf);
+
+	static void readLocalName(string& name, int devID);
 };
