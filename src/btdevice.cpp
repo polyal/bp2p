@@ -297,9 +297,8 @@ int main (int argc, char *argv[])
 			BTDevice dev{addr};
 			dev.findNearbyDevs(devs);
 		}
-		else if (args[0].compare("-s") == 0 && args.size() > 2){
+		else if (args[0].compare("-s") == 0 && args.size() > 1){
 			string addr{args[1].begin(), args[1].end()};
-			int channel = stoi(args[2]);
 
 			string data{"++Server to Client."};
 			Message req;
@@ -316,9 +315,8 @@ int main (int argc, char *argv[])
 			myDev.endComm();
 
 		}
-		else if (args[0].compare("-c") == 0 && args.size() > 4){
+		else if (args[0].compare("-c") == 0 && args.size() > 2){
 			string addr{args[1].begin(), args[1].end()};
-			int channel = stoi(args[2]);
 			DeviceDescriptor dev{addr};
 
 			string data{"--Client to Server."};
@@ -337,38 +335,6 @@ int main (int argc, char *argv[])
 		cout << "Usage: " << endl;
 	}
 	
-/*
-#if 1  // client
-	string addr = "34:DE:1A:1D:F4:0B";
-	DeviceDescriptor dev{addr};
-
-	string data{"--Client to Server."};
-	Message req{data};
-	Message resp;
-
-	BTDevice myDev;
-	myDev.connect2Device(dev);
-	myDev.sendReqWait4Resp(req, resp);
-	string strresp{resp.data.begin(), resp.data.end()};
-	cout << "Message: " << strresp << endl;
-	myDev.endComm();
-#else  // server
-	string data{"++Server to Client."};
-	Message req;
-	Message resp{data};
-	DeviceDescriptor client;
-
-	BTDevice myDev;
-	myDev.initServer();
-	myDev.listen4Req(client);
-	myDev.fetchRequestData(req);
-	string strreq{req.data.begin(), req.data.end()};
-	cout << "Message: " << strreq << endl;
-	myDev.sendResponse(resp);
-	myDev.endComm();
-#endif
-*/
-
 	return 0;
 }
 #endif
