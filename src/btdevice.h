@@ -19,15 +19,15 @@ public:
 	BTDevice(const DeviceDescriptor& dev);
 	BTDevice(const string& devAddr);
 
-	int connect2Device(const DeviceDescriptor& dev);
-	int sendReqWait4Resp(const Message& req, Message& resp);
-	int initServer();
-	int listen4Req(DeviceDescriptor& client);
-	int fetchRequestData(Message& req);
-	int sendResponse(const Message& resp);
-	int endComm();
-	int endClientComm();
-	int endServerComm();
+	void connect2Device(const DeviceDescriptor& dev);
+	void sendReqWait4Resp(const Message& req, Message& resp);
+	void initServer();
+	void listen4Req(DeviceDescriptor& client);
+	void fetchRequestData(Message& req);
+	void sendResponse(const Message& resp);
+	void endComm();
+	void endClientComm();
+	void endServerComm();
 
 	int findNearbyDevs(vector<DeviceDescriptor>& devs);
 

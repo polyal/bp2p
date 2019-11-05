@@ -3,12 +3,12 @@
 class Channel
 {
 public:
-	virtual int salloc() = 0;
-	virtual int connect() = 0;
-	virtual int write(int sock) = 0;
-	virtual int read(int sock) = 0;
-	virtual int bind() = 0;
-	virtual int listen() = 0;
-	virtual int accept() = 0;
-	virtual int close(int sock) = 0;
+	virtual void salloc() = 0;
+	virtual void connect() = 0;
+	virtual void write(int sock) = 0;
+	virtual void read(int sock) = 0;
+	virtual void bind() = 0;
+	virtual void listen() = 0;
+	virtual void accept() = 0;
+	virtual void close(int sock) = 0;
 };

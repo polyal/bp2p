@@ -25,76 +25,108 @@ BTDevice::BTDevice(const string& devAddr)
     cout << "New Device " << this->des.addr << " " << this->des.devID << " " << this->des.name << endl;
 }
 
-int BTDevice::connect2Device(const DeviceDescriptor& dev)
+void BTDevice::connect2Device(const DeviceDescriptor& dev)
 {
-	int status = 0;
-	status = channel.salloc();
-	channel.setCh(this->des.addr, 0);
-	channel.bind();
-	channel.setRemoteCh(dev.addr, 15);
-	status = channel.connect();
-	return status;
+	try{
+		channel.salloc();
+		channel.setCh(this->des.addr, 0);
+		channel.bind();
+		channel.setRemoteCh(dev.addr, 15);
+		channel.connect();
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
+void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 {
-	int status = 0;
-	status = channel.writeToServer(req);
-	status = channel.readFromServer(resp);
-	return status;
+	try{
+		channel.writeToServer(req);
+		channel.readFromServer(resp);
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::initServer()
+void BTDevice::initServer()
 {
-	int status = 0;
 	channel.setCh(serverCh);
-	status = channel.salloc();
-	status = channel.bind();
-	return status;
+	try{
+		channel.salloc();
+		channel.bind();
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::listen4Req(DeviceDescriptor& client)
+void BTDevice::listen4Req(DeviceDescriptor& client)
 {
-	int status = 0;
-	status = channel.listen();
-	status = channel.accept(client);
-	return status;
+	try{
+		channel.listen();
+		channel.accept(client);
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::fetchRequestData(Message& req)
+void BTDevice::fetchRequestData(Message& req)
 {
-	int status = 0;
-	status = channel.readFromClient(req);
-	return status;
+	try{
+		channel.readFromClient(req);
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::sendResponse(const Message& resp)
+void BTDevice::sendResponse(const Message& resp)
 {
-	int status = 0;
-	status = channel.writeToClient(resp);
-	return status;
+	try{
+		channel.writeToClient(resp);
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::endClientComm()
+void BTDevice::endClientComm()
 {
-	int status = 0;
-	status = channel.closeRemote();
-	return status;
+	try{
+		channel.closeRemote();
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::endServerComm()
+void BTDevice::endServerComm()
 {
-	int status = 0;
-	status = channel.close();
-	return status;
+	try{
+		channel.close();
+	}
+	catch(...){
+		throw;
+	}
 }
 
-int BTDevice::endComm()
+void BTDevice::endComm()
 {
-	int status = 0;
-	status = endClientComm();
-    status = endServerComm();
-    return status;
+	try{
+		endClientComm();
+    }
+    catch(int e){
+    	cout << "Close client sock Error: " << e << endl;
+    }
+    try{
+    	endServerComm();
+    }
+    catch(int e){
+    	cout << "Close server sock Error: " << e << endl;
+    }
 }
 
 int BTDevice::findLocalDevs(vector<DeviceDescriptor>& devs)
@@ -306,13 +338,23 @@ int main (int argc, char *argv[])
 			DeviceDescriptor client;
 
 			BTDevice myDev{addr};
-			myDev.initServer();
-			myDev.listen4Req(client);
-			myDev.fetchRequestData(req);
-			string strreq{req.data.begin(), req.data.end()};
-			cout << "Message: " << strreq << endl;
-			myDev.sendResponse(resp);
-			myDev.endComm();
+			try{
+				myDev.initServer();
+				myDev.listen4Req(client);
+				myDev.fetchRequestData(req);
+				string strreq{req.data.begin(), req.data.end()};
+				cout << "Message: " << strreq << endl;
+				myDev.sendResponse(resp);
+			}
+			catch(int e){
+				cout << "Caught Exception " << e << endl;
+			}
+			try{
+				myDev.endComm();
+			}
+			catch(int e){
+				cout << "Caught Exception " << e << endl;
+			}
 
 		}
 		else if (args[0].compare("-c") == 0 && args.size() > 2){
@@ -324,11 +366,21 @@ int main (int argc, char *argv[])
 			Message resp;
 
 			BTDevice myDev;
-			myDev.connect2Device(dev);
-			myDev.sendReqWait4Resp(req, resp);
+			try{
+				myDev.connect2Device(dev);
+				myDev.sendReqWait4Resp(req, resp);
+			}
+			catch(int e){
+				cout << "Caught Exception " << e << endl;
+			}
 			string strresp{resp.data.begin(), resp.data.end()};
 			cout << "Message: " << strresp << endl;
-			myDev.endComm();
+			try{
+				myDev.endComm();
+			}
+			catch(int e){
+				cout << "Caught Exception " << e << endl;
+			}
 		}
 	}
 	else{

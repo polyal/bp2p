@@ -7,11 +7,11 @@ protected:
 	DeviceDescriptor des;
 
 public:
-	virtual int connect2Device(const DeviceDescriptor& dev) = 0;
-	virtual int sendReqWait4Resp(const Message& msg, Message& resp) = 0;
-	virtual int initServer() = 0;
-	virtual int listen4Req(DeviceDescriptor& client) = 0;
-	virtual int fetchRequestData(Message& req) = 0;
-	virtual int sendResponse(const Message& resp) = 0;
-	virtual int endComm() = 0;
+	virtual void connect2Device(const DeviceDescriptor& dev) = 0;
+	virtual void sendReqWait4Resp(const Message& msg, Message& resp) = 0;
+	virtual void initServer() = 0;
+	virtual void listen4Req(DeviceDescriptor& client) = 0;
+	virtual void fetchRequestData(Message& req) = 0;
+	virtual void sendResponse(const Message& resp) = 0;
+	virtual void endComm() = 0;
 };

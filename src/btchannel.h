@@ -37,28 +37,28 @@ public:
 	void setRemoteCh(const string& addr, unsigned int ch = 1);
 	void setRemoteCh(unsigned int ch);
 	
-	int salloc();
-	int connect();
+	void salloc();
+	void connect();
 	
-	int writeToClient(const Message& msg);
-	int writeToServer(const Message& msg);
-	int readFromClient(Message& msg);
-	int readFromServer(Message& msg);
+	void writeToClient(const Message& msg);
+	void writeToServer(const Message& msg);
+	void readFromClient(Message& msg);
+	void readFromServer(Message& msg);
 
-	int bind();
-	int listen();
-	int accept(DeviceDescriptor& dev);
+	void bind();
+	void listen();
+	void accept(DeviceDescriptor& dev);
 
-	int closeRemote();
-	int close();
+	void closeRemote();
+	void close();
 
 protected:
-	int write(int sock);
-	int read(int sock);
-	int write(int sock, const Message& msg);
-	int read(int sock, Message& msg);
+	void write(int sock);
+	void read(int sock);
+	void write(int sock, const Message& msg);
+	void read(int sock, Message& msg);
 
-	int accept();
+	void accept();
 
-	int close(int sock);
+	void close(int sock);
 };
