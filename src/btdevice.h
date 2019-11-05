@@ -45,4 +45,5 @@ private:
 	int inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf);
 
 	static void readLocalName(string& name, int devID);
+	void readRemoteName(string& name, bdaddr_t bdaddr);
 };

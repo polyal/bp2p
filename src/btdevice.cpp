@@ -225,23 +225,43 @@ int BTDevice::inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquir
 
 int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 {
-	vector<char> cAddr(DeviceDescriptor::addrLen, 0);
-	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
+	string name;
+    readRemoteName(name, inqInf.bdaddr);
 
+    vector<char> cAddr(DeviceDescriptor::addrLen, 0);
     ba2str(&inqInf.bdaddr, cAddr.data());
-    int sock = hci_open_dev(this->des.devID);
-    if (hci_read_remote_name(sock, &inqInf.bdaddr, cName.size(), cName.data(), 0) < 0)
-        std::copy(DeviceDescriptor::uknownName.begin(), DeviceDescriptor::uknownName.end(),
-         back_inserter(cName));
-    if (sock >= 0) ::close(sock);
-
     string addr{cAddr.begin(), cAddr.end()};
-    string name{cName.begin(), cName.end()};
+    
     dev.create(addr, name);
     cout << "Devices: " << dev.addr << " " << dev.name << endl;
-
     return 0;
 }
+
+void BTDevice::readLocalName(string& name, int devID)
+{
+	vector<char> cName(249, 0);
+	int sock2dev = hci_open_dev(devID);
+    hci_read_local_name(sock2dev, 249, cName.data(), 0);
+    if (sock2dev >= 0) ::close(sock2dev);
+    transform(cName.begin(), cName.end(), back_inserter(name),
+               [](char c) {
+                   return c;
+                });
+}
+
+void BTDevice::readRemoteName(string& name, bdaddr_t bdaddr)
+{
+	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
+	int sock = hci_open_dev(this->des.devID);
+    if (hci_read_remote_name(sock, &bdaddr, cName.size(), cName.data(), 0) < 0)
+        copy(DeviceDescriptor::uknownName.begin(), DeviceDescriptor::uknownName.end(),
+         back_inserter(cName));
+    if (sock >= 0) ::close(sock);
+	transform(cName.begin(), cName.end(), back_inserter(name),
+	   [](char c) {
+	       return c;
+	    });
+	}
 
 int BTDevice::enableScan()
 {
@@ -262,17 +282,6 @@ int BTDevice::enableScan()
 	return status;
 }
 
-void BTDevice::readLocalName(string& name, int devID)
-{
-	vector<char> cName(249, 0);
-	int sock2dev = hci_open_dev(devID);
-    hci_read_local_name(sock2dev, 249, cName.data(), 0);
-    if (sock2dev >= 0) ::close(sock2dev);
-    transform(cName.begin(), cName.end(), back_inserter(name),
-               [](char c) {
-                   return c;
-                });
-}
 
 #if DEBUG == 1
 int main (int argc, char *argv[])
