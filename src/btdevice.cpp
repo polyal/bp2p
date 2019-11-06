@@ -4,7 +4,7 @@
 #include <sys/ioctl.h>
 #include "btdevice.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 BTDevice::BTDevice()
 {

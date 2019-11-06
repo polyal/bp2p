@@ -2,7 +2,7 @@ cc = g++
 cv = -std=c++1z
 wrn = -Wall -Wextra -pedantic
 compile = $(cc) $(cv) $(wrn)
-libs = -lz -larchive -lcrypto -lbluetooth
+libs = -lz -larchive -lcrypto -lbluetooth -pthread
 incl = -Ilib/json/include
 
 

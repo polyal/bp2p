@@ -14,4 +14,8 @@ public:
 	virtual void fetchRequestData(Message& req) = 0;
 	virtual void sendResponse(const Message& resp) = 0;
 	virtual void endComm() = 0;
+
+	string getDevAddr() { return this->des.addr; }
+	int getDevID() { return this->des.devID; }
+	string getDevName() { return this->des.name; }
 };

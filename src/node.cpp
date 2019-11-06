@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <thread>
 #include "utils.h"
 #include "btdevice.h"
 #include "torrentFileReq.h"
@@ -14,11 +15,11 @@
 using namespace std;
 
 
-Peer::Peer(){
+Node::Node(){
 
 }
 
-void Peer::processRequest(const vector<char>& req, vector<char>& resp){
+void Node::processRequest(const vector<char>& req, vector<char>& resp){
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
 
 	if (packet){
@@ -28,7 +29,7 @@ void Peer::processRequest(const vector<char>& req, vector<char>& resp){
 }
 
 
-void Peer::createRequest(){
+void Node::createRequest(){
 	/*TorrentListReq req1;
 	req1.createRequest();
 	req1.processRequest();
@@ -55,7 +56,37 @@ void Peer::createRequest(){
 	cout << strreq1 << endl << strreq2 << endl << strreq3 << endl;*/
 }
 
+
+void Node::server(BTDevice dev)
+{
+	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
+
+	string data{"++Server to Client."};
+	Message req;
+	Message resp{data};
+	DeviceDescriptor client;
+
+	try{
+		dev.initServer();
+		dev.listen4Req(client);
+		dev.fetchRequestData(req);
+		string strreq{req.data.begin(), req.data.end()};
+		cout << "Message: " << strreq << endl;
+		dev.sendResponse(resp);
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+	try{
+		dev.endComm();
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+}
+
 int main(int argc, char *argv[]){
+	// creating a new torrent
 	/*string torrentName {"newPackage"};
 	string file1 {"test/test1"};
 	string file2 {"test/test2"};
@@ -67,7 +98,10 @@ int main(int argc, char *argv[]){
 	//Peer me{};
 	//me.createRequest();
 
-	vector<DeviceDescriptor> localDevs;
+	// searching for local devices
+	// and every nearby device
+	// for each local
+	/*vector<DeviceDescriptor> localDevs;
 	vector<DeviceDescriptor> nearbyDevs;
 	BTDevice::findLocalDevs(localDevs);
 
@@ -80,7 +114,42 @@ int main(int argc, char *argv[]){
 
 	for (auto& dev : devices){
 		dev.findNearbyDevs(nearbyDevs);
+	}*/
+
+	vector<DeviceDescriptor> localDevs;
+	BTDevice::findLocalDevs(localDevs);
+	BTDevice serverDev{localDevs[0]};
+
+	thread tServer{Node::server, serverDev};
+
+	this_thread::sleep_for (std::chrono::seconds(5));
+
+	cout << "Main thread" << endl;
+	string addr = serverDev.getDevAddr();
+	DeviceDescriptor dev{addr};
+
+	string data{"--Client to Server."};
+	Message req{data};
+	Message resp;
+
+	BTDevice clientDev{localDevs[1]};
+	try{
+		clientDev.connect2Device(dev);
+		clientDev.sendReqWait4Resp(req, resp);
 	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+	string strresp{resp.data.begin(), resp.data.end()};
+	cout << "Message: " << strresp << endl;
+	try{
+		clientDev.endComm();
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+
+	tServer.join();
 
     return 0;
 }
