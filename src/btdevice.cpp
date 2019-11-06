@@ -52,7 +52,7 @@ void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 
 void BTDevice::initServer()
 {
-	channel.setCh(serverCh);
+	channel.setCh(this->des.addr ,serverCh);
 	try{
 		channel.salloc();
 		channel.bind();
