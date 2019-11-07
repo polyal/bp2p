@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <set>
 #include <fstream>
 #include <thread>
 #include "utils.h"
@@ -17,6 +18,35 @@ using namespace std;
 
 Node::Node(){
 
+}
+
+void Node::findLocalDevs()
+{
+	vector<DeviceDescriptor> devs;
+	BTDevice::findLocalDevs(devs);
+	this->localDevs.assign(devs.begin(), devs.end());
+
+	for (auto dev : this->localDevs){
+		cout << "Local Devs: " << dev.addr << " " << dev.devID << " " << dev.name << endl;
+	}
+}
+
+void Node::scanForDevs()
+{
+	set<DeviceDescriptor> devSet;
+	vector<DeviceDescriptor> nearbyDevs;
+	for (auto devDes : this->localDevs){
+		BTDevice dev{devDes};
+		dev.findNearbyDevs(nearbyDevs);
+		devSet.insert(nearbyDevs.begin(), nearbyDevs.end());
+		nearbyDevs.clear();
+	}
+	this->remoteDevs.assign(devSet.begin(), devSet.end());
+
+	// TODO: remove local devs from nearby devs
+	for (auto dev : this->remoteDevs){
+		cout << "Remote Devs: " << dev.addr << " " << dev.devID << " " << dev.name << endl;
+	}
 }
 
 void Node::processRequest(const vector<char>& req, vector<char>& resp){
@@ -56,16 +86,22 @@ void Node::createRequest(){
 	cout << strreq1 << endl << strreq2 << endl << strreq3 << endl;*/
 }
 
-
-void Node::server(BTDevice dev)
+thread Node::createServerThread(DeviceDescriptor servDev)
 {
-	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
+	thread tServer{Node::server, servDev};
+	return tServer;
+}
 
+
+void Node::server(DeviceDescriptor devDes)
+{
 	string data{"++Server to Client."};
 	Message req;
 	Message resp{data};
 	DeviceDescriptor client;
 
+	BTDevice dev{devDes};
+	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
 	try{
 		dev.initServer();
 		dev.listen4Req(client);
@@ -116,25 +152,26 @@ int main(int argc, char *argv[]){
 		dev.findNearbyDevs(nearbyDevs);
 	}*/
 
+
 	vector<DeviceDescriptor> localDevs;
 	BTDevice::findLocalDevs(localDevs);
-	BTDevice serverDev{localDevs[0]};
 
-	thread tServer{Node::server, serverDev};
+	Node myNode;
+	myNode.findLocalDevs();
+	myNode.scanForDevs();
+
+	/*thread tServer = myNode.createServerThread(localDevs[0]);
 
 	this_thread::sleep_for (std::chrono::seconds(5));
 
 	cout << "Main thread" << endl;
-	string addr = serverDev.getDevAddr();
-	DeviceDescriptor dev{addr};
-
 	string data{"--Client to Server."};
 	Message req{data};
 	Message resp;
 
 	BTDevice clientDev{localDevs[1]};
 	try{
-		clientDev.connect2Device(dev);
+		clientDev.connect2Device(localDevs[0]);
 		clientDev.sendReqWait4Resp(req, resp);
 	}
 	catch(int e){
@@ -149,7 +186,7 @@ int main(int argc, char *argv[]){
 		cout << "Caught Exception " << e << endl;
 	}
 
-	tServer.join();
+	tServer.join();*/
 
     return 0;
 }

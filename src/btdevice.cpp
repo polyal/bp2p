@@ -210,8 +210,6 @@ bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& de
     string addr{cAddr.begin(), cAddr.end()};
     dev.create(addr, name, devReq.dev_id);
 
-    cout << "Find Local Dev: " << dev.devID << " " << dev.addr << " " << dev.name << " " << endl;
-
     return true;
 }
 
@@ -265,7 +263,6 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
     string addr{cAddr.begin(), cAddr.end()};
     
     dev.create(addr, name);
-    cout << "Devices: " << dev.addr << " " << dev.name << endl;
     return 0;
 }
 

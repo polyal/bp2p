@@ -4,19 +4,21 @@ using namespace std;
 
 class Node{
 private:
-	inline static const string commString = "bp2p";
-	inline static const string commSeparator = "||";
-
-	vector<Device> nodes;
-	vector<Device> localDevices;
+	vector<DeviceDescriptor> localDevs;
+	vector<DeviceDescriptor> remoteDevs;
 
 public:
 	Node();
 
+	void findLocalDevs();
+	void scanForDevs();
+
 	void processRequest(const vector<char>& req, vector<char>& resp);
 	void createRequest();
 
-	static void server(BTDevice dev);
+	thread createServerThread(DeviceDescriptor servDev);
+
+	static void server(DeviceDescriptor dev);
 	
 	static const string applicationDir;
 	string getApplicationPath();

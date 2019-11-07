@@ -48,6 +48,11 @@ struct DeviceDescriptor
 		return *this;
 	}
 
+	bool operator<(const DeviceDescriptor& dev) const
+	{
+		return this->addr < dev.addr;
+	}
+
 	string addr;
 	string name;
 	int devID = -1;
