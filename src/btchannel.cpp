@@ -183,6 +183,7 @@ void BTChannel::read(int sock)
     }
     this->imsg.data = tmpMsg;
     this->imsg.size = bytesRead;
+    this->imsg.data.resize(bytesRead);
 }
 
 void BTChannel::bind()
