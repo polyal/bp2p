@@ -98,8 +98,9 @@ Sha256 Sha256FileHasher::computeFileHash()
     fileHash.init();
     vector<char> fileChunk (chunkSize, 0);
     ifstream file {this->filename, ifstream::binary};
-    while(file.read(fileChunk.data(), fileChunk.size()))
+    while(!file.eof())
     {
+        file.read(fileChunk.data(), fileChunk.size());
         streamsize size = file.gcount();
         fileHash.update(fileChunk, size);
     }
