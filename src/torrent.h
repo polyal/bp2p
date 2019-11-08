@@ -46,8 +46,8 @@ private:
 	string packagePath;                  // path to the package
 	string torrentPath;                  // path to the torrent
 	string uid;                          // hash of the package used as UID
-	unsigned int numPieces;                       // total num chunks needed to construct package
-	vector<Chunk> chunks;  // chunks that the [ackage is made up of
+	unsigned int numPieces;              // total num chunks needed to construct package
+	vector<Chunk> chunks;  				 // chunks that the [ackage is made up of
 	unsigned long long size;             // size of the package
 
 	nlohmann::json jobj;                 // json object representing the torrent

@@ -62,6 +62,15 @@ void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescri
 	req.processResponse(rsp);
 }
 
+void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
+	const string& torrentName, Message& rsp)
+{
+	TorrentFileReq req;
+	req.createRequest(torrentName);
+	sendRequestWait4Response(req, rsp, client, server);
+	req.processResponse(rsp);
+}
+
 void Node::sendRequestWait4Response(RRPacket& req, Message& rsp, 
 	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
 {
@@ -76,21 +85,13 @@ void Node::sendRequestWait4Response(RRPacket& req, Message& rsp,
 		cout << "Caught Exception " << e << endl;
 	}
 	string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "Message: " << strresp << endl;
+	cout << "CLIENT RSP: " << strresp << endl;
 	try{
 		client.endComm();
 	}
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-}
-
-void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
-{
-	TorrentListReq req;
-	req.createRequest();
-	sendRequestWait4Response(req, rsp, client, server);
-	req.processResponse(rsp);
 }
 
 void Node::processRequest(const Message& req, Message& rsp)
@@ -159,7 +160,7 @@ void Node::server(DeviceDescriptor devDes)
 		string strreq{req.data.begin(), req.data.end()};
 		cout << "SERVER --Request: " << strreq << endl;
 		processRequest(req, rsp);
-		string strrsp{req.data.begin(), req.data.end()};
+		string strrsp{rsp.data.begin(), rsp.data.end()};
 		cout << "SERVER --Response: " << strrsp << endl;
 		dev.sendResponse(rsp);
 	}
@@ -193,7 +194,7 @@ int main(int argc, char *argv[]){
 	this_thread::sleep_for (std::chrono::seconds(5));
 
 	Message rsp;
-	myNode.requestTorrentList(myNode.localDevs[1], myNode.localDevs[0], rsp);
+	myNode.requestTorrentFile(myNode.localDevs[1], myNode.localDevs[0], "larger", rsp);
 
 	tServer.join();
 

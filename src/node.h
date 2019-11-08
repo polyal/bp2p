@@ -21,6 +21,8 @@ public:
 	void scanForDevs();
 
 	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
+	void requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
+		const string& torrentName, Message& rsp);
 
 	static void processRequest(const Message& req, Message& rsp);
 	static void processRequest(const vector<char>& req, vector<char>& rsp);
