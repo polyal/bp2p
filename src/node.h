@@ -4,10 +4,18 @@ using namespace std;
 
 class Node{
 private:
-	vector<DeviceDescriptor> localDevs;
-	vector<DeviceDescriptor> remoteDevs;
+	enum DevStatus
+	{
+		READY,
+		BUSY
+	};
+	
+	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
+	map<DeviceDescriptor, DevStatus> remoteStatus;
+	
 
 public:
+	vector<DeviceDescriptor> localDevs;
 	Node();
 
 	void findLocalDevs();

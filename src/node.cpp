@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <set>
 #include <fstream>
 #include <thread>
 #include "utils.h"
@@ -33,19 +32,25 @@ void Node::findLocalDevs()
 
 void Node::scanForDevs()
 {
-	set<DeviceDescriptor> devSet;
-	vector<DeviceDescriptor> nearbyDevs;
+	this->local2remote.clear();
+	this->remoteStatus.clear();
+	vector<DeviceDescriptor> remoteDevs;
 	for (auto devDes : this->localDevs){
 		BTDevice dev{devDes};
-		dev.findNearbyDevs(nearbyDevs);
-		devSet.insert(nearbyDevs.begin(), nearbyDevs.end());
-		nearbyDevs.clear();
+		dev.findNearbyDevs(remoteDevs);
+		this->local2remote[devDes] = remoteDevs;
+		for (auto remote : remoteDevs){
+			this->remoteStatus[remote] = READY;
+		}
+		remoteDevs.clear();
 	}
-	this->remoteDevs.assign(devSet.begin(), devSet.end());
+
 
 	// TODO: remove local devs from nearby devs
-	for (auto dev : this->remoteDevs){
-		cout << "Remote Devs: " << dev.addr << " " << dev.devID << " " << dev.name << endl;
+	for (auto it = this->local2remote.begin(); it != this->local2remote.end(); it++){
+		cout << "Local Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
+		for (auto remote :  it->second)
+			cout << "\t Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
 	}
 }
 
@@ -153,14 +158,12 @@ int main(int argc, char *argv[]){
 	}*/
 
 
-	vector<DeviceDescriptor> localDevs;
-	BTDevice::findLocalDevs(localDevs);
 
 	Node myNode;
 	myNode.findLocalDevs();
 	myNode.scanForDevs();
 
-	/*thread tServer = myNode.createServerThread(localDevs[0]);
+	thread tServer = myNode.createServerThread(myNode.localDevs[0]);
 
 	this_thread::sleep_for (std::chrono::seconds(5));
 
@@ -169,9 +172,9 @@ int main(int argc, char *argv[]){
 	Message req{data};
 	Message resp;
 
-	BTDevice clientDev{localDevs[1]};
+	BTDevice clientDev{myNode.localDevs[1]};
 	try{
-		clientDev.connect2Device(localDevs[0]);
+		clientDev.connect2Device(myNode.localDevs[0]);
 		clientDev.sendReqWait4Resp(req, resp);
 	}
 	catch(int e){
@@ -186,7 +189,7 @@ int main(int argc, char *argv[]){
 		cout << "Caught Exception " << e << endl;
 	}
 
-	tServer.join();*/
+	tServer.join();
 
     return 0;
 }
