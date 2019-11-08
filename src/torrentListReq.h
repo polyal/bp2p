@@ -2,27 +2,31 @@
 #define TORRENTLISTREQ_H
 
 #include <vector>
+#include "message.h"
 #include "rrpacket.h"
 
 using namespace std;
 
 
-class TorrentListReq : public RRPacket {
-	public:
-		TorrentListReq();
-		TorrentListReq(const vector<char>& req);
+class TorrentListReq : public RRPacket 
+{
+public:
+	vector<string> torrentList;
 
-		void createRequest();
-		void processRequest();
-		void processResponse();
+	TorrentListReq();
+	TorrentListReq(const vector<char>& req);
 
-		vector<string> torrentList;
+	void createRequest();
+	void processRequest();
+	void processResponse(const Message& msg);
 
-	private:
-		void getTorrentList(vector<string>& torrentNames);
-		void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
+private:
+	void processResponse();
 
-		void parseTorrentList(const string& resp, vector<string>& torrentList);
+	void getTorrentList(vector<string>& torrentNames);
+	void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
+
+	void parseTorrentList(const string& resp, vector<string>& torrentList);
 };
 
 #endif

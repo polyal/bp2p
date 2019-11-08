@@ -5,7 +5,8 @@
 #include "chunkReq.h"
 #include "rrfactory.h"
 
-RRPacket::requestType RRFactory::getReqTypeFromReq(const vector<char>& req){
+RRPacket::requestType RRFactory::getReqTypeFromReq(const vector<char>& req)
+{
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string strReqType;
 	int iReqType;
@@ -35,20 +36,12 @@ RRPacket::requestType RRFactory::getReqTypeFromReq(const vector<char>& req){
 	return reqType;
 }
 
-
-// have to implement this because my compiler version doesn't
-// support make_unnique
-template<typename T, typename... Args>
-unique_ptr<T> make_unique(Args&&... args) {
-    return unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-unique_ptr<RRPacket> RRFactory::create(const vector<char>& req) {
+unique_ptr<RRPacket> RRFactory::create(const vector<char>& req) 
+{
 	RRPacket::requestType reqType = getReqTypeFromReq(req);
 
 	switch(reqType) {
 	    case RRPacket::torrentFile:
-	        cout << "Torrent File" << endl;
 	        return unique_ptr<TorrentFileReq>(new TorrentFileReq(req));
 	    case RRPacket::chunk:
 	        cout << "Chunk" << endl;

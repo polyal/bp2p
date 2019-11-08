@@ -5,16 +5,24 @@
 class TorrentFileReq;
 
 
-RRPacket::RRPacket(){
+RRPacket::RRPacket()
+{
 	req.reserve(chunkSize);
 	resp.reserve(chunkSize);
 }
 
-RRPacket::RRPacket(const vector<char>& req){
+RRPacket::RRPacket(const vector<char>& req)
+{
 	this->req = req;
 	resp.reserve(chunkSize);
 }
 
-vector<char> RRPacket::getResp(){
+vector<char> RRPacket::getReq()
+{
+	return this->req;
+}
+
+vector<char> RRPacket::getResp()
+{
 	return this->resp;
 }

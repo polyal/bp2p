@@ -3,22 +3,25 @@
 #include "torrent.h"
 #include "torrentListReq.h"
 
-TorrentListReq::TorrentListReq(){
+TorrentListReq::TorrentListReq()
+{
 }
 
-TorrentListReq::TorrentListReq(const vector<char>& req):RRPacket(req){
+TorrentListReq::TorrentListReq(const vector<char>& req):RRPacket(req)
+{
 }
 
-void TorrentListReq::createRequest(){
+void TorrentListReq::createRequest()
+{
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
 
 	std::copy(request.begin(), request.end(), std::back_inserter(req));
 	string strreq{req.begin(), req.end()};
-	cout << "create: " << strreq << endl;
 }
 
-void TorrentListReq::processRequest(){
+void TorrentListReq::processRequest()
+{
 	vector<string> torrentNames;
 	string serializedList = "";
 
@@ -27,10 +30,11 @@ void TorrentListReq::processRequest(){
 
 	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->resp));
 	string strreq{req.begin(), req.end()};
-	cout << "process: " << strreq << endl;
+	//cout << "process: " << strreq << endl;
 }
 
-void TorrentListReq::getTorrentList(vector<string>& torrentNames){
+void TorrentListReq::getTorrentList(vector<string>& torrentNames)
+{
 	vector<string> torrentFiles;
 	torrentFiles = Torrent::getTorrentNames();
 
@@ -42,7 +46,8 @@ void TorrentListReq::getTorrentList(vector<string>& torrentNames){
 	}
 }
 
-void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, string& serializedList){
+void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, string& serializedList)
+{
 	for(auto const& torrentName: torrentNames) {
 		serializedList += torrentName;
 		serializedList += commSeparator;
@@ -53,19 +58,25 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 		serializedList.pop_back();
 	}
 }
-
-void TorrentListReq::processResponse(){
+void TorrentListReq::processResponse(const Message& msg)
+{
+	this->resp = msg.data;
+	processResponse();
+}
+void TorrentListReq::processResponse()
+{
 	vector<string> torrentList;
 	string resp{this->resp.begin(), this->resp.end()};
 	parseTorrentList(resp, torrentList);
 	this->torrentList = torrentList;
-	cout << "procResp: ";
+	/*cout << "procResp: ";
 	for (auto const& tor : torrentList){
 		cout << tor << " ";
 	}
-	cout << endl;
+	cout << endl;*/
 }
 
-void TorrentListReq::parseTorrentList(const string& resp, vector<string>& torrentList){
+void TorrentListReq::parseTorrentList(const string& resp, vector<string>& torrentList)
+{
 	Utils::tokenize(resp, commSeparator, torrentList);
 }

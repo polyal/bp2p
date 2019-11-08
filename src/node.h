@@ -12,7 +12,6 @@ private:
 	
 	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
 	map<DeviceDescriptor, DevStatus> remoteStatus;
-	
 
 public:
 	vector<DeviceDescriptor> localDevs;
@@ -21,7 +20,10 @@ public:
 	void findLocalDevs();
 	void scanForDevs();
 
-	void processRequest(const vector<char>& req, vector<char>& resp);
+	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
+
+	static void processRequest(const Message& req, Message& rsp);
+	static void processRequest(const vector<char>& req, vector<char>& rsp);
 	void createRequest();
 
 	thread createServerThread(DeviceDescriptor servDev);
@@ -30,5 +32,10 @@ public:
 	
 	static const string applicationDir;
 	string getApplicationPath();
+
+private:
+	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
+		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
+
 };
 

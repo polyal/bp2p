@@ -54,15 +54,60 @@ void Node::scanForDevs()
 	}
 }
 
-void Node::processRequest(const vector<char>& req, vector<char>& resp){
+void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
+{
+	TorrentListReq req;
+	req.createRequest();
+	sendRequestWait4Response(req, rsp, client, server);
+	req.processResponse(rsp);
+}
+
+void Node::sendRequestWait4Response(RRPacket& req, Message& rsp, 
+	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
+{
+	BTDevice client{clientDes};
+	Message msg{req.getReq(), (unsigned int)req.getReq().size()};
+
+	try{
+		client.connect2Device(serverDes);
+		client.sendReqWait4Resp(msg, rsp);
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+	string strresp{rsp.data.begin(), rsp.data.end()};
+	cout << "Message: " << strresp << endl;
+	try{
+		client.endComm();
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+}
+
+void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
+{
+	TorrentListReq req;
+	req.createRequest();
+	sendRequestWait4Response(req, rsp, client, server);
+	req.processResponse(rsp);
+}
+
+void Node::processRequest(const Message& req, Message& rsp)
+{
+	vector<char> c_rsp;
+	processRequest(req.data, c_rsp);
+	rsp.create(c_rsp, (unsigned int)c_rsp.size());
+}
+void Node::processRequest(const vector<char>& req, vector<char>& rsp)
+{
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
 
 	if (packet){
 		packet->processRequest();
-		resp = packet->getResp();
+		rsp = packet->getResp();
 	}
 }
-
 
 void Node::createRequest(){
 	/*TorrentListReq req1;
@@ -76,13 +121,13 @@ void Node::createRequest(){
 	req2.processRequest();
 	req2.processResponse();*/
 
-	string torrentName{"large"};
+	/*string torrentName{"large"};
 	for (int i = 0; i < 2; i++){
 		ChunkReq req1;
 		req1.createRequest(torrentName, i);
 		req1.processRequest();
 		req1.processResponse(req1.resp, req1.size);
-	}
+	}*/
 	
 
 	/*string strreq1{req1.req.begin(), req1.req.end()};
@@ -102,7 +147,7 @@ void Node::server(DeviceDescriptor devDes)
 {
 	string data{"++Server to Client."};
 	Message req;
-	Message resp{data};
+	Message rsp{data};
 	DeviceDescriptor client;
 
 	BTDevice dev{devDes};
@@ -112,8 +157,11 @@ void Node::server(DeviceDescriptor devDes)
 		dev.listen4Req(client);
 		dev.fetchRequestData(req);
 		string strreq{req.data.begin(), req.data.end()};
-		cout << "Message: " << strreq << endl;
-		dev.sendResponse(resp);
+		cout << "SERVER --Request: " << strreq << endl;
+		processRequest(req, rsp);
+		string strrsp{req.data.begin(), req.data.end()};
+		cout << "SERVER --Response: " << strrsp << endl;
+		dev.sendResponse(rsp);
 	}
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
@@ -128,7 +176,7 @@ void Node::server(DeviceDescriptor devDes)
 
 int main(int argc, char *argv[]){
 	// creating a new torrent
-	/*string torrentName {"newPackage"};
+	/*string torrentName {"larger"};
 	string file1 {"test/test1"};
 	string file2 {"test/test2"};
 	string file3 {"test/test3"};
@@ -136,58 +184,16 @@ int main(int argc, char *argv[]){
 	vector<string> files{file1, file2, file3, file4};
 	Torrent t {torrentName, files};
 	t.create();*/
-	//Peer me{};
-	//me.createRequest();
-
-	// searching for local devices
-	// and every nearby device
-	// for each local
-	/*vector<DeviceDescriptor> localDevs;
-	vector<DeviceDescriptor> nearbyDevs;
-	BTDevice::findLocalDevs(localDevs);
-
-	vector<BTDevice> devices;
-	for (auto& dd : localDevs){
-		BTDevice dev{dd};
-		dev.enableScan();
-		devices.push_back(dev);
-	}
-
-	for (auto& dev : devices){
-		dev.findNearbyDevs(nearbyDevs);
-	}*/
-
-
 
 	Node myNode;
 	myNode.findLocalDevs();
 	myNode.scanForDevs();
 
 	thread tServer = myNode.createServerThread(myNode.localDevs[0]);
-
 	this_thread::sleep_for (std::chrono::seconds(5));
 
-	cout << "Main thread" << endl;
-	string data{"--Client to Server."};
-	Message req{data};
-	Message resp;
-
-	BTDevice clientDev{myNode.localDevs[1]};
-	try{
-		clientDev.connect2Device(myNode.localDevs[0]);
-		clientDev.sendReqWait4Resp(req, resp);
-	}
-	catch(int e){
-		cout << "Caught Exception " << e << endl;
-	}
-	string strresp{resp.data.begin(), resp.data.end()};
-	cout << "Message: " << strresp << endl;
-	try{
-		clientDev.endComm();
-	}
-	catch(int e){
-		cout << "Caught Exception " << e << endl;
-	}
+	Message rsp;
+	myNode.requestTorrentList(myNode.localDevs[1], myNode.localDevs[0], rsp);
 
 	tServer.join();
 

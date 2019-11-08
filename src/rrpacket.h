@@ -8,29 +8,33 @@
 
 using namespace std;
 
-class RRPacket {
-	public:
-		static const int chunkSize = 32768;  //256 kilobyte chunk size
-		inline static const string commString = "bp2p";
-		inline static const string commSeparator = "||";
-		vector<char> req;
-		vector<char> resp;
+class RRPacket 
+{
+protected:
+	static const int chunkSize = 32768;  //256 kilobyte chunk size
+	vector<char> req;
+	vector<char> resp;
 
-		typedef enum _requestType {
-			badReq,
-			torrentList,
-			torrentFile, 
-			chunk
-		} requestType;
+public:
+	inline static const string commString = "bp2p";
+	inline static const string commSeparator = "||";
 
-		RRPacket();
-		RRPacket(const vector<char>& req);
+	typedef enum _requestType {
+		badReq,
+		torrentList,
+		torrentFile, 
+		chunk
+	} requestType;
 
-		vector<char> getResp();
+	RRPacket();
+	RRPacket(const vector<char>& req);
 
-		virtual void createRequest() = 0;
-		virtual void processRequest() = 0;
-		virtual void processResponse() = 0;
+	vector<char> getReq();
+	vector<char> getResp();
+
+	virtual void createRequest() = 0;
+	virtual void processRequest() = 0;
+	virtual void processResponse() = 0;
 };
 
 #endif

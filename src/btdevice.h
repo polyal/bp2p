@@ -40,8 +40,7 @@ private:
 	void readRemoteName(string& name, bdaddr_t bdaddr);
 
 	static int getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs);
-	static int HCIDevList2DevDesList(vector<DeviceDescriptor>& devs,
-									 const struct hci_dev_list_req* const devList, int nDevs);
+	static int HCIDevList2DevDesList(vector<DeviceDescriptor>& devs, const struct hci_dev_list_req* const devList, int nDevs);
 	static bool HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& devReq);
 	static void readLocalName(string& name, int devID);
 };
