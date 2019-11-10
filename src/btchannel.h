@@ -13,6 +13,7 @@ class BTChannel : public Channel
 {
 private:
 	static const unsigned int chunkSize = 32768;
+	static const unsigned int btChunk = 1008;  // bluetooth transfers data in chuncks of 1008 bytes
 	inline static const string zaddr = "00:00:00:00:00:00";
 	inline static constexpr bdaddr_t bdAddrAny = {{0, 0, 0, 0, 0, 0}}; // replaces BDADDR_ANY from bluetooth.h
 

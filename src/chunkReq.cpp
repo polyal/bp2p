@@ -4,19 +4,23 @@
 #include "torrent.h"
 #include "chunkReq.h"
 
-ChunkReq::ChunkReq(){
+ChunkReq::ChunkReq()
+{
 }
 
-ChunkReq::ChunkReq(const vector<char>& req):RRPacket(req){
+ChunkReq::ChunkReq(const vector<char>& req):RRPacket(req)
+{
 }
 
-void ChunkReq::createRequest(const string& torrentName, const int& chunkNum){
+void ChunkReq::createRequest(const string& torrentName, const int chunkNum)
+{
 	this->torrentName = torrentName;
 	this->chunkNum = chunkNum;
 	createRequest();
 }
 
-void ChunkReq::createRequest(){
+void ChunkReq::createRequest()
+{
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string request = prefix + to_string(static_cast<int>(RRPacket::chunk));
 	request += RRPacket::commSeparator + this->torrentName;
@@ -25,7 +29,8 @@ void ChunkReq::createRequest(){
 	std::copy(request.begin(), request.end(), std::back_inserter(req));
 }
 
-void ChunkReq::processRequest(){
+void ChunkReq::processRequest()
+{
 	string torrentName = "";
 	int chunkNum = -1, size = 0;
 	vector<char> chunk;
@@ -38,7 +43,7 @@ void ChunkReq::processRequest(){
 	this->resp = chunk;
 	this->size = size;
 
-	cout << "processRequest " << this->size << endl;
+	cout << "processRequest " << this->size << " " << this->resp.size() << " " << chunkNum << endl;
 
 	// testing purposes
 	/*string filename = Torrent::getTorrentDataPath() + "download";
@@ -55,7 +60,8 @@ void ChunkReq::processRequest(){
 	}*/
 }
 
-void ChunkReq::getTorrentNameFromReq(string& torrentName){
+void ChunkReq::getTorrentNameFromReq(string& torrentName)
+{
 	vector<string> tokens;
 	torrentName = "";
 	string strReq {this->req.begin(), this->req.end()};
@@ -67,7 +73,8 @@ void ChunkReq::getTorrentNameFromReq(string& torrentName){
 	}
 }
 
-int ChunkReq::getChunkNumFromReq(const string& req){
+int ChunkReq::getChunkNumFromReq(const string& req)
+{
 	vector<string> tokens;
 	int chunkNum = -1;
 
@@ -86,7 +93,8 @@ int ChunkReq::getChunkNumFromReq(const string& req){
 	return chunkNum;
 }
 
-void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size){
+void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size)
+{
 	Torrent torrent {torrentName};
 	if (torrent.open())
 		chunk = torrent.getChunk(chunkNum, size);
@@ -94,13 +102,15 @@ void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vec
 		cout << "retreive chunk failed" << endl;
 }
 
-void ChunkReq::processResponse(const vector<char>& chunk, const int& size){
-	this->chunk = chunk;
-	this->size = size;
+void ChunkReq::processResponse(const Message& msg)
+{
+	this->chunk = msg.data;
+	this->size = msg.size;
 	processResponse();
 }
 
-void ChunkReq::processResponse(){
+void ChunkReq::processResponse()
+{
 	Torrent torrent{torrentName};
 	if (torrent.open())
 	{

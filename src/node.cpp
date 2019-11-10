@@ -71,6 +71,15 @@ void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescri
 	req.processResponse(rsp);
 }
 
+void Node::requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
+	const string& torrentName, const int chunkNum, Message& rsp)
+{
+	ChunkReq req;
+	req.createRequest(torrentName, chunkNum);
+	sendRequestWait4Response(req, rsp, client, server);
+	req.processResponse(rsp);
+}
+
 void Node::sendRequestWait4Response(RRPacket& req, Message& rsp, 
 	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
 {
@@ -84,8 +93,8 @@ void Node::sendRequestWait4Response(RRPacket& req, Message& rsp,
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-	string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "CLIENT RSP: " << strresp << endl;
+	//string strresp{rsp.data.begin(), rsp.data.end()};
+	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
 	try{
 		client.endComm();
 	}
@@ -161,7 +170,7 @@ void Node::server(DeviceDescriptor devDes)
 		cout << "SERVER --Request: " << strreq << endl;
 		processRequest(req, rsp);
 		string strrsp{rsp.data.begin(), rsp.data.end()};
-		cout << "SERVER --Response: " << strrsp << endl;
+		//cout << "SERVER --Response: " << strrsp << endl;
 		dev.sendResponse(rsp);
 	}
 	catch(int e){
@@ -190,13 +199,16 @@ int main(int argc, char *argv[]){
 	myNode.findLocalDevs();
 	myNode.scanForDevs();
 
-	thread tServer = myNode.createServerThread(myNode.localDevs[0]);
-	this_thread::sleep_for (std::chrono::seconds(5));
 
-	Message rsp;
-	myNode.requestTorrentFile(myNode.localDevs[1], myNode.localDevs[0], "larger", rsp);
-
-	tServer.join();
+	for (int i = 0; i < 2; i++){
+		Message rsp;
+		thread tServer = myNode.createServerThread(myNode.localDevs[0]);
+		this_thread::sleep_for (std::chrono::seconds(5));
+		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "large", i, rsp);
+		tServer.join();
+		cout << "LOOP " << i << endl;
+	}
+	
 
     return 0;
 }

@@ -175,15 +175,22 @@ void BTChannel::read(int sock, Message& msg)
 
 void BTChannel::read(int sock)
 {
-    vector<char> tmpMsg(this->chunkSize);
-	int bytesRead = ::read(sock,tmpMsg.data(), this->chunkSize);
+    vector<char> tmpMsg(this->btChunk);
+    int totalSize = 0;
+    int bytesRead = 0;
+	while ((bytesRead = ::read(sock, tmpMsg.data(), this->btChunk)) > 0){
+        this->imsg.data.insert(this->imsg.data.end(), tmpMsg.begin(), tmpMsg.begin() + bytesRead);
+        totalSize += bytesRead;
+        if (bytesRead < (int)this->btChunk || (errno != 0 && errno != ENOENT))
+            break;
+    }
     if( bytesRead == -1 ){
         cout << "Channel Error: Failed to read message. " << errno << endl;
-        throw errno;
+        if (errno != ECONNRESET)
+            throw errno;
     }
-    this->imsg.data = tmpMsg;
-    this->imsg.size = bytesRead;
-    this->imsg.data.resize(bytesRead);
+    this->imsg.size = totalSize;
+    this->imsg.data.resize(totalSize);
 }
 
 void BTChannel::bind()

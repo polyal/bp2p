@@ -278,6 +278,7 @@ vector<char> Torrent::getChunk(const int& chunkNum, int& size)
 		fTorrent.read (&chunk[0], this->chunkSize);
 	}
     size = fTorrent.gcount();
+    chunk.resize(size);
 	return chunk;
 }
 

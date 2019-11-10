@@ -7,7 +7,8 @@ private:
 	enum DevStatus
 	{
 		READY,
-		BUSY
+		BUSY,
+		INACTIVE
 	};
 	
 	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
@@ -23,6 +24,8 @@ public:
 	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
 	void requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, Message& rsp);
+	void requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
+		const string& torrentName, const int chunkNum, Message& rsp);
 
 	static void processRequest(const Message& req, Message& rsp);
 	static void processRequest(const vector<char>& req, vector<char>& rsp);

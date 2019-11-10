@@ -24,7 +24,7 @@ void TorrentFileReq::createRequest()
 	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
 	request += RRPacket::commSeparator + this->torrentName;
 
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
+	std::copy(request.begin(), request.end(), std::back_inserter(this->req));
 }
 
 void TorrentFileReq::processRequest()
@@ -35,7 +35,7 @@ void TorrentFileReq::processRequest()
 	getTorrentNameFromReq(torrentName);
 	getSerialzedTorrent(torrentName, strResp);
 
-	std::copy(strResp.begin(), strResp.end(), std::back_inserter(resp));
+	std::copy(strResp.begin(), strResp.end(), std::back_inserter(this->resp));
 }
 
 void TorrentFileReq::getTorrentNameFromReq(string& torrentName)
