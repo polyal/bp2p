@@ -202,8 +202,20 @@ void BTChannel::bind()
     }
 }
 
+void BTChannel::setTimeout()
+{
+    struct timeval timeout;      
+    timeout.tv_sec = BTChannel::timeout;
+    timeout.tv_usec = 0;
+
+    if (setsockopt (this->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0){
+        cout << "Channel Error: Couldn't set timeout" << endl;
+    }
+}
+
 void BTChannel::listen()
 {
+    setTimeout();
 	int status = ::listen(this->sock, 1);
     if (status == -1){
         cout << "Channel Error: Cannot listen for connections on socket. " << errno << endl;

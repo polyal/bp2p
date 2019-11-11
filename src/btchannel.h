@@ -24,6 +24,9 @@ private:
 	struct sockaddr_rc addr;
 	struct sockaddr_rc remoteAddr;
 
+	static const int timeout = 10;  // in seconds
+	void setTimeout();
+
 public:
 	BTChannel();
 	BTChannel(const struct sockaddr_rc& addr);
