@@ -24,7 +24,7 @@ void Utils::tokenize(const string& text, const string& sep, vector<string>& toke
 		string token = text.substr(prevPos, len);
 		tokens.push_back(token);
 
-		pos = pos + 2;
+		pos += sep.size();
 		prevPos = pos;
 	}
 
