@@ -4,18 +4,17 @@
 
 TorrentFileReq::TorrentFileReq()
 {
-	torrentName = "";
+	this->torrentName = "";
 }
 
-TorrentFileReq::TorrentFileReq(const vector<char>& req) : RRPacket(req)
+TorrentFileReq::TorrentFileReq(const Message&) : RRPacket(req)
 {
-	torrentName = "";
+	this->torrentName = "";
 }
 
-void TorrentFileReq::createRequest(const string& torrentName)
+TorrentFileReq::TorrentFileReq(const string& torrentName)
 {
 	this->torrentName = torrentName;
-	createRequest();
 }
 
 void TorrentFileReq::createRequest()
@@ -24,7 +23,8 @@ void TorrentFileReq::createRequest()
 	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
 	request += RRPacket::commSeparator + this->torrentName;
 
-	std::copy(request.begin(), request.end(), std::back_inserter(this->req));
+	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
+	this->req.size = request.size();
 }
 
 void TorrentFileReq::processRequest()
@@ -35,14 +35,15 @@ void TorrentFileReq::processRequest()
 	getTorrentNameFromReq(torrentName);
 	getSerialzedTorrent(torrentName, strResp);
 
-	std::copy(strResp.begin(), strResp.end(), std::back_inserter(this->resp));
+	std::copy(strResp.begin(), strResp.end(), std::back_inserter(this->rsp.data));
+	this->rsp.size = strResp.size();
 }
 
 void TorrentFileReq::getTorrentNameFromReq(string& torrentName)
 {
 	vector<string> tokens;
 	torrentName = "";
-	string strReq {this->req.begin(), this->req.end()};
+	string strReq {this->req.data.begin(), this->req.data.end()};
 
 	Utils::tokenize(strReq, commSeparator, tokens);
 
@@ -60,13 +61,13 @@ void TorrentFileReq::getSerialzedTorrent(const string& torrentName, string& seri
 
 void TorrentFileReq::processResponse(const Message& msg)
 {
-	this->resp = msg.data;
+	this->rsp = msg;
 	processResponse();
 }
 
 void TorrentFileReq::processResponse()
 {
-	string strresp{this->resp.begin(), this->resp.end()};
+	string strresp{this->rsp.data.begin(), this->rsp.data.end()};
 	Torrent torrent;
 	torrent.createTorrentFromSerializedObj(strresp);
 }

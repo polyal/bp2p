@@ -2,7 +2,6 @@
 #define TORRENTLISTREQ_H
 
 #include <vector>
-#include "message.h"
 #include "rrpacket.h"
 
 using namespace std;
@@ -14,7 +13,7 @@ public:
 	vector<string> torrentList;
 
 	TorrentListReq();
-	TorrentListReq(const vector<char>& req);
+	TorrentListReq(const Message& req);
 
 	void createRequest();
 	void processRequest();

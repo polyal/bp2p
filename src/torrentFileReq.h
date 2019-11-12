@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "torrent.h"
-#include "message.h"
 #include "rrpacket.h"
 
 using namespace std;
@@ -12,9 +11,10 @@ class TorrentFileReq : public RRPacket
 {
 public:
 	TorrentFileReq();
-	TorrentFileReq(const vector<char>& req);
+	TorrentFileReq(const Message& req);
+	TorrentFileReq(const string& torrentName);
 
-	void createRequest(const string& torrentName);
+	void createRequest();
 	void processRequest();
 	void processResponse(const Message& msg);
 
@@ -22,7 +22,6 @@ private:
 	Torrent torrent;
 	string torrentName;
 
-	void createRequest();
 	void processResponse();
 
 	void getTorrentNameFromReq(string& torrentName);

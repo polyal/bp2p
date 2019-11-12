@@ -5,15 +5,15 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "message.h"
 
 using namespace std;
 
 class RRPacket 
 {
 protected:
-	static const int chunkSize = 32768;  //256 kilobyte chunk size
-	vector<char> req;
-	vector<char> resp;
+	Message req;
+	Message rsp;
 
 public:
 	inline static const string commString = "bp2p";
@@ -27,14 +27,14 @@ public:
 	} requestType;
 
 	RRPacket();
-	RRPacket(const vector<char>& req);
+	RRPacket(const Message& req);
 
-	vector<char> getReq();
-	vector<char> getResp();
+	Message getReq();
+	Message getResp();
 
 	virtual void createRequest() = 0;
 	virtual void processRequest() = 0;
-	virtual void processResponse() = 0;
+	virtual void processResponse(const Message& rsp) = 0;
 };
 
 #endif

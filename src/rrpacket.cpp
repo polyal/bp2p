@@ -1,28 +1,23 @@
 #include "rrpacket.h"
-//#include "torrent.h"
-//#include "utils.h"
 
 class TorrentFileReq;
 
 
 RRPacket::RRPacket()
 {
-	req.reserve(chunkSize);
-	resp.reserve(chunkSize);
 }
 
-RRPacket::RRPacket(const vector<char>& req)
+RRPacket::RRPacket(const Message& req)
 {
 	this->req = req;
-	resp.reserve(chunkSize);
 }
 
-vector<char> RRPacket::getReq()
+Message RRPacket::getReq()
 {
 	return this->req;
 }
 
-vector<char> RRPacket::getResp()
+Message RRPacket::getResp()
 {
-	return this->resp;
+	return this->rsp;
 }

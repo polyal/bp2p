@@ -8,15 +8,14 @@ ChunkReq::ChunkReq()
 {
 }
 
-ChunkReq::ChunkReq(const vector<char>& req):RRPacket(req)
+ChunkReq::ChunkReq(const Message& req) : RRPacket(req)
 {
 }
 
-void ChunkReq::createRequest(const string& torrentName, const int chunkNum)
+ChunkReq::ChunkReq(const string& torrentName, const int chunkNum)
 {
 	this->torrentName = torrentName;
 	this->chunkNum = chunkNum;
-	createRequest();
 }
 
 void ChunkReq::createRequest()
@@ -26,7 +25,8 @@ void ChunkReq::createRequest()
 	request += RRPacket::commSeparator + this->torrentName;
 	request += RRPacket::commSeparator + to_string(this->chunkNum);
 
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
+	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
+	this->req.size = request.size();
 }
 
 void ChunkReq::processRequest()
@@ -34,16 +34,16 @@ void ChunkReq::processRequest()
 	string torrentName = "";
 	int chunkNum = -1, size = 0;
 	vector<char> chunk;
-	string strReq {this->req.begin(), this->req.end()};
+	string strReq {this->req.data.begin(), this->req.data.end()};
 
 	getTorrentNameFromReq(torrentName);
 	chunkNum = getChunkNumFromReq(strReq);
 	retrieveChunk(torrentName, chunkNum, chunk, size);
 
-	this->resp = chunk;
-	this->size = size;
+	this->rsp.data = chunk;
+	this->rsp.size = size;
 
-	cout << "processRequest " << this->size << " " << this->resp.size() << " " << chunkNum << endl;
+	cout << "processRequest " << this->rsp.size << " " << this->rsp.data.size() << " " << chunkNum << endl;
 
 	// testing purposes
 	/*string filename = Torrent::getTorrentDataPath() + "download";
@@ -64,7 +64,7 @@ void ChunkReq::getTorrentNameFromReq(string& torrentName)
 {
 	vector<string> tokens;
 	torrentName = "";
-	string strReq {this->req.begin(), this->req.end()};
+	string strReq {this->req.data.begin(), this->req.data.end()};
 
 	Utils::tokenize(strReq, commSeparator, tokens);
 
@@ -104,8 +104,7 @@ void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vec
 
 void ChunkReq::processResponse(const Message& msg)
 {
-	this->chunk = msg.data;
-	this->size = msg.size;
+	this->rsp = msg;
 	processResponse();
 }
 
@@ -117,7 +116,7 @@ void ChunkReq::processResponse()
 		torrent.name = torrentName + "!!!"; // for testing only
 		if (!torrent.torrentDataExists())
 			torrent.createTorrentDataFile();
-		torrent.putChunk(this->chunk, this->size, this->chunkNum);
+		torrent.putChunk(this->rsp.data, this->rsp.size, this->chunkNum);
 	}
-	cout << "put " << this->chunk.size() << " " << this->size << " " << this->chunkNum << endl;
+	cout << "put " << this->rsp.data.size() << " " << this->rsp.size << " " << this->chunkNum << endl;
 }

@@ -7,7 +7,7 @@ TorrentListReq::TorrentListReq()
 {
 }
 
-TorrentListReq::TorrentListReq(const vector<char>& req):RRPacket(req)
+TorrentListReq::TorrentListReq(const Message& req):RRPacket(req)
 {
 }
 
@@ -16,8 +16,9 @@ void TorrentListReq::createRequest()
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
 
-	std::copy(request.begin(), request.end(), std::back_inserter(req));
-	string strreq{req.begin(), req.end()};
+	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
+	this->req.size = request.size();
+	//string strreq{req.begin(), req.end()};
 }
 
 void TorrentListReq::processRequest()
@@ -28,8 +29,8 @@ void TorrentListReq::processRequest()
 	getTorrentList(torrentNames);
 	serializeTorrentList(torrentNames, serializedList);
 
-	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->resp));
-	string strreq{req.begin(), req.end()};
+	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->rsp.data));
+	//string strreq{req.begin(), req.end()};
 	//cout << "process: " << strreq << endl;
 }
 
@@ -60,14 +61,14 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 }
 void TorrentListReq::processResponse(const Message& msg)
 {
-	this->resp = msg.data;
+	this->rsp = msg;
 	processResponse();
 }
 void TorrentListReq::processResponse()
 {
 	vector<string> torrentList;
-	string resp{this->resp.begin(), this->resp.end()};
-	parseTorrentList(resp, torrentList);
+	string rsp{this->rsp.data.begin(), this->rsp.data.end()};
+	parseTorrentList(rsp, torrentList);
 	this->torrentList = torrentList;
 	/*cout << "procResp: ";
 	for (auto const& tor : torrentList){
@@ -76,7 +77,7 @@ void TorrentListReq::processResponse()
 	cout << endl;*/
 }
 
-void TorrentListReq::parseTorrentList(const string& resp, vector<string>& torrentList)
+void TorrentListReq::parseTorrentList(const string& rsp, vector<string>& torrentList)
 {
-	Utils::tokenize(resp, commSeparator, torrentList);
+	Utils::tokenize(rsp, commSeparator, torrentList);
 }

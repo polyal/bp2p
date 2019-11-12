@@ -60,6 +60,11 @@ void Node::scanForDevs()
 	}
 }
 
+void Node::requestTorrent(const string& torrentName)
+{
+
+}
+
 void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
 {
 	TorrentListReq req;
@@ -71,8 +76,8 @@ void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescri
 void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 	const string& torrentName, Message& rsp)
 {
-	TorrentFileReq req;
-	req.createRequest(torrentName);
+	TorrentFileReq req{torrentName};
+	req.createRequest();
 	sendRequestWait4Response(req, rsp, client, server);
 	req.processResponse(rsp);
 }
@@ -80,8 +85,8 @@ void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescri
 void Node::requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 	const string& torrentName, const int chunkNum, Message& rsp)
 {
-	ChunkReq req;
-	req.createRequest(torrentName, chunkNum);
+	ChunkReq req{torrentName, chunkNum};
+	req.createRequest();
 	sendRequestWait4Response(req, rsp, client, server);
 	req.processResponse(rsp);
 }
@@ -90,7 +95,7 @@ void Node::sendRequestWait4Response(RRPacket& req, Message& rsp,
 	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
 {
 	BTDevice client{clientDes};
-	Message msg{req.getReq(), (unsigned int)req.getReq().size()};
+	Message msg{req.getReq()};
 
 	try{
 		client.connect2Device(serverDes);
@@ -110,12 +115,6 @@ void Node::sendRequestWait4Response(RRPacket& req, Message& rsp,
 }
 
 void Node::processRequest(const Message& req, Message& rsp)
-{
-	vector<char> c_rsp;
-	processRequest(req.data, c_rsp);
-	rsp.create(c_rsp, (unsigned int)c_rsp.size());
-}
-void Node::processRequest(const vector<char>& req, vector<char>& rsp)
 {
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
 
@@ -218,7 +217,7 @@ int main(int argc, char *argv[]){
 	unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
 	for (int i = 0; i < 2; i++){
 		Message rsp;
-		this_thread::sleep_for (std::chrono::milliseconds(7));
+		this_thread::sleep_for (std::chrono::milliseconds(10));
 		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
 		cout << "LOOP " << i << endl;
 	}

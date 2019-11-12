@@ -36,6 +36,12 @@ public:
 		shared_ptr<atomic<bool>> active;
 	};
 
+	struct Job
+	{
+		unique_ptr<RRPacket> req = nullptr;
+		RRPacket::requestType type;
+	};
+
 	vector<DeviceDescriptor> localDevs;
 	map<DeviceDescriptor, Server> servers;
 
@@ -46,6 +52,8 @@ public:
 	void findLocalDevs();
 	void scanForDevs();
 
+	void requestTorrent(const string& torrentName);
+
 	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
 	void requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, Message& rsp);
@@ -53,7 +61,6 @@ public:
 		const string& torrentName, const int chunkNum, Message& rsp);
 
 	static void processRequest(const Message& req, Message& rsp);
-	static void processRequest(const vector<char>& req, vector<char>& rsp);
 
 	unique_ptr<Server> createServerThread(DeviceDescriptor servDev);
 	static void server(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
