@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <thread>
+#include <utility>
 #include "utils.h"
 #include "btdevice.h"
 #include "torrentFileReq.h"
@@ -17,6 +18,11 @@ using namespace std;
 
 Node::Node(){
 
+}
+
+void Node::printcli()
+{
+	cout << Node::cli;
 }
 
 void Node::findLocalDevs()
@@ -119,69 +125,51 @@ void Node::processRequest(const vector<char>& req, vector<char>& rsp)
 	}
 }
 
-void Node::createRequest(){
-	/*TorrentListReq req1;
-	req1.createRequest();
-	req1.processRequest();
-	req1.processResponse();*/
-
-	/*string torrentName{"torrent"};
-	TorrentFileReq req2;
-	req2.createRequest(torrentName);
-	req2.processRequest();
-	req2.processResponse();*/
-
-	/*string torrentName{"large"};
-	for (int i = 0; i < 2; i++){
-		ChunkReq req1;
-		req1.createRequest(torrentName, i);
-		req1.processRequest();
-		req1.processResponse(req1.resp, req1.size);
-	}*/
-	
-
-	/*string strreq1{req1.req.begin(), req1.req.end()};
-	string strreq2{req2.req.begin(), req2.req.end()};
-	string strreq3{req3.req.begin(), req3.req.end()};
-	cout << strreq1 << endl << strreq2 << endl << strreq3 << endl;*/
-}
-
-thread Node::createServerThread(DeviceDescriptor servDev)
+Node::Server Node::createServerThread(DeviceDescriptor servDev)
 {
-	thread tServer{Node::server, servDev};
-	return tServer;
+	shared_ptr<atomic<bool>> active{new atomic<bool>{true}};
+	unique_ptr<thread> tServer{new thread{Node::server, servDev, active}};
+
+	return Server{move(tServer), active};
 }
 
 
-void Node::server(DeviceDescriptor devDes)
+void Node::server(DeviceDescriptor devDes, shared_ptr<atomic<bool>> active)
 {
-	string data{"++Server to Client."};
 	Message req;
-	Message rsp{data};
+	Message rsp;
 	DeviceDescriptor client;
 
 	BTDevice dev{devDes};
 	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
-	try{
-		dev.initServer();
-		dev.listen4Req(client);
-		dev.fetchRequestData(req);
-		string strreq{req.data.begin(), req.data.end()};
-		cout << "SERVER --Request: " << strreq << endl;
-		processRequest(req, rsp);
-		string strrsp{rsp.data.begin(), rsp.data.end()};
-		//cout << "SERVER --Response: " << strrsp << endl;
-		dev.sendResponse(rsp);
-	}
-	catch(int e){
-		cout << "Caught Exception " << e << endl;
-	}
-	try{
-		dev.endComm();
-	}
-	catch(int e){
-		cout << "Caught Exception " << e << endl;
-	}
+
+	do{
+		try{
+			dev.initServer();
+			dev.listen4Req(client);
+			dev.fetchRequestData(req);
+			string strreq{req.data.begin(), req.data.end()};
+			cout << "SERVER --Request: " << strreq << endl;
+			processRequest(req, rsp);
+			string strrsp{rsp.data.begin(), rsp.data.end()};
+			dev.sendResponse(rsp);
+		}
+		catch(int e){
+			cout << "Caught Exception " << e << endl;
+		}
+		try{
+			dev.endComm();
+		}
+		catch(int e){
+			cout << "Caught Exception " << e << endl;
+		}
+
+		if (!(*active))
+			break;
+
+		req.clear();
+		rsp.clear();
+	} while (1);
 }
 
 int main(int argc, char *argv[]){
@@ -195,20 +183,50 @@ int main(int argc, char *argv[]){
 	Torrent t {torrentName, files};
 	t.create();*/
 
+	cout << "hello!" << endl;
+	cout << "scanning for devices..." << endl;
 	Node myNode;
 	myNode.findLocalDevs();
 	myNode.scanForDevs();
+	cout << "done. " << endl << endl;
 
+	// create server
+	//DeviceDescriptor serverDes = myNode.localDevs[0];
+	//unique_ptr<thread> tServer = myNode.createServerThread(serverDes);
+	//pair<thread, atomic<bool>> serv = make_pair(move(tServer), true);
+	//pair<DeviceDescriptor, pair<thread, atomic<bool>>> item = make_pair(serverDes, move(serv));
+	//myNode.servers = move(serv);
 
+	/*string in;
+	vector<string> args;
+	do
+	{
+		Node::printcli();
+		
+		getline(cin, in);
+		Utils::tokenize(in, " ", args);
+
+		for (auto arg : args)
+			cout << "!" << arg << "! ";
+		cout << endl;
+
+		if (in.compare("q") == 0){
+			break;
+		}
+
+		args.clear();
+	} while (1);*/
+
+	Node::Server server = myNode.createServerThread(myNode.localDevs[0]);
 	for (int i = 0; i < 2; i++){
 		Message rsp;
-		thread tServer = myNode.createServerThread(myNode.localDevs[0]);
-		this_thread::sleep_for (std::chrono::seconds(5));
-		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "large", i, rsp);
-		tServer.join();
+		this_thread::sleep_for (std::chrono::seconds(1));
+		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
 		cout << "LOOP " << i << endl;
 	}
-	
+
+	*server.active = false;
+	server.t->join();
 
     return 0;
 }

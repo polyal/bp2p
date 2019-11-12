@@ -1,9 +1,12 @@
-
+#include <atomic>
+#include <memory>
 
 using namespace std;
 
 class Node{
 private:
+	static inline string cli = "bp2p> ";
+
 	enum DevStatus
 	{
 		READY,
@@ -15,8 +18,23 @@ private:
 	map<DeviceDescriptor, DevStatus> remoteStatus;
 
 public:
+	struct Server
+	{
+		Server(unique_ptr<thread> t, shared_ptr<atomic<bool>> active) 
+		{
+			this->t = move(t);
+			this->active = active;
+		}
+		unique_ptr<thread> t;
+		shared_ptr<atomic<bool>> active;
+	};
+
 	vector<DeviceDescriptor> localDevs;
+	map<DeviceDescriptor, pair<unique_ptr<thread>, unique_ptr<atomic<bool>>>> servers;
+
 	Node();
+
+	static void printcli();
 
 	void findLocalDevs();
 	void scanForDevs();
@@ -29,14 +47,9 @@ public:
 
 	static void processRequest(const Message& req, Message& rsp);
 	static void processRequest(const vector<char>& req, vector<char>& rsp);
-	void createRequest();
 
-	thread createServerThread(DeviceDescriptor servDev);
-
-	static void server(DeviceDescriptor dev);
-	
-	static const string applicationDir;
-	string getApplicationPath();
+	Server createServerThread(DeviceDescriptor servDev);
+	static void server(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
 
 private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
