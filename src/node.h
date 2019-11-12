@@ -37,7 +37,7 @@ public:
 	};
 
 	vector<DeviceDescriptor> localDevs;
-	map<DeviceDescriptor, pair<unique_ptr<thread>, unique_ptr<atomic<bool>>>> servers;
+	map<DeviceDescriptor, Server> servers;
 
 	Node();
 
@@ -55,7 +55,7 @@ public:
 	static void processRequest(const Message& req, Message& rsp);
 	static void processRequest(const vector<char>& req, vector<char>& rsp);
 
-	Server createServerThread(DeviceDescriptor servDev);
+	unique_ptr<Server> createServerThread(DeviceDescriptor servDev);
 	static void server(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
 
 private:

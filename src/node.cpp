@@ -125,12 +125,11 @@ void Node::processRequest(const vector<char>& req, vector<char>& rsp)
 	}
 }
 
-Node::Server Node::createServerThread(DeviceDescriptor servDev)
+unique_ptr<Node::Server> Node::createServerThread(DeviceDescriptor servDev)
 {
 	shared_ptr<atomic<bool>> active{new atomic<bool>{true}};
 	unique_ptr<thread> tServer{new thread{Node::server, servDev, active}};
-
-	return Server{move(tServer), active};
+	return unique_ptr<Server>(new Server{move(tServer), active});
 }
 
 
@@ -192,9 +191,8 @@ int main(int argc, char *argv[]){
 
 	// create server
 	//DeviceDescriptor serverDes = myNode.localDevs[0];
-	//unique_ptr<thread> tServer = myNode.createServerThread(serverDes);
-	//pair<thread, atomic<bool>> serv = make_pair(move(tServer), true);
-	//pair<DeviceDescriptor, pair<thread, atomic<bool>>> item = make_pair(serverDes, move(serv));
+	//unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
+	//pair<DeviceDescriptor, Node::Server> item = make_pair(serverDes, server);
 	//myNode.servers = move(serv);
 
 	/*string in;
@@ -217,15 +215,14 @@ int main(int argc, char *argv[]){
 		args.clear();
 	} while (1);*/
 
-	Node::Server server = myNode.createServerThread(myNode.localDevs[0]);
+	unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
 	for (int i = 0; i < 2; i++){
 		Message rsp;
 		this_thread::sleep_for (std::chrono::seconds(1));
 		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
 		cout << "LOOP " << i << endl;
 	}
-
-	server.close();
+	server->close();
 
     return 0;
 }
