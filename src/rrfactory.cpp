@@ -42,13 +42,11 @@ unique_ptr<RRPacket> RRFactory::create(const vector<char>& req)
 
 	switch(reqType) {
 	    case RRPacket::torrentFile:
-	        return unique_ptr<TorrentFileReq>(new TorrentFileReq(req));
+	    	return make_unique<TorrentFileReq>(req);
 	    case RRPacket::chunk:
-	        cout << "Chunk" << endl;
-	        return unique_ptr<ChunkReq>(new ChunkReq(req));
+	    	return make_unique<ChunkReq>(req);
 	    case RRPacket::torrentList:
-	    	cout << "Torrent List" << endl;
-	    	return unique_ptr<TorrentListReq>(new TorrentListReq(req));
+	    	return make_unique<TorrentListReq>(req);
 	    default:
 	    	cout << "Bad Request" << endl;
 	    	return nullptr;

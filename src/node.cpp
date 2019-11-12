@@ -127,9 +127,9 @@ void Node::processRequest(const vector<char>& req, vector<char>& rsp)
 
 unique_ptr<Node::Server> Node::createServerThread(DeviceDescriptor servDev)
 {
-	shared_ptr<atomic<bool>> active{new atomic<bool>{true}};
-	unique_ptr<thread> tServer{new thread{Node::server, servDev, active}};
-	return unique_ptr<Server>(new Server{move(tServer), active});
+	auto active = make_shared<atomic<bool>>(true);
+	auto tServer = make_unique<thread>(Node::server, servDev, active);
+	return make_unique<Server>(move(tServer), active);
 }
 
 
@@ -218,7 +218,7 @@ int main(int argc, char *argv[]){
 	unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
 	for (int i = 0; i < 2; i++){
 		Message rsp;
-		this_thread::sleep_for (std::chrono::seconds(1));
+		this_thread::sleep_for (std::chrono::milliseconds(7));
 		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
 		cout << "LOOP " << i << endl;
 	}
