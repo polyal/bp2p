@@ -64,5 +64,5 @@ protected:
 
 	void accept();
 
-	void close(int sock);
+	void close(int& sock);
 };

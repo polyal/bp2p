@@ -178,6 +178,7 @@ void BTChannel::read(int sock)
     vector<char> tmpMsg(this->btChunk);
     int totalSize = 0;
     int bytesRead = 0;
+    this->imsg.clear();
 	while ((bytesRead = ::read(sock, tmpMsg.data(), this->btChunk)) > 0){
         this->imsg.data.insert(this->imsg.data.end(), tmpMsg.begin(), tmpMsg.begin() + bytesRead);
         totalSize += bytesRead;
@@ -252,7 +253,7 @@ void BTChannel::accept()
 void BTChannel::closeRemote()
 {
     try{
-        ::close(this->remoteSock);
+        close(this->remoteSock);
     }
     catch(...){
         throw;
@@ -262,16 +263,17 @@ void BTChannel::closeRemote()
 void BTChannel::close()
 {
     try{
-        ::close(this->sock);
+        close(this->sock);
     }
     catch(...){
         throw;
     }
 }
 
-void BTChannel::close(int sock)
+void BTChannel::close(int& sock)
 {
     int status = sock >= 0 ? ::close(sock) : 0;
+    sock = -1;
     if (status == -1){
         cout << "Channel Error: Something went wring closing the socket. " << errno << endl;
         throw errno;
