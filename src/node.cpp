@@ -225,8 +225,7 @@ int main(int argc, char *argv[]){
 		cout << "LOOP " << i << endl;
 	}
 
-	*server.active = false;
-	server.t->join();
+	server.close();
 
     return 0;
 }

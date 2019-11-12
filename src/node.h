@@ -25,6 +25,13 @@ public:
 			this->t = move(t);
 			this->active = active;
 		}
+
+		void close()
+		{
+			*this->active = false;
+			this->t->join();
+		}
+
 		unique_ptr<thread> t;
 		shared_ptr<atomic<bool>> active;
 	};
