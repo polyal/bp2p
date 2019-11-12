@@ -18,7 +18,6 @@ void TorrentListReq::createRequest()
 
 	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
 	this->req.size = request.size();
-	//string strreq{req.begin(), req.end()};
 }
 
 void TorrentListReq::processRequest()
@@ -30,8 +29,7 @@ void TorrentListReq::processRequest()
 	serializeTorrentList(torrentNames, serializedList);
 
 	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->rsp.data));
-	//string strreq{req.begin(), req.end()};
-	//cout << "process: " << strreq << endl;
+	this->rsp.size = serializedList.size();
 }
 
 void TorrentListReq::getTorrentList(vector<string>& torrentNames)
@@ -70,11 +68,6 @@ void TorrentListReq::processResponse()
 	string rsp{this->rsp.data.begin(), this->rsp.data.end()};
 	parseTorrentList(rsp, torrentList);
 	this->torrentList = torrentList;
-	/*cout << "procResp: ";
-	for (auto const& tor : torrentList){
-		cout << tor << " ";
-	}
-	cout << endl;*/
 }
 
 void TorrentListReq::parseTorrentList(const string& rsp, vector<string>& torrentList)

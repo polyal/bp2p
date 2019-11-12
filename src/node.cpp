@@ -51,7 +51,6 @@ void Node::scanForDevs()
 		remoteDevs.clear();
 	}
 
-
 	// TODO: remove local devs from nearby devs
 	for (auto it = this->local2remote.begin(); it != this->local2remote.end(); it++){
 		cout << "Local Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
@@ -105,7 +104,7 @@ void Node::sendRequestWait4Response(RRPacket& req, Message& rsp,
 		cout << "Caught Exception " << e << endl;
 	}
 	//string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
+	//cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
 	try{
 		client.endComm();
 	}
@@ -120,7 +119,7 @@ void Node::processRequest(const Message& req, Message& rsp)
 
 	if (packet){
 		packet->processRequest();
-		rsp = packet->getResp();
+		rsp = packet->getRsp();
 	}
 }
 
@@ -150,6 +149,7 @@ void Node::server(DeviceDescriptor devDes, shared_ptr<atomic<bool>> active)
 			cout << "SERVER --Request: " << strreq << endl;
 			processRequest(req, rsp);
 			string strrsp{rsp.data.begin(), rsp.data.end()};
+			cout << "Server Rsp " << strrsp << " " << rsp.size << endl;
 			dev.sendResponse(rsp);
 		}
 		catch(int e){
@@ -215,10 +215,12 @@ int main(int argc, char *argv[]){
 	} while (1);*/
 
 	unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
-	for (int i = 0; i < 2; i++){
+	for (int i = 0; i < 1; i++){
 		Message rsp;
 		this_thread::sleep_for (std::chrono::milliseconds(10));
-		myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
+		myNode.requestTorrentList(myNode.localDevs[1], myNode.localDevs[0], rsp);
+		string rspd{rsp.data.begin(), rsp.data.end()};
+		cout << "BACK: " << rspd << endl;
 		cout << "LOOP " << i << endl;
 	}
 	server->close();

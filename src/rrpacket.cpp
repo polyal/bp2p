@@ -17,7 +17,7 @@ Message RRPacket::getReq()
 	return this->req;
 }
 
-Message RRPacket::getResp()
+Message RRPacket::getRsp()
 {
 	return this->rsp;
 }

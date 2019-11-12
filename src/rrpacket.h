@@ -30,7 +30,7 @@ public:
 	RRPacket(const Message& req);
 
 	Message getReq();
-	Message getResp();
+	Message getRsp();
 
 	virtual void createRequest() = 0;
 	virtual void processRequest() = 0;
