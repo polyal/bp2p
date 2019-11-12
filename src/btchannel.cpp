@@ -194,8 +194,17 @@ void BTChannel::read(int sock)
     this->imsg.data.resize(totalSize);
 }
 
+void BTChannel::setReusePort()
+{
+    int enable = 1;
+    if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0){
+        cout << "Channel Error: Couldn't set reuse ort" << endl;
+    }
+}
+
 void BTChannel::bind()
 {
+    setReusePort();
 	int status = ::bind(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1){
         cout << "Channel Error: Cannot bind name to socket. " << errno << endl;
