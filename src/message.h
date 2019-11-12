@@ -36,6 +36,12 @@ struct Message
 		copy(m.begin(), m.end(), std::back_inserter(data));
 	}
 
+	void clear()
+	{
+		this->size = 0;
+		this->data.clear();
+	}
+
 	Message& operator=(const Message& msg)
 	{
 		this->size = msg.size;
