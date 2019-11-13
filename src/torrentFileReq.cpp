@@ -7,7 +7,7 @@ TorrentFileReq::TorrentFileReq()
 	this->torrentName = "";
 }
 
-TorrentFileReq::TorrentFileReq(const Message&) : RRPacket(req)
+TorrentFileReq::TorrentFileReq(const Message& req) : RRPacket(req)
 {
 	this->torrentName = "";
 }
@@ -44,9 +44,7 @@ void TorrentFileReq::getTorrentNameFromReq(string& torrentName)
 	vector<string> tokens;
 	torrentName = "";
 	string strReq {this->req.data.begin(), this->req.data.end()};
-
 	Utils::tokenize(strReq, commSeparator, tokens);
-
 	if (tokens.size() > 2){
 		torrentName = tokens[2];
 	}

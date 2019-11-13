@@ -113,7 +113,6 @@ void ChunkReq::processResponse()
 	Torrent torrent{torrentName};
 	if (torrent.open())
 	{
-		torrent.name = torrentName + "!!!"; // for testing only
 		if (!torrent.torrentDataExists())
 			torrent.createTorrentDataFile();
 		torrent.putChunk(this->rsp.data, this->rsp.size, this->chunkNum);

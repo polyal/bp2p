@@ -1,5 +1,7 @@
 #include <atomic>
 #include <memory>
+#include <mutex>
+#include <list>
 
 using namespace std;
 
@@ -16,34 +18,33 @@ private:
 	
 	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
 	map<DeviceDescriptor, DevStatus> remoteStatus;
+	
 
 public:
-	struct Server
+	struct Peer
 	{
-		Server(unique_ptr<thread> t, shared_ptr<atomic<bool>> active) 
+		Peer(unique_ptr<thread> t, shared_ptr<atomic<bool>> kill) 
 		{
 			this->t = move(t);
-			this->active = active;
+			this->kill = kill;
 		}
 
 		void close()
 		{
-			*this->active = false;
-			this->t->join();
+			*this->kill = true;
+			if (this->t) this->t->join();
 		}
 
-		unique_ptr<thread> t;
-		shared_ptr<atomic<bool>> active;
+		unique_ptr<thread> t = nullptr;
+		shared_ptr<atomic<bool>> kill;
 	};
 
-	struct Job
-	{
-		unique_ptr<RRPacket> req = nullptr;
-		RRPacket::requestType type;
-	};
 
 	vector<DeviceDescriptor> localDevs;
-	map<DeviceDescriptor, Server> servers;
+	map<DeviceDescriptor, Peer> servers;
+
+	static mutex jobManagerMutex;
+	static list<shared_ptr<RRPacket>> jobs;
 
 	Node();
 
@@ -62,12 +63,15 @@ public:
 
 	static void processRequest(const Message& req, Message& rsp);
 
-	unique_ptr<Server> createServerThread(DeviceDescriptor servDev);
-	static void server(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
+	unique_ptr<Peer> createServerThread(DeviceDescriptor servDev);
+	unique_ptr<Peer> createJobManagerThread();
 
 private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
+
+	static void serverThread(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
+	static void jobManagerThread(shared_ptr<atomic<bool>> kill);
 
 };
 

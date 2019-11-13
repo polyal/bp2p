@@ -123,15 +123,15 @@ void Node::processRequest(const Message& req, Message& rsp)
 	}
 }
 
-unique_ptr<Node::Server> Node::createServerThread(DeviceDescriptor servDev)
+unique_ptr<Node::Peer> Node::createServerThread(DeviceDescriptor servDev)
 {
-	auto active = make_shared<atomic<bool>>(true);
-	auto tServer = make_unique<thread>(Node::server, servDev, active);
-	return make_unique<Server>(move(tServer), active);
+	auto kill = make_shared<atomic<bool>>(false);
+	auto tServer = make_unique<thread>(Node::serverThread, servDev, kill);
+	return make_unique<Peer>(move(tServer), kill);
 }
 
 
-void Node::server(DeviceDescriptor devDes, shared_ptr<atomic<bool>> active)
+void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<bool>> kill)
 {
 	Message req;
 	Message rsp;
@@ -148,8 +148,8 @@ void Node::server(DeviceDescriptor devDes, shared_ptr<atomic<bool>> active)
 			string strreq{req.data.begin(), req.data.end()};
 			cout << "SERVER --Request: " << strreq << endl;
 			processRequest(req, rsp);
-			string strrsp{rsp.data.begin(), rsp.data.end()};
-			cout << "Server Rsp " << strrsp << " " << rsp.size << endl;
+			//string strrsp{rsp.data.begin(), rsp.data.end()};
+			//cout << "Server Rsp " << strrsp << " " << rsp.size << endl;
 			dev.sendResponse(rsp);
 		}
 		catch(int e){
@@ -162,12 +162,37 @@ void Node::server(DeviceDescriptor devDes, shared_ptr<atomic<bool>> active)
 			cout << "Caught Exception " << e << endl;
 		}
 
-		if (!(*active))
-			break;
-
 		req.clear();
 		rsp.clear();
-	} while (1);
+	} while (!(*kill));
+}
+
+
+mutex Node::jobManagerMutex;
+list<shared_ptr<RRPacket>> Node::jobs;
+
+unique_ptr<Node::Peer> Node::createJobManagerThread()
+{
+	auto kill = make_shared<atomic<bool>>(false);
+	auto tJobManager = make_unique<thread>(Node::jobManagerThread, kill);
+	return make_unique<Peer>(move(tJobManager), kill);
+}
+
+void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
+{
+	do{
+		Node::jobManagerMutex.lock();
+		if (Node::jobs.size() > 0){
+			shared_ptr<RRPacket> req = jobs.front();
+			if (req){
+				req->createRequest();
+				sendRequestWait4Response(req, rsp, client, server);
+				req->processResponse(rsp);
+			}
+		}
+		Node::jobManagerMutex.unlock();
+		this_thread::sleep_for (std::chrono::milliseconds(10));
+	} while(!(*kill));
 }
 
 int main(int argc, char *argv[]){
@@ -214,13 +239,13 @@ int main(int argc, char *argv[]){
 		args.clear();
 	} while (1);*/
 
-	unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
+	unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
 	for (int i = 0; i < 1; i++){
 		Message rsp;
 		this_thread::sleep_for (std::chrono::milliseconds(10));
-		myNode.requestTorrentList(myNode.localDevs[1], myNode.localDevs[0], rsp);
-		string rspd{rsp.data.begin(), rsp.data.end()};
-		cout << "BACK: " << rspd << endl;
+		myNode.requestTorrentFile(myNode.localDevs[1], myNode.localDevs[0], "largerNew", rsp);
+		//string rspd{rsp.data.begin(), rsp.data.end()};
+		//cout << "BACK: " << rspd << endl;
 		cout << "LOOP " << i << endl;
 	}
 	server->close();

@@ -190,8 +190,8 @@ void BTChannel::read(int sock)
         if (errno != ECONNRESET)
             throw errno;
     }
-    string rspp{this->imsg.data.begin(), this->imsg.data.end()};
-    cout << "Read Msg: " << rspp << endl;
+    //string rspp{this->imsg.data.begin(), this->imsg.data.end()};
+    //cout << "Read Msg: " << rspp << endl;
     this->imsg.size = totalSize;
     this->imsg.data.resize(totalSize);
 }

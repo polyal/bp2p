@@ -24,7 +24,7 @@ private:
 	struct sockaddr_rc addr;
 	struct sockaddr_rc remoteAddr;
 
-	static const int timeout = 10;  // in seconds
+	static const int timeout = 2;  // in seconds
 	void setReusePort();
 	void setTimeout();
 
