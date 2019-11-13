@@ -5,7 +5,8 @@
 
 using namespace std;
 
-class Node{
+class Node
+{
 private:
 	static inline string cli = "bp2p> ";
 
@@ -43,8 +44,8 @@ public:
 	vector<DeviceDescriptor> localDevs;
 	map<DeviceDescriptor, Peer> servers;
 
-	static mutex jobManagerMutex;
-	static list<shared_ptr<RRPacket>> jobs;
+	mutex jobManagerMutex;
+	list<shared_ptr<RRPacket>> jobs;
 
 	Node();
 
@@ -61,7 +62,7 @@ public:
 	void requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, const int chunkNum, Message& rsp);
 
-	static void processRequest(const Message& req, Message& rsp);
+	void processRequest(const Message& req, Message& rsp);
 
 	unique_ptr<Peer> createServerThread(DeviceDescriptor servDev);
 	unique_ptr<Peer> createJobManagerThread();
@@ -70,8 +71,8 @@ private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 
-	static void serverThread(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
-	static void jobManagerThread(shared_ptr<atomic<bool>> kill);
+	void serverThread(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
+	void jobManagerThread(shared_ptr<atomic<bool>> kill);
 
 };
 

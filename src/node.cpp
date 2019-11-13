@@ -126,7 +126,11 @@ void Node::processRequest(const Message& req, Message& rsp)
 unique_ptr<Node::Peer> Node::createServerThread(DeviceDescriptor servDev)
 {
 	auto kill = make_shared<atomic<bool>>(false);
-	auto tServer = make_unique<thread>(Node::serverThread, servDev, kill);
+	auto tServer = make_unique<thread>(
+		[this, servDev, kill]
+		{
+			serverThread(servDev, kill);
+		});
 	return make_unique<Peer>(move(tServer), kill);
 }
 
@@ -168,29 +172,34 @@ void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<bool>> kill)
 }
 
 
-mutex Node::jobManagerMutex;
-list<shared_ptr<RRPacket>> Node::jobs;
-
 unique_ptr<Node::Peer> Node::createJobManagerThread()
 {
 	auto kill = make_shared<atomic<bool>>(false);
-	auto tJobManager = make_unique<thread>(Node::jobManagerThread, kill);
+	auto tJobManager = make_unique<thread>(
+		[this, kill]
+		{
+			jobManagerThread(kill);
+		});
 	return make_unique<Peer>(move(tJobManager), kill);
 }
 
 void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
 {
 	do{
-		Node::jobManagerMutex.lock();
-		if (Node::jobs.size() > 0){
+		this->jobManagerMutex.lock();
+		if (this->jobs.size() > 0){
+			cout << "Job manager: has items " << this->jobs.size() << endl;
 			shared_ptr<RRPacket> req = jobs.front();
 			if (req){
+				cout << "Job Manager: not NULL" << endl;
+				Message rsp;
 				req->createRequest();
-				sendRequestWait4Response(req, rsp, client, server);
+				sendRequestWait4Response(*req, rsp, this->localDevs[1], this->localDevs[0]);
 				req->processResponse(rsp);
+				jobs.pop_front();
 			}
 		}
-		Node::jobManagerMutex.unlock();
+		this->jobManagerMutex.unlock();
 		this_thread::sleep_for (std::chrono::milliseconds(10));
 	} while(!(*kill));
 }
@@ -240,14 +249,22 @@ int main(int argc, char *argv[]){
 	} while (1);*/
 
 	unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
-	for (int i = 0; i < 1; i++){
-		Message rsp;
-		this_thread::sleep_for (std::chrono::milliseconds(10));
-		myNode.requestTorrentFile(myNode.localDevs[1], myNode.localDevs[0], "largerNew", rsp);
-		//string rspd{rsp.data.begin(), rsp.data.end()};
-		//cout << "BACK: " << rspd << endl;
+	this_thread::sleep_for (std::chrono::milliseconds(10));
+	unique_ptr<Node::Peer> jobMan = myNode.createJobManagerThread();
+	for (int i = 0; i < 2; i++){
+		//Message rsp;
+		//this_thread::sleep_for (std::chrono::milliseconds(10));
+		myNode.jobManagerMutex.lock();
+		auto chunk = make_shared<ChunkReq>("largerNew", i);
+		myNode.jobs.push_back(chunk);
+		myNode.jobManagerMutex.unlock();
+		//myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
+
 		cout << "LOOP " << i << endl;
 	}
+
+	this_thread::sleep_for (std::chrono::seconds(10));
+	jobMan->close();
 	server->close();
 
     return 0;
