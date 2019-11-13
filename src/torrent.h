@@ -42,6 +42,7 @@ private:
 		: index{index}, hash{hash}, exists{exists} {}
 	};
 	
+	string name;
 	vector<string> files;                // files in torrent
 	string packagePath;                  // path to the package
 	string torrentPath;                  // path to the torrent
@@ -54,7 +55,6 @@ private:
 	string serializedObj;                // serialzed version of the json object
 
 public:
-	string name; // temporarily public for testing
 	Torrent();
 
 	///////////////////////////////////////////////////////////
