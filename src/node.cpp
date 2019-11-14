@@ -241,6 +241,13 @@ void Node::killJobManager()
 }
 
 
+bool Node::createTorrent(const string& name, const vector<string>& files)
+{
+	Torrent t{name, files};
+	return t.create();
+}
+
+
 int main(int argc, char *argv[]){
 	// creating a new torrent
 	/*string torrentName {"larger"};
@@ -273,11 +280,17 @@ int main(int argc, char *argv[]){
 		getline(cin, in);
 		ArgParser argparser{in, args};
 
-		if (!args.empty() && args[0].compare("q") == 0){
-			break;
+		if (!args.empty()){
+			if (args[0].compare(Node::createTorCmd) == 0 && args.size() > 2){
+				string filename = args[0];
+				vector<string> files{args.begin() + 1, args.end()};
+				if (!myNode.createTorrent(filename, files))
+					cout << "Create Torrent Failed" << endl;
+			}
+			else if (args[0].compare(Node::quitCmd) == 0)
+				break;
+			args.clear();
 		}
-
-		args.clear();
 	} while (1);
 
 	myNode.killWorkerThreads();

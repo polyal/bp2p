@@ -9,7 +9,7 @@ using namespace std;
 class Node
 {
 private:
-	static inline string cli = "bp2p> ";
+	inline static const string cli = "bp2p> ";
 
 	enum DevStatus
 	{
@@ -23,6 +23,9 @@ private:
 	
 
 public:
+	inline static const string createTorCmd = "-ct";
+	inline static const string quitCmd = "-q";
+
 	struct WorkerThread
 	{
 		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<bool>> kill) 
@@ -77,6 +80,8 @@ public:
 
 	void killWorkerThreads();
 
+	bool createTorrent(const string& name, const vector<string>& files);
+
 private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
@@ -107,11 +112,6 @@ public:
 		Utils::tokenize(cmd, " ", args);
 		args.erase(std::remove(args.begin(), args.end(), ""), args.end());
 		args.erase(std::remove(args.begin(), args.end(), "\n"), args.end());
-
-		for (auto arg : args)
-			cout << "!" << arg << "! ";
-		cout << endl;
-
 		this->cmd  = cmd;
 		this->args = args;
 	}
