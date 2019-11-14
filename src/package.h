@@ -7,7 +7,7 @@ using namespace std;
 class Package
 {
 private:
-	const static string tempName;
+	inline static const string tempName = "temp";
 
 	string name;
 	vector<string> files;

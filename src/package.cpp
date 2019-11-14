@@ -25,7 +25,6 @@
 
 #define DEBUG 0
 
-const string Package::tempName = "temp";
 
 Package::Package()
 {
@@ -59,7 +58,7 @@ int Package::package()
 {
     archive();
     int ret = compress();
-    remove("temp");
+    remove(this->tempName);
     return ret;
 }
 
@@ -67,7 +66,7 @@ int Package::unpackage()
 {
     int ret = decompress();
     extract();
-    remove("temp");
+    remove(this->tempName);
     return ret;
 }
 
