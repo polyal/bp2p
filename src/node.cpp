@@ -224,12 +224,10 @@ int main(int argc, char *argv[]){
 	cout << "done. " << endl << endl;
 
 	// create server
-	//DeviceDescriptor serverDes = myNode.localDevs[0];
-	//unique_ptr<Node::Server> server = myNode.createServerThread(myNode.localDevs[0]);
-	//pair<DeviceDescriptor, Node::Server> item = make_pair(serverDes, server);
-	//myNode.servers = move(serv);
+	DeviceDescriptor serverDes = myNode.localDevs[0];
+	myNode.servers[serverDes] = myNode.createServerThread(serverDes);
 
-	/*string in;
+	string in;
 	vector<string> args;
 	do
 	{
@@ -247,9 +245,15 @@ int main(int argc, char *argv[]){
 		}
 
 		args.clear();
-	} while (1);*/
+	} while (1);
 
-	unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
+	for(auto const& [key, val] : myNode.servers)
+	{
+		cout << "Server: " << key.addr << endl;
+	    val->close();
+	}
+
+	/*unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
 	this_thread::sleep_for (std::chrono::milliseconds(10));
 	unique_ptr<Node::Peer> jobMan = myNode.createJobManagerThread();
 	{
@@ -278,7 +282,7 @@ int main(int argc, char *argv[]){
 		lock.unlock();
 		myNode.jmEvent.notify_one();
 	}
-	jobMan->close();
+	jobMan->close();*/
 
     return 0;
 }

@@ -48,7 +48,7 @@ public:
 
 
 	vector<DeviceDescriptor> localDevs;
-	map<DeviceDescriptor, Peer> servers;
+	map<DeviceDescriptor, unique_ptr<Peer>> servers;
 
 	mutex jmMutex;
 	condition_variable jmEvent;
