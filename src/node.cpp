@@ -271,13 +271,9 @@ int main(int argc, char *argv[]){
 		Node::printcli();
 		
 		getline(cin, in);
-		Utils::tokenize(in, " ", args);
+		ArgParser argparser{in, args};
 
-		for (auto arg : args)
-			cout << "!" << arg << "! ";
-		cout << endl;
-
-		if (in.compare("q") == 0){
+		if (!args.empty() && args[0].compare("q") == 0){
 			break;
 		}
 

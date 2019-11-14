@@ -90,3 +90,32 @@ private:
 
 };
 
+class ArgParser
+{
+public:
+	ArgParser()
+	{
+	}
+
+	ArgParser(const string& cmd, vector<string>& args)
+	{
+		parse(cmd, args);
+	}
+
+	void parse(const string& cmd, vector<string>& args)
+	{
+		Utils::tokenize(cmd, " ", args);
+		args.erase(std::remove(args.begin(), args.end(), ""), args.end());
+		args.erase(std::remove(args.begin(), args.end(), "\n"), args.end());
+
+		for (auto arg : args)
+			cout << "!" << arg << "! ";
+		cout << endl;
+
+		this->cmd  = cmd;
+		this->args = args;
+	}
+
+	string cmd;
+	vector <string> args;
+};
