@@ -2,6 +2,7 @@
 #include <memory>
 #include <mutex>
 #include <list>
+#include <condition_variable>
 
 using namespace std;
 
@@ -30,6 +31,11 @@ public:
 			this->kill = kill;
 		}
 
+		void setKill()
+		{
+			*this->kill = true;
+		}
+
 		void close()
 		{
 			*this->kill = true;
@@ -44,7 +50,8 @@ public:
 	vector<DeviceDescriptor> localDevs;
 	map<DeviceDescriptor, Peer> servers;
 
-	mutex jobManagerMutex;
+	mutex jmMutex;
+	condition_variable jmEvent;
 	list<shared_ptr<RRPacket>> jobs;
 
 	Node();

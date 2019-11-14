@@ -186,7 +186,8 @@ unique_ptr<Node::Peer> Node::createJobManagerThread()
 void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
 {
 	do{
-		this->jobManagerMutex.lock();
+		unique_lock<std::mutex> lock(jmMutex);
+		jmEvent.wait(lock, [this, &kill]{return !this->jobs.empty() || *kill;});
 		if (this->jobs.size() > 0){
 			cout << "Job manager: has items " << this->jobs.size() << endl;
 			shared_ptr<RRPacket> req = jobs.front();
@@ -199,8 +200,8 @@ void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
 				jobs.pop_front();
 			}
 		}
-		this->jobManagerMutex.unlock();
-		this_thread::sleep_for (std::chrono::milliseconds(10));
+		cout << "Job Manager: LOOP END" << endl;
+		this_thread::sleep_for (std::chrono::milliseconds(20));
 	} while(!(*kill));
 }
 
@@ -251,21 +252,33 @@ int main(int argc, char *argv[]){
 	unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
 	this_thread::sleep_for (std::chrono::milliseconds(10));
 	unique_ptr<Node::Peer> jobMan = myNode.createJobManagerThread();
-	for (int i = 0; i < 2; i++){
-		//Message rsp;
-		//this_thread::sleep_for (std::chrono::milliseconds(10));
-		myNode.jobManagerMutex.lock();
-		auto chunk = make_shared<ChunkReq>("largerNew", i);
-		myNode.jobs.push_back(chunk);
-		myNode.jobManagerMutex.unlock();
-		//myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
+	{
+		std::unique_lock<std::mutex> lock(myNode.jmMutex);
+		for (int i = 0; i < 2; i++){
+			//Message rsp;
+			//this_thread::sleep_for (std::chrono::milliseconds(10));
+			//myNode.jobManagerMutex.lock();
+			auto chunk = make_shared<ChunkReq>("largerNew", i);
+			myNode.jobs.push_back(chunk);
+			//myNode.jobManagerMutex.unlock();
+			//myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
 
-		cout << "LOOP " << i << endl;
+			cout << "LOOP " << i << endl;
+		}
+		lock.unlock();
+		myNode.jmEvent.notify_one();
 	}
 
 	this_thread::sleep_for (std::chrono::seconds(10));
-	jobMan->close();
 	server->close();
+	// notify again just to wake up the thread so it quits
+	{
+		std::unique_lock<std::mutex> lock(myNode.jmMutex);
+		jobMan->setKill();
+		lock.unlock();
+		myNode.jmEvent.notify_one();
+	}
+	jobMan->close();
 
     return 0;
 }
