@@ -23,9 +23,9 @@ private:
 	
 
 public:
-	struct Peer
+	struct WorkerThread
 	{
-		Peer(unique_ptr<thread> t, shared_ptr<atomic<bool>> kill) 
+		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<bool>> kill) 
 		{
 			this->t = move(t);
 			this->kill = kill;
@@ -48,10 +48,11 @@ public:
 
 
 	vector<DeviceDescriptor> localDevs;
-	map<DeviceDescriptor, unique_ptr<Peer>> servers;
+	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 
 	mutex jmMutex;
 	condition_variable jmEvent;
+	unique_ptr<WorkerThread> jobManager = nullptr;
 	list<shared_ptr<RRPacket>> jobs;
 
 	Node();
@@ -71,15 +72,21 @@ public:
 
 	void processRequest(const Message& req, Message& rsp);
 
-	unique_ptr<Peer> createServerThread(DeviceDescriptor servDev);
-	unique_ptr<Peer> createJobManagerThread();
+	unique_ptr<WorkerThread> createServerThread(DeviceDescriptor servDev);
+	void createJobManager();
+
+	void killWorkerThreads();
 
 private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 
 	void serverThread(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
+	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread(shared_ptr<atomic<bool>> kill);
+
+	void killServers();
+	void killJobManager();
 
 };
 

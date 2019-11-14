@@ -123,7 +123,7 @@ void Node::processRequest(const Message& req, Message& rsp)
 	}
 }
 
-unique_ptr<Node::Peer> Node::createServerThread(DeviceDescriptor servDev)
+unique_ptr<Node::WorkerThread> Node::createServerThread(DeviceDescriptor servDev)
 {
 	auto kill = make_shared<atomic<bool>>(false);
 	auto tServer = make_unique<thread>(
@@ -131,7 +131,7 @@ unique_ptr<Node::Peer> Node::createServerThread(DeviceDescriptor servDev)
 		{
 			serverThread(servDev, kill);
 		});
-	return make_unique<Peer>(move(tServer), kill);
+	return make_unique<WorkerThread>(move(tServer), kill);
 }
 
 
@@ -171,8 +171,12 @@ void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<bool>> kill)
 	} while (!(*kill));
 }
 
+void Node::createJobManager()
+{
+	this->jobManager = createJobManagerThread();
+}
 
-unique_ptr<Node::Peer> Node::createJobManagerThread()
+unique_ptr<Node::WorkerThread> Node::createJobManagerThread()
 {
 	auto kill = make_shared<atomic<bool>>(false);
 	auto tJobManager = make_unique<thread>(
@@ -180,7 +184,7 @@ unique_ptr<Node::Peer> Node::createJobManagerThread()
 		{
 			jobManagerThread(kill);
 		});
-	return make_unique<Peer>(move(tJobManager), kill);
+	return make_unique<WorkerThread>(move(tJobManager), kill);
 }
 
 void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
@@ -205,6 +209,38 @@ void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
 	} while(!(*kill));
 }
 
+
+void Node::killWorkerThreads()
+{
+	killServers();
+	killJobManager();
+
+}
+
+void Node::killServers()
+{
+	for(auto const& [key, val] : this->servers)
+	{
+		cout << "Kill Server: " << key.addr << " " << key.devID << " " << key.name << endl;
+	    val->close();
+	}
+}
+
+void Node::killJobManager()
+{
+	if (this->jobManager){
+		// notify again just to wake up the thread so it quits
+		{
+			std::unique_lock<std::mutex> lock(this->jmMutex);
+			this->jobManager->setKill();
+			lock.unlock();
+			this->jmEvent.notify_one();
+		}
+		this->jobManager->close();
+	}
+}
+
+
 int main(int argc, char *argv[]){
 	// creating a new torrent
 	/*string torrentName {"larger"};
@@ -226,6 +262,7 @@ int main(int argc, char *argv[]){
 	// create server
 	DeviceDescriptor serverDes = myNode.localDevs[0];
 	myNode.servers[serverDes] = myNode.createServerThread(serverDes);
+	myNode.createJobManager();
 
 	string in;
 	vector<string> args;
@@ -247,11 +284,7 @@ int main(int argc, char *argv[]){
 		args.clear();
 	} while (1);
 
-	for(auto const& [key, val] : myNode.servers)
-	{
-		cout << "Server: " << key.addr << endl;
-	    val->close();
-	}
+	myNode.killWorkerThreads();
 
 	/*unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
 	this_thread::sleep_for (std::chrono::milliseconds(10));
