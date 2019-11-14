@@ -58,7 +58,7 @@ int Package::package()
 {
     archive();
     int ret = compress();
-    remove(this->tempName);
+    remove(this->tempName.c_str());
     return ret;
 }
 
@@ -66,7 +66,7 @@ int Package::unpackage()
 {
     int ret = decompress();
     extract();
-    remove(this->tempName);
+    remove(this->tempName.c_str());
     return ret;
 }
 
