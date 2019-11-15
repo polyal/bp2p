@@ -48,6 +48,13 @@ struct DeviceDescriptor
 		return *this;
 	}
 
+	bool operator==(const DeviceDescriptor& dev) const
+	{
+		bool isEqual = false;
+		if (this->addr.compare(dev.addr) == 0) isEqual = true;
+	 	return isEqual;
+	}
+
 	bool operator<(const DeviceDescriptor& dev) const
 	{
 		return this->addr < dev.addr;
@@ -61,5 +68,19 @@ struct DeviceDescriptor
 	static const unsigned short maxNameLen = 256;
 	inline static const string uknownName = "[unknown]";
 };
+
+// needed so we can hash DeviceDescriptors
+// eg. so we can store DeviceDescriptors in an unordered_set
+namespace std
+{
+	template<>
+	struct hash<DeviceDescriptor>
+	{
+		size_t operator()(const DeviceDescriptor& dev) const
+		{
+			return hash<string>()(dev.addr);
+		}
+	};
+}
 
 #endif
