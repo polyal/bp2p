@@ -5,6 +5,7 @@
 #include <fstream>
 #include <thread>
 #include <utility>
+#include <unordered_set>
 #include "utils.h"
 #include "btdevice.h"
 #include "torrentFileReq.h"
@@ -57,11 +58,6 @@ void Node::scanForDevs()
 		for (auto remote :  it->second)
 			cout << "\t Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
 	}
-}
-
-void Node::requestTorrent(const string& torrentName)
-{
-
 }
 
 void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
@@ -229,7 +225,6 @@ void Node::killServers()
 void Node::killJobManager()
 {
 	if (this->jobManager){
-		// notify again just to wake up the thread so it quits
 		{
 			std::unique_lock<std::mutex> lock(this->jmMutex);
 			this->jobManager->setKill();
@@ -247,6 +242,29 @@ bool Node::createTorrent(const string& name, const vector<string>& files)
 	return t.create();
 }
 
+int Node::listNearbyTorrents(const vector<string>& addrs)
+{
+	vector<DeviceDescriptor> devs;
+	for (auto addr : addrs){
+		DeviceDescriptor dev{addr};
+		devs.push_back(dev);
+	}
+
+	if (devs.empty()){
+		unordered_set<DeviceDescriptor> searched;
+		for(auto const& [key, val] : this->local2remote)
+		{
+			for (auto const& remoteDev : val){
+				if (searched.find(remoteDev) == searched.end()){
+					// either add these the job queue or store them in an intermediary qeue before the job queue
+					auto req = make_shared<TorrentListReq>(remoteDev, key);
+					searched.insert(remoteDev);
+				}
+			}
+		}
+	}
+	return 0;
+}
 
 int main(int argc, char *argv[]){
 	// creating a new torrent
@@ -286,6 +304,12 @@ int main(int argc, char *argv[]){
 				vector<string> files{args.begin() + 1, args.end()};
 				if (!myNode.createTorrent(filename, files))
 					cout << "Create Torrent Failed" << endl;
+			}
+			else if (args[0].compare(Node::listNearbyTorsCmd) == 0){
+				vector<string> addr;
+				if (args.size() > 1)
+					copy(args.begin()+1, args.end(), back_inserter(addr));
+				myNode.listNearbyTorrents(addr);
 			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;

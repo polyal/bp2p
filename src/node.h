@@ -23,7 +23,8 @@ private:
 	
 
 public:
-	inline static const string createTorCmd = "-ct";
+	inline static const string createTorCmd = "-ct";    // create torrent
+	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
 	inline static const string quitCmd = "-q";
 
 	struct WorkerThread
@@ -65,8 +66,6 @@ public:
 	void findLocalDevs();
 	void scanForDevs();
 
-	void requestTorrent(const string& torrentName);
-
 	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
 	void requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, Message& rsp);
@@ -81,6 +80,7 @@ public:
 	void killWorkerThreads();
 
 	bool createTorrent(const string& name, const vector<string>& files);
+	int listNearbyTorrents(const vector<string>& addrs);
 
 private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
