@@ -14,6 +14,8 @@ public:
 
 	TorrentListReq();
 	TorrentListReq(const Message& req);
+	TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
+	TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 
 	void createRequest();
 	void processRequest();

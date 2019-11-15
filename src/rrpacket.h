@@ -6,6 +6,7 @@
 #include <string>
 #include <memory>
 #include "message.h"
+#include "deviceDescriptor.h"
 
 using namespace std;
 
@@ -14,6 +15,8 @@ class RRPacket
 protected:
 	Message req;
 	Message rsp;
+	DeviceDescriptor localAddr;
+	DeviceDescriptor remoteAddr;
 
 public:
 	inline static const string commString = "bp2p";
@@ -28,6 +31,8 @@ public:
 
 	RRPacket();
 	RRPacket(const Message& req);
+	RRPacket(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
+	RRPacket(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 
 	Message getReq();
 	Message getRsp();

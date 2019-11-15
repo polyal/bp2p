@@ -7,7 +7,17 @@ TorrentListReq::TorrentListReq()
 {
 }
 
-TorrentListReq::TorrentListReq(const Message& req):RRPacket(req)
+TorrentListReq::TorrentListReq(const Message& req) : RRPacket(req)
+{
+}
+
+TorrentListReq::TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr) 
+	: RRPacket(remoteAddr, localAddr)
+{
+}
+
+TorrentListReq::TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req) 
+	: RRPacket(remoteAddr, localAddr, req)
 {
 }
 
