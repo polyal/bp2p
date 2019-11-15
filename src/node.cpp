@@ -121,17 +121,17 @@ void Node::processRequest(const Message& req, Message& rsp)
 
 unique_ptr<Node::WorkerThread> Node::createServerThread(DeviceDescriptor servDev)
 {
-	auto kill = make_shared<atomic<bool>>(false);
+	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
 	auto tServer = make_unique<thread>(
-		[this, servDev, kill]
+		[this, servDev, status]
 		{
-			serverThread(servDev, kill);
+			serverThread(servDev, status);
 		});
-	return make_unique<WorkerThread>(move(tServer), kill);
+	return make_unique<WorkerThread>(move(tServer), status);
 }
 
 
-void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<bool>> kill)
+void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<Node::WorkerThread::Status>> status)
 {
 	Message req;
 	Message rsp;
@@ -164,7 +164,7 @@ void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<bool>> kill)
 
 		req.clear();
 		rsp.clear();
-	} while (!(*kill));
+	} while (*status != Node::WorkerThread::Status::KILL);
 }
 
 void Node::createJobManager()
@@ -174,20 +174,20 @@ void Node::createJobManager()
 
 unique_ptr<Node::WorkerThread> Node::createJobManagerThread()
 {
-	auto kill = make_shared<atomic<bool>>(false);
+	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::ACTIVE);
 	auto tJobManager = make_unique<thread>(
-		[this, kill]
+		[this, status]
 		{
-			jobManagerThread(kill);
+			jobManagerThread(status);
 		});
-	return make_unique<WorkerThread>(move(tJobManager), kill);
+	return make_unique<WorkerThread>(move(tJobManager), status);
 }
 
-void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
+void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> status)
 {
 	do{
 		unique_lock<std::mutex> lock(jmMutex);
-		jmEvent.wait(lock, [this, &kill]{return !this->jobs.empty() || *kill;});
+		jmEvent.wait(lock, [this, &status]{return !this->jobs.empty() || *status == Node::WorkerThread::KILL;});
 		if (this->jobs.size() > 0){
 			cout << "Job manager: has items " << this->jobs.size() << endl;
 			shared_ptr<RRPacket> req = jobs.front();
@@ -202,7 +202,7 @@ void Node::jobManagerThread(shared_ptr<atomic<bool>> kill)
 		}
 		cout << "Job Manager: LOOP END" << endl;
 		this_thread::sleep_for (std::chrono::milliseconds(20));
-	} while(!(*kill));
+	} while(*status != Node::WorkerThread::Status::KILL);
 }
 
 
@@ -227,7 +227,7 @@ void Node::killJobManager()
 	if (this->jobManager){
 		{
 			std::unique_lock<std::mutex> lock(this->jmMutex);
-			this->jobManager->setKill();
+			this->jobManager->kill();
 			lock.unlock();
 			this->jmEvent.notify_one();
 		}

@@ -29,25 +29,47 @@ public:
 
 	struct WorkerThread
 	{
-		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<bool>> kill) 
+		enum Status
+		{
+			ACTIVE,
+			PAUSE,
+			KILL
+		};
+
+		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
 		{
 			this->t = move(t);
-			this->kill = kill;
+			this->status = status;
 		}
 
-		void setKill()
+		void activate()
 		{
-			*this->kill = true;
+			setStatus(ACTIVE);
+		}
+
+		void pause()
+		{
+			setStatus(PAUSE);
+		}
+
+		void kill()
+		{
+			setStatus(KILL);
+		}
+
+		void setStatus(Status status)
+		{
+			*this->status = status;
 		}
 
 		void close()
 		{
-			*this->kill = true;
+			kill();
 			if (this->t) this->t->join();
 		}
 
 		unique_ptr<thread> t = nullptr;
-		shared_ptr<atomic<bool>> kill;
+		shared_ptr<atomic<Status>> status;
 	};
 
 
@@ -86,9 +108,9 @@ private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 
-	void serverThread(DeviceDescriptor dev, shared_ptr<atomic<bool>>);
+	void serverThread(DeviceDescriptor dev, shared_ptr<atomic<WorkerThread::Status>> status);
 	unique_ptr<WorkerThread> createJobManagerThread();
-	void jobManagerThread(shared_ptr<atomic<bool>> kill);
+	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status);
 
 	void killServers();
 	void killJobManager();
