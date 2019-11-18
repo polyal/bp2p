@@ -145,7 +145,9 @@ private:
 	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 
 	void activateServerThreads();
+	void activateJobManager();
 	void pauseServerThreads();
+	void pauseJobManager();
 	void killServers();
 	void killJobManager();
 

@@ -238,7 +238,7 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 void Node::activateWorkerThreads()
 {
 	activateServerThreads();
-	// add activate job manager thread
+	activateJobManager();
 }
 
 void Node::activateServerThreads()
@@ -250,10 +250,16 @@ void Node::activateServerThreads()
 	}
 }
 
+void Node::activateJobManager()
+{
+	if (this->jobManager)
+		this->jobManager->activate();
+}
+
 void Node::pauseWorkerThreads()
 {
 	pauseServerThreads();
-	// add pause job manager
+	pauseJobManager();
 }
 
 void Node::pauseServerThreads()
@@ -263,6 +269,12 @@ void Node::pauseServerThreads()
 		cout << "Pause Server: " << key.addr << " " << key.devID << " " << key.name << endl;
 	    val->pause();
 	}
+}
+
+void Node::pauseJobManager()
+{
+	if (this->jobManager)
+		this->jobManager->pause();
 }
 
 
@@ -284,13 +296,8 @@ void Node::killServers()
 
 void Node::killJobManager()
 {
-	if (this->jobManager){
-		//std::unique_lock<std::mutex> lock(this->jobManager->event->m);
-		//this->jobManager->kill();
-		//lock.unlock();
-		//this->jobManager->event->cv.notify_one();
+	if (this->jobManager)
 		this->jobManager->close();
-	}
 }
 
 bool Node::createTorrent(const string& name, const vector<string>& files)
