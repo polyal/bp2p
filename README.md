@@ -9,6 +9,6 @@ An application that defines a decentralized peer-to-peer network where nodes com
 * libz-dev
 * libssl-dev
 
-##### To clone json lib right dir
+##### To clone submodule nlohmann/json
 1. git submodule init
 2. git submodule update
