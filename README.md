@@ -3,10 +3,10 @@ An application that defines a decentralized peer-to-peer network where nodes com
 
 ## Requirements
 
-..* libbluetooth-dev
-..* libarchive-dev
-..* libz-dev
-..* libssl-dev
+* libbluetooth-dev
+* libarchive-dev
+* libz-dev
+* libssl-dev
 
 To clone json lib right dir
 1. git submodule init
