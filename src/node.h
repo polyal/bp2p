@@ -53,15 +53,26 @@ public:
 
 		void activate()
 		{
-			setStatus(ACTIVE);
+			if (this->event){
+				std::unique_lock<std::mutex> lock(this->event->m);
+				setStatus(ACTIVE);
+				lock.unlock();
+				this->event->cv.notify_one();
+			}
+			else
+				setStatus(ACTIVE);
 		}
 
 		void pause()
 		{
-			std::unique_lock<std::mutex> lock(this->event->m);
-			setStatus(PAUSE);
-			lock.unlock();
-			this->event->cv.notify_one();
+			if (this->event){
+				std::unique_lock<std::mutex> lock(this->event->m);
+				setStatus(PAUSE);
+				lock.unlock();
+				this->event->cv.notify_one();
+			}
+			else
+				setStatus(PAUSE);
 		}
 
 		void kill()
@@ -117,6 +128,7 @@ public:
 	unique_ptr<WorkerThread> createServerThread(DeviceDescriptor servDev);
 	void createJobManager();
 
+	void activateWorkerThreads();
 	void pauseWorkerThreads();
 	void killWorkerThreads();
 
@@ -132,6 +144,7 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 
+	void activateServerThreads();
 	void pauseServerThreads();
 	void killServers();
 	void killJobManager();

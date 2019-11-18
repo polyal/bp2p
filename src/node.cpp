@@ -235,6 +235,21 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 	} while(*status != Node::WorkerThread::Status::KILL);
 }
 
+void Node::activateWorkerThreads()
+{
+	activateServerThreads();
+	// add activate job manager thread
+}
+
+void Node::activateServerThreads()
+{
+	for(auto const& [key, val] : this->servers)
+	{
+		cout << "Activate Server: " << key.addr << " " << key.devID << " " << key.name << endl;
+	    val->activate();
+	}
+}
+
 void Node::pauseWorkerThreads()
 {
 	pauseServerThreads();
@@ -362,6 +377,12 @@ int main(int argc, char *argv[]){
 			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
+			else if(args[0].compare("-p") == 0){
+				myNode.pauseWorkerThreads();
+			}
+			else if(args[0].compare("-a") == 0){
+				myNode.activateWorkerThreads();
+			}
 			args.clear();
 		}
 	} while (1);
