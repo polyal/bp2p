@@ -1,4 +1,5 @@
 # bp2p
+An application that defines a decentralized peer-to-peer network where nodes communicate via bluetooth. 
 
 Requirements
 
