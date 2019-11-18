@@ -142,7 +142,7 @@ unique_ptr<Node::WorkerThread> Node::createServerThread(DeviceDescriptor servDev
 		{
 			serverThread(servDev, status, event);
 		});
-	return make_unique<WorkerThread>(move(tServer), status);
+	return make_unique<WorkerThread>(move(tServer), status, event);
 }
 
 
@@ -157,6 +157,13 @@ void Node::serverThread(DeviceDescriptor devDes,
 	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
 
 	do{
+		unique_lock<std::mutex> lock(event->m);
+		event->cv.wait(lock, 
+			[status]
+			{
+				return *status != Node::WorkerThread::PAUSE;
+			});
+		lock.unlock();
 		try{
 			dev.initServer();
 			dev.listen4Req(client);
@@ -180,6 +187,7 @@ void Node::serverThread(DeviceDescriptor devDes,
 
 		req.clear();
 		rsp.clear();
+		cout << "Server Status: " << *status << endl;
 	} while (*status != Node::WorkerThread::Status::KILL);
 }
 
@@ -205,7 +213,7 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 	do{
 		unique_lock<std::mutex> lock(event->m);
 		event->cv.wait(lock, 
-			[this, &status]
+			[this, status]
 			{
 				return (!this->jobs.empty() && *status != Node::WorkerThread::PAUSE) || *status == Node::WorkerThread::KILL;
 			});
@@ -221,9 +229,25 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 				jobs.pop_front();
 			}
 		}
-		cout << "Job Manager: LOOP END" << endl;
+		lock.unlock();
+		cout << "Job Manager status: " << *status << endl;
 		this_thread::sleep_for (std::chrono::milliseconds(20));
 	} while(*status != Node::WorkerThread::Status::KILL);
+}
+
+void Node::pauseWorkerThreads()
+{
+	pauseServerThreads();
+	// add pause job manager
+}
+
+void Node::pauseServerThreads()
+{
+	for(auto const& [key, val] : this->servers)
+	{
+		cout << "Pause Server: " << key.addr << " " << key.devID << " " << key.name << endl;
+	    val->pause();
+	}
 }
 
 
@@ -246,10 +270,10 @@ void Node::killServers()
 void Node::killJobManager()
 {
 	if (this->jobManager){
-		std::unique_lock<std::mutex> lock(this->jobManager->event->m);
-		this->jobManager->kill();
-		lock.unlock();
-		this->jobManager->event->cv.notify_one();
+		//std::unique_lock<std::mutex> lock(this->jobManager->event->m);
+		//this->jobManager->kill();
+		//lock.unlock();
+		//this->jobManager->event->cv.notify_one();
 		this->jobManager->close();
 	}
 }

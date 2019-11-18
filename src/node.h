@@ -58,12 +58,22 @@ public:
 
 		void pause()
 		{
+			std::unique_lock<std::mutex> lock(this->event->m);
 			setStatus(PAUSE);
+			lock.unlock();
+			this->event->cv.notify_one();
 		}
 
 		void kill()
 		{
-			setStatus(KILL);
+			if (this->event){
+				std::unique_lock<std::mutex> lock(this->event->m);
+				setStatus(KILL);
+				lock.unlock();
+				this->event->cv.notify_one();
+			}
+			else
+				setStatus(KILL);
 		}
 
 		void setStatus(Status status)
@@ -86,8 +96,6 @@ public:
 	vector<DeviceDescriptor> localDevs;
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 
-	//mutex jmMutex;
-	//condition_variable jmEvent;
 	unique_ptr<WorkerThread> jobManager = nullptr;
 	list<shared_ptr<RRPacket>> jobs;
 
@@ -109,6 +117,7 @@ public:
 	unique_ptr<WorkerThread> createServerThread(DeviceDescriptor servDev);
 	void createJobManager();
 
+	void pauseWorkerThreads();
 	void killWorkerThreads();
 
 	bool createTorrent(const string& name, const vector<string>& files);
@@ -123,6 +132,7 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 
+	void pauseServerThreads();
 	void killServers();
 	void killJobManager();
 
