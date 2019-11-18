@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <random>
 #include <errno.h>
 #include "utils.h"
 
@@ -145,4 +146,12 @@ char* Utils::hexToBytes(const string& strhex, int* size){
 	*size = bufSize;
 
 	return  buf;
+}
+
+int Utils::grnd(int min, int max)
+{
+	std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist(min, max); // distribution in range [1, 6]
+    return dist(rng);
 }

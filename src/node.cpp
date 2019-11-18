@@ -42,11 +42,19 @@ void Node::scanForDevs()
 	this->local2remote.clear();
 	this->remoteStatus.clear();
 	vector<DeviceDescriptor> remoteDevs;
-	for (auto devDes : this->localDevs){
-		BTDevice dev{devDes};
+	for (auto local : this->localDevs){
+		BTDevice dev{local};
 		dev.findNearbyDevs(remoteDevs);
-		this->local2remote[devDes] = remoteDevs;
+		this->local2remote[local] = remoteDevs;
 		for (auto remote : remoteDevs){
+			if (remote2local.find(remote) == remote2local.end()){
+				vector<DeviceDescriptor> locals{local};
+				remote2local[remote] = locals;
+			}
+			else{
+				remote2local[remote].push_back(local);
+			}
+
 			this->remoteStatus[remote] = READY;
 		}
 		remoteDevs.clear();
@@ -54,9 +62,15 @@ void Node::scanForDevs()
 
 	// TODO: remove local devs from nearby devs
 	for (auto it = this->local2remote.begin(); it != this->local2remote.end(); it++){
-		cout << "Local Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
+		cout << "--Local Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
 		for (auto remote :  it->second)
-			cout << "\t Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
+			cout << "\t --Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
+	}
+
+	for (auto it = this->remote2local.begin(); it != this->remote2local.end(); it++){
+		cout << "++Remote Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
+		for (auto local :  it->second)
+			cout << "\t ++Remote Devs: " << local.addr << " " << local.devID << " " << local.name << endl;
 	}
 }
 
@@ -122,16 +136,18 @@ void Node::processRequest(const Message& req, Message& rsp)
 unique_ptr<Node::WorkerThread> Node::createServerThread(DeviceDescriptor servDev)
 {
 	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
+	auto event = make_shared<SyncEvent>();
 	auto tServer = make_unique<thread>(
-		[this, servDev, status]
+		[this, servDev, status, event]
 		{
-			serverThread(servDev, status);
+			serverThread(servDev, status, event);
 		});
 	return make_unique<WorkerThread>(move(tServer), status);
 }
 
 
-void Node::serverThread(DeviceDescriptor devDes, shared_ptr<atomic<Node::WorkerThread::Status>> status)
+void Node::serverThread(DeviceDescriptor devDes, 
+	shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
 {
 	Message req;
 	Message rsp;
@@ -175,19 +191,24 @@ void Node::createJobManager()
 unique_ptr<Node::WorkerThread> Node::createJobManagerThread()
 {
 	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::ACTIVE);
+	auto event = make_shared<SyncEvent>();
 	auto tJobManager = make_unique<thread>(
-		[this, status]
+		[this, status, event]
 		{
-			jobManagerThread(status);
+			jobManagerThread(status, event);
 		});
-	return make_unique<WorkerThread>(move(tJobManager), status);
+	return make_unique<WorkerThread>(move(tJobManager), status, event);
 }
 
-void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> status)
+void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
 {
 	do{
-		unique_lock<std::mutex> lock(jmMutex);
-		jmEvent.wait(lock, [this, &status]{return !this->jobs.empty() || *status == Node::WorkerThread::KILL;});
+		unique_lock<std::mutex> lock(event->m);
+		event->cv.wait(lock, 
+			[this, &status]
+			{
+				return (!this->jobs.empty() && *status != Node::WorkerThread::PAUSE) || *status == Node::WorkerThread::KILL;
+			});
 		if (this->jobs.size() > 0){
 			cout << "Job manager: has items " << this->jobs.size() << endl;
 			shared_ptr<RRPacket> req = jobs.front();
@@ -225,16 +246,13 @@ void Node::killServers()
 void Node::killJobManager()
 {
 	if (this->jobManager){
-		{
-			std::unique_lock<std::mutex> lock(this->jmMutex);
-			this->jobManager->kill();
-			lock.unlock();
-			this->jmEvent.notify_one();
-		}
+		std::unique_lock<std::mutex> lock(this->jobManager->event->m);
+		this->jobManager->kill();
+		lock.unlock();
+		this->jobManager->event->cv.notify_one();
 		this->jobManager->close();
 	}
 }
-
 
 bool Node::createTorrent(const string& name, const vector<string>& files)
 {
@@ -244,22 +262,29 @@ bool Node::createTorrent(const string& name, const vector<string>& files)
 
 int Node::listNearbyTorrents(const vector<string>& addrs)
 {
-	vector<DeviceDescriptor> devs;
+	unordered_set<DeviceDescriptor> devs;
 	for (auto addr : addrs){
 		DeviceDescriptor dev{addr};
-		devs.push_back(dev);
+		devs.insert(dev);
 	}
 
 	if (devs.empty()){
-		unordered_set<DeviceDescriptor> searched;
-		for(auto const& [key, val] : this->local2remote)
+		for(auto const& [key, val] : this->remote2local)
 		{
-			for (auto const& remoteDev : val){
-				if (searched.find(remoteDev) == searched.end()){
-					// either add these the job queue or store them in an intermediary qeue before the job queue
-					auto req = make_shared<TorrentListReq>(remoteDev, key);
-					searched.insert(remoteDev);
-				}
+			int index = Utils::grnd(0, val.size()-1);
+			// either add these the job queue or store them in an intermediary queue before the job queue
+			auto req = make_shared<TorrentListReq>(key, val[index]);
+		}
+	}
+	else{
+		for (auto dev : devs){
+			auto keyVal = this->remote2local.find(dev);
+			if (keyVal != this->remote2local.end()){
+				auto remote = keyVal->first;
+				auto locals = keyVal->second;
+				int index = Utils::grnd(0, locals.size()-1);
+				// either add these the job queue or store them in an intermediary queue before the job queue
+				auto req = make_shared<TorrentListReq>(remote, locals[index]);
 			}
 		}
 	}

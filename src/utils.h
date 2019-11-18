@@ -28,6 +28,9 @@ class Utils{
 		static string bytesToHex(char* bytes, int len);
 		static unsigned int value(char c);
 		static char* hexToBytes(const string& strhex, int* size);
+
+		// random numbers
+		static int grnd(int min, int max);
 };
 
 #endif

@@ -3,6 +3,7 @@
 #include <mutex>
 #include <list>
 #include <condition_variable>
+#include "eventSync.h"
 
 using namespace std;
 
@@ -19,6 +20,7 @@ private:
 	};
 	
 	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
+	map<DeviceDescriptor, vector<DeviceDescriptor>> remote2local;
 	map<DeviceDescriptor, DevStatus> remoteStatus;
 	
 
@@ -40,6 +42,13 @@ public:
 		{
 			this->t = move(t);
 			this->status = status;
+		}
+
+		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event) 
+		{
+			this->t = move(t);
+			this->status = status;
+			this->event = event;
 		}
 
 		void activate()
@@ -69,15 +78,16 @@ public:
 		}
 
 		unique_ptr<thread> t = nullptr;
-		shared_ptr<atomic<Status>> status;
+		shared_ptr<atomic<Status>> status = nullptr;
+		shared_ptr<SyncEvent> event = nullptr;
 	};
 
 
 	vector<DeviceDescriptor> localDevs;
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 
-	mutex jmMutex;
-	condition_variable jmEvent;
+	//mutex jmMutex;
+	//condition_variable jmEvent;
 	unique_ptr<WorkerThread> jobManager = nullptr;
 	list<shared_ptr<RRPacket>> jobs;
 
@@ -108,9 +118,10 @@ private:
 	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 
-	void serverThread(DeviceDescriptor dev, shared_ptr<atomic<WorkerThread::Status>> status);
+	void serverThread(DeviceDescriptor devDes, 
+		shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 	unique_ptr<WorkerThread> createJobManagerThread();
-	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status);
+	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 
 	void killServers();
 	void killJobManager();
