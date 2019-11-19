@@ -25,6 +25,16 @@ RRPacket::RRPacket(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& l
 	this->req = req;
 }
 
+DeviceDescriptor RRPacket::getLocalAddr() const
+{
+	return this->localAddr;
+}
+
+DeviceDescriptor RRPacket::getRemoteAddr() const
+{
+	return this->remoteAddr;
+}
+
 Message RRPacket::getReq()
 {
 	return this->req;

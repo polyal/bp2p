@@ -117,13 +117,11 @@ public:
 	void findLocalDevs();
 	void scanForDevs();
 
-	void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
+	/*void requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp);
 	void requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, Message& rsp);
 	void requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
-		const string& torrentName, const int chunkNum, Message& rsp);
-
-	void processRequest(const Message& req, Message& rsp);
+		const string& torrentName, const int chunkNum, Message& rsp);*/
 
 	unique_ptr<WorkerThread> createServerThread(DeviceDescriptor servDev);
 	void createJobManager();
@@ -136,8 +134,10 @@ public:
 	int listNearbyTorrents(const vector<string>& addrs);
 
 private:
-	void sendRequestWait4Response(RRPacket& req, Message& rsp, 
+	void carryOutRequest(RRPacket& req);
+	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
+	void processRequest(const Message& req, Message& rsp);
 
 	void serverThread(DeviceDescriptor devDes, 
 		shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event);

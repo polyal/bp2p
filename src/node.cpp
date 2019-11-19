@@ -74,7 +74,7 @@ void Node::scanForDevs()
 	}
 }
 
-void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
+/*void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
 {
 	TorrentListReq req;
 	req.createRequest();
@@ -98,17 +98,23 @@ void Node::requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& 
 	req.createRequest();
 	sendRequestWait4Response(req, rsp, client, server);
 	req.processResponse(rsp);
+}*/
+
+void Node::carryOutRequest(RRPacket& req)
+{
+	Message rsp;
+	req.createRequest();
+	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
+	req.processResponse(rsp);
 }
 
-void Node::sendRequestWait4Response(RRPacket& req, Message& rsp, 
+void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
 	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
 {
 	BTDevice client{clientDes};
-	Message msg{req.getReq()};
-
 	try{
 		client.connect2Device(serverDes);
-		client.sendReqWait4Resp(msg, rsp);
+		client.sendReqWait4Resp(req, rsp);
 	}
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
@@ -222,10 +228,10 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 			shared_ptr<RRPacket> req = jobs.front();
 			if (req){
 				cout << "Job Manager: not NULL" << endl;
-				Message rsp;
-				req->createRequest();
+				carryOutRequest(*req);
+				/*req->createRequest();
 				sendRequestWait4Response(*req, rsp, this->localDevs[1], this->localDevs[0]);
-				req->processResponse(rsp);
+				req->processResponse(rsp);*/
 				jobs.pop_front();
 			}
 		}
@@ -260,6 +266,7 @@ void Node::pauseWorkerThreads()
 {
 	pauseServerThreads();
 	pauseJobManager();
+	this_thread::sleep_for (std::chrono::seconds(BTChannel::getTimeout())); 
 }
 
 void Node::pauseServerThreads()
@@ -313,13 +320,17 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		DeviceDescriptor dev{addr};
 		devs.insert(dev);
 	}
-
+	pauseWorkerThreads();
+	cout << "1" << endl;
+	map<DeviceDescriptor, vector<string>> nearbyTorrents;
 	if (devs.empty()){
 		for(auto const& [key, val] : this->remote2local)
 		{
 			int index = Utils::grnd(0, val.size()-1);
 			// either add these the job queue or store them in an intermediary queue before the job queue
-			auto req = make_shared<TorrentListReq>(key, val[index]);
+			TorrentListReq req{key, val[index]};
+			carryOutRequest(req);
+			nearbyTorrents[key] = req.getTorrentList();
 		}
 	}
 	else{
@@ -330,9 +341,18 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 				auto locals = keyVal->second;
 				int index = Utils::grnd(0, locals.size()-1);
 				// either add these the job queue or store them in an intermediary queue before the job queue
-				auto req = make_shared<TorrentListReq>(remote, locals[index]);
+				TorrentListReq req{remote, locals[index]};
+				carryOutRequest(req);
+				nearbyTorrents[remote] = req.getTorrentList();
 			}
 		}
+	}
+	activateWorkerThreads();
+	for (auto const&  [key, val] : nearbyTorrents){
+		cout << key.addr << "\n\t";
+		for (auto const& tor : val)
+			cout << tor << " ";
+		cout << endl;
 	}
 	return 0;
 }

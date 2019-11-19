@@ -10,8 +10,6 @@ using namespace std;
 class TorrentListReq : public RRPacket 
 {
 public:
-	vector<string> torrentList;
-
 	TorrentListReq();
 	TorrentListReq(const Message& req);
 	TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
@@ -21,12 +19,13 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
-private:
-	void processResponse();
+	vector<string> getTorrentList() const;
 
+private:
+	vector<string> torrentList;
+	void processResponse();
 	void getTorrentList(vector<string>& torrentNames);
 	void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
-
 	void parseTorrentList(const string& resp, vector<string>& torrentList);
 };
 

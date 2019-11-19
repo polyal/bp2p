@@ -57,6 +57,8 @@ public:
 	void closeRemote();
 	void close();
 
+	static int getTimeout();
+
 protected:
 	void write(int sock);
 	void read(int sock);

@@ -84,3 +84,8 @@ void TorrentListReq::parseTorrentList(const string& rsp, vector<string>& torrent
 {
 	Utils::tokenize(rsp, commSeparator, torrentList);
 }
+
+vector<string> TorrentListReq::getTorrentList() const
+{
+	return torrentList;
+}

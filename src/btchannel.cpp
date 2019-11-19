@@ -291,6 +291,10 @@ void BTChannel::close(int& sock)
     }
 }
 
+int BTChannel::getTimeout()
+{
+    return timeout;
+}
 
 #if DEBUG == 1
 int main()

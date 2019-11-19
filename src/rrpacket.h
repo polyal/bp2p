@@ -34,6 +34,9 @@ public:
 	RRPacket(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
 	RRPacket(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 
+	DeviceDescriptor getLocalAddr() const;
+	DeviceDescriptor getRemoteAddr() const;
+
 	Message getReq();
 	Message getRsp();
 
