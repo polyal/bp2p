@@ -46,6 +46,12 @@ void Node::scanForDevs()
 		BTDevice dev{local};
 		dev.findNearbyDevs(remoteDevs);
 		this->local2remote[local] = remoteDevs;
+		// remove local devs from scan
+		vector<DeviceDescriptor> localDevsCopy = this->localDevs;
+		for (auto& locDev : localDevsCopy){
+			if (find(remoteDevs.begin(), remoteDevs.end(), locDev) != remoteDevs.end())
+		   		remoteDevs.erase(remove(remoteDevs.begin(), remoteDevs.end(), locDev), remoteDevs.end());
+		}
 		for (auto remote : remoteDevs){
 			if (remote2local.find(remote) == remote2local.end()){
 				vector<DeviceDescriptor> locals{local};
@@ -54,19 +60,16 @@ void Node::scanForDevs()
 			else{
 				remote2local[remote].push_back(local);
 			}
-
 			this->remoteStatus[remote] = READY;
 		}
 		remoteDevs.clear();
 	}
 
-	// TODO: remove local devs from nearby devs
 	for (auto it = this->local2remote.begin(); it != this->local2remote.end(); it++){
 		cout << "--Local Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
 		for (auto remote :  it->second)
 			cout << "\t --Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
 	}
-
 	for (auto it = this->remote2local.begin(); it != this->remote2local.end(); it++){
 		cout << "++Remote Dev: " << it->first.addr << " " << it->first.devID << " " << it->first.name << endl;
 		for (auto local :  it->second)
