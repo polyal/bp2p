@@ -1,12 +1,7 @@
 #include <iostream>
-#include <memory>
-#include <string>
-#include <vector>
 #include <fstream>
-#include <thread>
 #include <utility>
 #include <unordered_set>
-#include "utils.h"
 #include "btdevice.h"
 #include "torrentFileReq.h"
 #include "torrentListReq.h"

@@ -1,8 +1,14 @@
+#include <vector>
 #include <atomic>
-#include <memory>
-#include <mutex>
 #include <list>
-#include <condition_variable>
+#include <map>
+#include <string>
+#include <algorithm>
+#include <memory>
+#include <thread>
+#include "deviceDescriptor.h"
+#include "rrpacket.h"
+#include "utils.h"
 #include "eventSync.h"
 
 using namespace std;
@@ -14,8 +20,9 @@ public:
 	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
 	inline static const string quitCmd = "-q";
 
-	struct WorkerThread
+	class WorkerThread
 	{
+	public:
 		enum Status
 		{
 			ACTIVE,
@@ -23,69 +30,20 @@ public:
 			KILL
 		};
 
-		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
-		{
-			this->t = move(t);
-			this->status = status;
-		}
+		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status);
+		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event);
 
-		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event) 
-		{
-			this->t = move(t);
-			this->status = status;
-			this->event = event;
-		}
+		void activate();
+		void pause();
+		void kill();
+		void close();
 
-		void activate()
-		{
-			if (this->event){
-				std::unique_lock<std::mutex> lock(this->event->m);
-				setStatus(ACTIVE);
-				lock.unlock();
-				this->event->cv.notify_one();
-			}
-			else
-				setStatus(ACTIVE);
-		}
-
-		void pause()
-		{
-			if (this->event){
-				std::unique_lock<std::mutex> lock(this->event->m);
-				setStatus(PAUSE);
-				lock.unlock();
-				this->event->cv.notify_one();
-			}
-			else
-				setStatus(PAUSE);
-		}
-
-		void kill()
-		{
-			if (this->event){
-				std::unique_lock<std::mutex> lock(this->event->m);
-				setStatus(KILL);
-				lock.unlock();
-				this->event->cv.notify_one();
-			}
-			else
-				setStatus(KILL);
-		}
-
-		void setStatus(Status status)
-		{
-			*this->status = status;
-		}
-
-		void close()
-		{
-			kill();
-			if (this->t) this->t->join();
-		}
-
+	protected:
 		unique_ptr<thread> t = nullptr;
 		shared_ptr<atomic<Status>> status = nullptr;
 		shared_ptr<SyncEvent> event = nullptr;
+
+		void setStatus(Status status);
 	};
 
 	Node();
@@ -169,8 +127,8 @@ public:
 	void parse(const string& cmd, vector<string>& args)
 	{
 		Utils::tokenize(cmd, " ", args);
-		args.erase(std::remove(args.begin(), args.end(), ""), args.end());
-		args.erase(std::remove(args.begin(), args.end(), "\n"), args.end());
+		args.erase(remove(args.begin(), args.end(), ""), args.end());
+		args.erase(remove(args.begin(), args.end(), "\n"), args.end());
 		this->cmd  = cmd;
 		this->args = args;
 	}

@@ -7,7 +7,7 @@ incl = -Ilib/json/include
 
 
 default: utils device torrent rrpacket
-	$(compile) src/node.cpp \
+	$(compile) src/node.cpp src/workerThread.cpp \
 	$(incl) \
 	-o out/a.out \
 	out/btdevice.o out/btchannel.o \
