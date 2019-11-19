@@ -9,21 +9,6 @@ using namespace std;
 
 class Node
 {
-private:
-	inline static const string cli = "bp2p> ";
-
-	enum DevStatus
-	{
-		READY,
-		BUSY,
-		INACTIVE
-	};
-	
-	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
-	map<DeviceDescriptor, vector<DeviceDescriptor>> remote2local;
-	map<DeviceDescriptor, DevStatus> remoteStatus;
-	
-
 public:
 	inline static const string createTorCmd = "-ct";    // create torrent
 	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
@@ -103,13 +88,6 @@ public:
 		shared_ptr<SyncEvent> event = nullptr;
 	};
 
-
-	vector<DeviceDescriptor> localDevs;
-	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
-
-	unique_ptr<WorkerThread> jobManager = nullptr;
-	list<shared_ptr<RRPacket>> jobs;
-
 	Node();
 
 	static void printcli();
@@ -123,7 +101,7 @@ public:
 	void requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
 		const string& torrentName, const int chunkNum, Message& rsp);*/
 
-	unique_ptr<WorkerThread> createServerThread(DeviceDescriptor servDev);
+	void createServers();
 	void createJobManager();
 
 	void activateWorkerThreads();
@@ -134,16 +112,39 @@ public:
 	int listNearbyTorrents(const vector<string>& addrs);
 
 private:
+	inline static const string cli = "bp2p> ";
+
+	enum DevStatus
+	{
+		READY,
+		BUSY,
+		INACTIVE
+	};
+
+	vector<DeviceDescriptor> localDevs;	
+	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
+	map<DeviceDescriptor, vector<DeviceDescriptor>> remote2local;
+	map<DeviceDescriptor, DevStatus> remoteStatus;
+
+	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
+	unique_ptr<WorkerThread> jobManager = nullptr;
+	list<shared_ptr<RRPacket>> jobs;
+
+
+	// request/response
 	void carryOutRequest(RRPacket& req);
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 	void processRequest(const Message& req, Message& rsp);
 
+	// server/client init
+	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);
 	void serverThread(DeviceDescriptor devDes, 
 		shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
 
+	// server/client control
 	void activateServerThreads();
 	void activateJobManager();
 	void pauseServerThreads();

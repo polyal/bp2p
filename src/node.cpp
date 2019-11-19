@@ -142,7 +142,14 @@ void Node::processRequest(const Message& req, Message& rsp)
 	}
 }
 
-unique_ptr<Node::WorkerThread> Node::createServerThread(DeviceDescriptor servDev)
+void Node::createServers()
+{
+	for (auto const& dev : this->localDevs){
+		this->servers[dev] = createServerThread(dev);	
+	}
+}
+
+unique_ptr<Node::WorkerThread> Node::createServerThread(const DeviceDescriptor& servDev)
 {
 	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
 	auto event = make_shared<SyncEvent>();
@@ -361,8 +368,7 @@ int main(int argc, char *argv[]){
 	cout << "done. " << endl << endl;
 
 	// create server
-	DeviceDescriptor serverDes = myNode.localDevs[0];
-	myNode.servers[serverDes] = myNode.createServerThread(serverDes);
+	myNode.createServers();	
 	myNode.createJobManager();
 
 	string in;
