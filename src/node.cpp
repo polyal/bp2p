@@ -358,16 +358,6 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 }
 
 int main(int argc, char *argv[]){
-	// creating a new torrent
-	/*string torrentName {"larger"};
-	string file1 {"test/test1"};
-	string file2 {"test/test2"};
-	string file3 {"test/test3"};
-	string file4 {"test/large"};
-	vector<string> files{file1, file2, file3, file4};
-	Torrent t {torrentName, files};
-	t.create();*/
-
 	cout << "hello!" << endl;
 	cout << "scanning for devices..." << endl;
 	Node myNode;
