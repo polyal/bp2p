@@ -231,9 +231,6 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 			if (req){
 				cout << "Job Manager: not NULL" << endl;
 				carryOutRequest(*req);
-				/*req->createRequest();
-				sendRequestWait4Response(*req, rsp, this->localDevs[1], this->localDevs[0]);
-				req->processResponse(rsp);*/
 				jobs.pop_front();
 			}
 		}
@@ -327,7 +324,6 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		for(auto const& [key, val] : this->remote2local)
 		{
 			int index = Utils::grnd(0, val.size()-1);
-			// either add these the job queue or store them in an intermediary queue before the job queue
 			TorrentListReq req{key, val[index]};
 			carryOutRequest(req);
 			nearbyTorrents[key] = req.getTorrentList();
@@ -340,7 +336,6 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 				auto remote = keyVal->first;
 				auto locals = keyVal->second;
 				int index = Utils::grnd(0, locals.size()-1);
-				// either add these the job queue or store them in an intermediary queue before the job queue
 				TorrentListReq req{remote, locals[index]};
 				carryOutRequest(req);
 				nearbyTorrents[remote] = req.getTorrentList();
