@@ -196,7 +196,6 @@ void Node::serverThread(DeviceDescriptor devDes,
 
 		req.clear();
 		rsp.clear();
-		cout << "Server Status: " << *status << endl;
 	} while (*status != Node::WorkerThread::Status::KILL);
 }
 
@@ -239,7 +238,6 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 			}
 		}
 		lock.unlock();
-		cout << "Job Manager status: " << *status << endl;
 		this_thread::sleep_for (std::chrono::milliseconds(20));
 	} while(*status != Node::WorkerThread::Status::KILL);
 }
@@ -324,7 +322,6 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		devs.insert(dev);
 	}
 	pauseWorkerThreads();
-	cout << "1" << endl;
 	map<DeviceDescriptor, vector<string>> nearbyTorrents;
 	if (devs.empty()){
 		for(auto const& [key, val] : this->remote2local)
