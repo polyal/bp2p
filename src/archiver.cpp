@@ -4,6 +4,12 @@
 #include <fstream>
 #include "archiver.h"
 
+#if __GNUC__
+#if __x86_64__ || __ppc64__
+#define ENV64
+#endif
+#endif
+
 #define DEBUG 0
 
 Archiver::Archiver()
@@ -146,7 +152,11 @@ int Archiver::copyArchive(struct archive *ar, struct archive *aw)
     int r;
     const void *buff;
     size_t size;
+#ifdef ENV64
     off_t offset;
+#else
+    long long int offset;
+#endif
 
     for (;;) {
         r = archive_read_data_block(ar, &buff, &size, &offset);
