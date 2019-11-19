@@ -30,6 +30,7 @@ public:
 			KILL
 		};
 
+		template <class Fn, class... Args> WorkerThread(Fn&& fn, Args&&... args);
 		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status);
 		WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event);
 

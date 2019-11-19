@@ -2,6 +2,14 @@
 
 using namespace std;
 
+template <class Fn, class... Args>
+Node::WorkerThread::WorkerThread(Fn&& fn, Args&&... args) 
+{
+	this->status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
+	this->event = make_shared<SyncEvent>();
+	this->t = make_unique<thread>(fn, args...);
+}
+
 Node::WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
 {
 	this->t = move(t);
