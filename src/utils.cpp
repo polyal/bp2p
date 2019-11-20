@@ -157,7 +157,7 @@ int Utils::grnd(int min, int max)
 }
 
 template <class T>
-unordered_set<T> Utils::filterDuplicates(const vector<T> list)
+unordered_set<T> Utils::filterDuplicates(const vector<T>& list)
 {
 	unordered_set<T> newItems;
 	for (auto const& item : list){

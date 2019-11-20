@@ -34,7 +34,7 @@ public:
 	static int grnd(int min, int max);
 
 	template <class T>
-	static unordered_set<T> filterDuplicates(const vector<T> list);
+	static unordered_set<T> filterDuplicates(const vector<T>& list);
 };
 
 #endif
