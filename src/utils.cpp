@@ -163,4 +163,5 @@ unordered_set<T> Utils::filterDuplicates(const vector<T>& list)
 	for (auto const& item : list){
 		newItems.insert(item);
 	}
+	return newItems;
 }
