@@ -33,10 +33,10 @@ public:
 	// random numbers
 	static int grnd(int min, int max);
 
-	template <typename T, typename H, typename P, typename A>
-	static unordered_set<T,H,P,A> filterDuplicates(const vector<T,A>& list)
+	template <typename T>
+	static unordered_set<T> filterDuplicates(const vector<T>& list)
 	{
-		unordered_set<T,H,P,A> newItems;
+		unordered_set<T> newItems;
 		for (auto const& item : list){
 			newItems.insert(item);
 		}
