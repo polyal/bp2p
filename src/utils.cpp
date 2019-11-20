@@ -155,13 +155,3 @@ int Utils::grnd(int min, int max)
     std::uniform_int_distribution<std::mt19937::result_type> dist(min, max); // distribution in range [1, 6]
     return dist(rng);
 }
-
-template <class T>
-unordered_set<T> Utils::filterDuplicates(const vector<T>& list)
-{
-	unordered_set<T> newItems;
-	for (auto const& item : list){
-		newItems.insert(item);
-	}
-	return newItems;
-}
