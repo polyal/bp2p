@@ -315,8 +315,9 @@ bool Node::createTorrent(const string& name, const vector<string>& files)
 
 int Node::listNearbyTorrents(const vector<string>& addrs)
 {
+	//auto addrSet = Utils::filterDuplicates<string>(addrs);
 	unordered_set<DeviceDescriptor> devs;
-	for (auto addr : addrs){
+	for (auto const& addr : addrs){
 		DeviceDescriptor dev{addr};
 		devs.insert(dev);
 	}
@@ -351,6 +352,22 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 			cout << tor << " ";
 		cout << endl;
 	}
+	return 0;
+}
+
+int Node::requestTorrentFile(const string& name, const string& addr)
+{
+	DeviceDescriptor dev{addr};
+	pauseWorkerThreads();
+	auto keyVal = this->remote2local.find(dev);
+	if (keyVal != this->remote2local.end()){
+		auto remote = keyVal->first;
+		auto locals = keyVal->second;
+		int index = Utils::grnd(0, locals.size()-1);
+		TorrentFileReq req{remote, locals[index], name};
+		carryOutRequest(req);
+	}
+	activateWorkerThreads();
 	return 0;
 }
 

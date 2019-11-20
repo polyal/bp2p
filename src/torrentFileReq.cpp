@@ -7,12 +7,30 @@ TorrentFileReq::TorrentFileReq()
 	this->torrentName = "";
 }
 
+TorrentFileReq::TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr)
+	: RRPacket(remoteAddr, localAddr)
+{
+	this->torrentName = "";
+}
+
 TorrentFileReq::TorrentFileReq(const Message& req) : RRPacket(req)
 {
 	this->torrentName = "";
 }
 
+TorrentFileReq::TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr,
+	const Message& req) : RRPacket(remoteAddr, localAddr, req)
+{
+	this->torrentName = "";
+}
+
 TorrentFileReq::TorrentFileReq(const string& torrentName)
+{
+	this->torrentName = torrentName;
+}
+
+TorrentFileReq::TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr,
+	const string& torrentName) : RRPacket(remoteAddr, localAddr) 
 {
 	this->torrentName = torrentName;
 }

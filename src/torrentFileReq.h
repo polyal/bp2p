@@ -11,8 +11,11 @@ class TorrentFileReq : public RRPacket
 {
 public:
 	TorrentFileReq();
+	TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
 	TorrentFileReq(const Message& req);
+	TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 	TorrentFileReq(const string& torrentName);
+	TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName);
 
 	void createRequest();
 	void processRequest();

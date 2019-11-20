@@ -69,6 +69,7 @@ public:
 
 	bool createTorrent(const string& name, const vector<string>& files);
 	int listNearbyTorrents(const vector<string>& addrs);
+	int requestTorrentFile(const string& name, const string& addr);
 
 private:
 	inline static const string cli = "bp2p> ";
