@@ -315,11 +315,11 @@ bool Node::createTorrent(const string& name, const vector<string>& files)
 
 int Node::listNearbyTorrents(const vector<string>& addrs)
 {
-	//auto addrSet = Utils::filterDuplicates<string>(addrs);
-	unordered_set<DeviceDescriptor> devs;
-	for (auto const& addr : addrs){
+	auto addrSet = Utils::filterDuplicates<string>(addrs);
+	vector<DeviceDescriptor> devs;
+	for (auto const& addr : addrSet){
 		DeviceDescriptor dev{addr};
-		devs.insert(dev);
+		devs.push_back(dev);
 	}
 	pauseWorkerThreads();
 	map<DeviceDescriptor, vector<string>> nearbyTorrents;
