@@ -17,6 +17,7 @@ struct DeviceDescriptor
 		this->addr = addr;
 		this->name = "";
 		this->devID = devID;
+		this->addr.resize(17);
 	}
 
 	DeviceDescriptor(const string& addr, const string& name, int devID = -1)
@@ -24,6 +25,7 @@ struct DeviceDescriptor
 		this->addr = addr;
 		this->name = name;
 		this->devID = devID;
+		this->addr.resize(17);
 	}
 
 	void create(const string& addr, int devID = -1)
@@ -31,6 +33,7 @@ struct DeviceDescriptor
 		this->addr = addr;
 		this->name = "";
 		this->devID = devID;
+		this->addr.resize(17);
 	}
 
 	void create(const string& addr, const string& name, int devID = -1)
@@ -38,6 +41,7 @@ struct DeviceDescriptor
 		this->addr = addr;
 		this->name = name;
 		this->devID = devID;
+		this->addr.resize(17);
 	}
 
 	DeviceDescriptor& operator=(const DeviceDescriptor& dev)
@@ -50,9 +54,7 @@ struct DeviceDescriptor
 
 	bool operator==(const DeviceDescriptor& dev) const
 	{
-		bool isEqual = false;
-		if (this->addr.compare(dev.addr) == 0) isEqual = true;
-	 	return isEqual;
+		return this->addr == dev.addr;
 	}
 
 	bool operator<(const DeviceDescriptor& dev) const
@@ -64,7 +66,7 @@ struct DeviceDescriptor
 	string name;
 	int devID = -1;
 
-	static const unsigned short addrLen = 18;
+	static const unsigned short addrLen = 17;
 	static const unsigned short maxNameLen = 256;
 	inline static const string uknownName = "[unknown]";
 };
