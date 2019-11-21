@@ -23,22 +23,34 @@ public:
 		this->t = make_unique<thread>(
 			[this, w]
 			{
-				workerLoop(w);		
+				workerLoop(w, defaultPredicate);		
+			});
+	}
+
+	template <typename Work, typename Predicate>
+	WorkerThread(Work w, Predicate p)
+	{
+		this->status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
+		this->event = make_shared<SyncEvent>();
+		this->t = make_unique<thread>(
+			[this, w, p]
+			{
+				workerLoop(w, p);		
 			});
 	}
 
 	WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status);
 	WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event);
 
-	template <typename Work>
-	void workerLoop(Work w)
+	template <typename Work, typename Predicate>
+	void workerLoop(Work w, Predicate p)
 	{
 		do{
 			unique_lock<std::mutex> lock(this->event->m);
 			event->cv.wait(lock, 
-				[this]
+				[this, p]
 				{
-					return (*this->status != PAUSE) || *this->status == KILL;
+					return (*this->status != PAUSE && !p()) || *this->status == KILL;
 				});
 
 			w();
@@ -59,5 +71,5 @@ protected:
 	shared_ptr<SyncEvent> event = nullptr;
 
 	void setStatus(Status status);
-}
-;
+	inline static bool defaultPredicate(){return false;};
+};
