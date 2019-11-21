@@ -70,10 +70,9 @@ private:
 
 	// server/client init
 	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);
-	void serverThread(DeviceDescriptor devDes, 
-		shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
+	void serverThread(DeviceDescriptor devDes);
 	unique_ptr<WorkerThread> createJobManagerThread();
-	void jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event);
+	void jobManagerThread();
 
 	// server/client control
 	void activateServerThreads();

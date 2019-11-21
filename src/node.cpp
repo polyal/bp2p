@@ -146,19 +146,14 @@ void Node::createServers()
 
 unique_ptr<WorkerThread> Node::createServerThread(const DeviceDescriptor& servDev)
 {
-	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
-	auto event = make_shared<SyncEvent>();
-	auto tServer = make_unique<thread>(
-		[this, servDev, status, event]
+	return make_unique<WorkerThread>(
+		[this, &servDev]
 		{
-			serverThread(servDev, status, event);
+			serverThread(servDev);
 		});
-	return make_unique<WorkerThread>(move(tServer), status, event);
 }
 
-
-void Node::serverThread(DeviceDescriptor devDes, 
-	shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
+void Node::serverThread(DeviceDescriptor devDes)
 {
 	Message req;
 	Message rsp;
@@ -167,38 +162,29 @@ void Node::serverThread(DeviceDescriptor devDes,
 	BTDevice dev{devDes};
 	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
 
-	do{
-		unique_lock<mutex> lock(event->m);
-		event->cv.wait(lock, 
-			[status]
-			{
-				return *status != WorkerThread::PAUSE;
-			});
-		lock.unlock();
-		try{
-			dev.initServer();
-			dev.listen4Req(client);
-			dev.fetchRequestData(req);
-			string strreq{req.data.begin(), req.data.end()};
-			cout << "SERVER --Request: " << strreq << endl;
-			processRequest(req, rsp);
-			//string strrsp{rsp.data.begin(), rsp.data.end()};
-			//cout << "Server Rsp " << strrsp << " " << rsp.size << endl;
-			dev.sendResponse(rsp);
-		}
-		catch(int e){
-			cout << "Caught Exception " << e << endl;
-		}
-		try{
-			dev.endComm();
-		}
-		catch(int e){
-			cout << "Caught Exception " << e << endl;
-		}
+	try{
+		dev.initServer();
+		dev.listen4Req(client);
+		dev.fetchRequestData(req);
+		string strreq{req.data.begin(), req.data.end()};
+		cout << "SERVER --Request: " << strreq << endl;
+		processRequest(req, rsp);
+		//string strrsp{rsp.data.begin(), rsp.data.end()};
+		//cout << "Server Rsp " << strrsp << " " << rsp.size << endl;
+		dev.sendResponse(rsp);
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
+	try{
+		dev.endComm();
+	}
+	catch(int e){
+		cout << "Caught Exception " << e << endl;
+	}
 
-		req.clear();
-		rsp.clear();
-	} while (*status != WorkerThread::Status::KILL);
+	req.clear();
+	rsp.clear();
 }
 
 void Node::createJobManager()
@@ -208,37 +194,29 @@ void Node::createJobManager()
 
 unique_ptr<WorkerThread> Node::createJobManagerThread()
 {
-	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::ACTIVE);
-	auto event = make_shared<SyncEvent>();
-	auto tJobManager = make_unique<thread>(
-		[this, status, event]
+	return make_unique<WorkerThread>(
+		[this]
 		{
-			jobManagerThread(status, event);
+			jobManagerThread();
+		},
+		[this]
+		{
+			return this->jobs.empty();
 		});
-	return make_unique<WorkerThread>(move(tJobManager), status, event);
 }
 
-void Node::jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
+void Node::jobManagerThread()
 {
-	do{
-		unique_lock<std::mutex> lock(event->m);
-		event->cv.wait(lock, 
-			[this, status]
-			{
-				return (!this->jobs.empty() && *status != WorkerThread::PAUSE) || *status == WorkerThread::KILL;
-			});
-		if (this->jobs.size() > 0){
-			cout << "Job manager: has items " << this->jobs.size() << endl;
-			shared_ptr<RRPacket> req = jobs.front();
-			if (req){
-				cout << "Job Manager: not NULL" << endl;
-				carryOutRequest(*req);
-				jobs.pop_front();
-			}
+	if (this->jobs.size() > 0){
+		cout << "Job manager: has items " << this->jobs.size() << endl;
+		shared_ptr<RRPacket> req = jobs.front();
+		if (req){
+			cout << "Job Manager: not NULL" << endl;
+			carryOutRequest(*req);
+			jobs.pop_front();
 		}
-		lock.unlock();
-		this_thread::sleep_for (std::chrono::milliseconds(20));
-	} while(*status != WorkerThread::Status::KILL);
+	}
+	this_thread::sleep_for (std::chrono::milliseconds(20));
 }
 
 void Node::activateWorkerThreads()
