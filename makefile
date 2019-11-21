@@ -6,7 +6,7 @@ libs = -lz -larchive -lcrypto -lbluetooth -pthread
 incl = -Ilib/json/include
 
 
-default: utils device torrent rrpacket
+default: utils torrent device rrpacket
 	$(compile) src/node.cpp src/workerThread.cpp \
 	$(incl) \
 	-o out/a.out \
