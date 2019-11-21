@@ -1,12 +1,5 @@
 #include "workerThread.h"
 
-template <class Fn, class... Args>
-WorkerThread::WorkerThread(Fn&& fn, Args&&... args) 
-{
-	this->status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
-	this->event = make_shared<SyncEvent>();
-	this->t = make_unique<thread>(fn, args...);
-}
 
 WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
 {
