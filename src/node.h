@@ -16,7 +16,8 @@ class Node
 public:
 	inline static const string createTorCmd = "-tc";       // create torrent
 	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
-	inline static const string requestTorCmd = "-tr";      // list nearby torrents
+	inline static const string requestTorCmd = "-tr";      // request torrent file command
+	inline static const string requestTorDataCmd = "-td";  // request torrent data command
 	inline static const string quitCmd = "-q";             // quit
 
 	Node();
@@ -42,6 +43,7 @@ public:
 	bool createTorrent(const string& name, const vector<string>& files);
 	int listNearbyTorrents(const vector<string>& addrs);
 	int requestTorrentFile(const string& name, const string& addr);
+	int requestTorrentData(const string& name);
 
 private:
 	inline static const string cli = "bp2p> ";

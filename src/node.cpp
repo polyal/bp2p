@@ -349,6 +349,11 @@ int Node::requestTorrentFile(const string& name, const string& addr)
 	return 0;
 }
 
+int Node::requestTorrentData(const string& name)
+{
+	return 0;
+}
+
 int main(int argc, char *argv[]){
 	cout << "hello!" << endl;
 	cout << "scanning for devices..." << endl;
