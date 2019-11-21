@@ -30,4 +30,5 @@ protected:
 	shared_ptr<SyncEvent> event = nullptr;
 
 	void setStatus(Status status);
-	};
+}
+;
