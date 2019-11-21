@@ -198,8 +198,7 @@ bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& de
 	if (!hci_test_bit(HCI_UP, &decOpt)) return false;
 
 	bdaddr_t bdaddr = {0};
-    vector<char> cAddr(18, 0);
-    vector<char> cName(249, 0);
+    vector<char> cAddr(DeviceDescriptor::addrLenWithNull, 0);
     
     hci_devba(devReq.dev_id, &bdaddr);
     ba2str(&bdaddr, cAddr.data());
@@ -258,7 +257,7 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 	string name;
     readRemoteName(name, inqInf.bdaddr);
 
-    vector<char> cAddr(DeviceDescriptor::addrLen, 0);
+    vector<char> cAddr(DeviceDescriptor::addrLenWithNull, 0);
     ba2str(&inqInf.bdaddr, cAddr.data());
     string addr{cAddr.begin(), cAddr.end()};
     
@@ -268,9 +267,9 @@ int BTDevice::inqInf2DevDes(DeviceDescriptor& dev, const inquiry_info& inqInf)
 
 void BTDevice::readLocalName(string& name, int devID)
 {
-	vector<char> cName(249, 0);
+	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
 	int sock2dev = hci_open_dev(devID);
-    hci_read_local_name(sock2dev, 249, cName.data(), 0);
+    hci_read_local_name(sock2dev, cName.size(), cName.data(), 0);
     if (sock2dev >= 0) ::close(sock2dev);
     transform(cName.begin(), cName.end(), back_inserter(name),
                [](char c) {
