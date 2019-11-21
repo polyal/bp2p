@@ -383,6 +383,17 @@ int main(int argc, char *argv[]){
 					copy(args.begin()+1, args.end(), back_inserter(addr));
 				myNode.listNearbyTorrents(addr);
 			}
+			else if (args[0].compare(Node::requestTorCmd) == 0){
+				string name, addr;
+				if (args.size() > 2){
+					name = args[1];
+					addr = args[2];
+					myNode.requestTorrentFile(name, addr);
+				}
+				else{
+					cout << "Usage: ./bp2p.exe -tr [name] [addr]" << endl;
+				}
+			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
 			else if(args[0].compare("-p") == 0){

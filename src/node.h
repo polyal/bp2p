@@ -14,9 +14,10 @@ using namespace std;
 class Node
 {
 public:
-	inline static const string createTorCmd = "-ct";    // create torrent
+	inline static const string createTorCmd = "-tc";       // create torrent
 	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
-	inline static const string quitCmd = "-q";
+	inline static const string requestTorCmd = "-tr";      // list nearby torrents
+	inline static const string quitCmd = "-q";             // quit
 
 	Node();
 
