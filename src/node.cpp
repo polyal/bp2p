@@ -48,12 +48,12 @@ void Node::scanForDevs()
 		   		remoteDevs.erase(remove(remoteDevs.begin(), remoteDevs.end(), locDev), remoteDevs.end());
 		}
 		for (auto const& remote : remoteDevs){
-			if (remote2local.find(remote) == remote2local.end()){
+			if (this->remote2local.find(remote) == this->remote2local.end()){
 				vector<DeviceDescriptor> locals{local};
-				remote2local[remote] = locals;
+				this->remote2local[remote] = locals;
 			}
 			else{
-				remote2local[remote].push_back(local);
+				this->remote2local[remote].push_back(local);
 			}
 			this->remoteStatus[remote] = READY;
 		}
