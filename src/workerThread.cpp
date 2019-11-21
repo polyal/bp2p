@@ -1,29 +1,27 @@
-#include "node.h"
-
-using namespace std;
+#include "workerThread.h"
 
 template <class Fn, class... Args>
-Node::WorkerThread::WorkerThread(Fn&& fn, Args&&... args) 
+WorkerThread::WorkerThread(Fn&& fn, Args&&... args) 
 {
 	this->status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
 	this->event = make_shared<SyncEvent>();
 	this->t = make_unique<thread>(fn, args...);
 }
 
-Node::WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
+WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status) 
 {
 	this->t = move(t);
 	this->status = status;
 }
 
-Node::WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event) 
+WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> status, shared_ptr<SyncEvent> event) 
 {
 	this->t = move(t);
 	this->status = status;
 	this->event = event;
 }
 
-void Node::WorkerThread::activate()
+void WorkerThread::activate()
 {
 	if (this->event){
 		std::unique_lock<std::mutex> lock(this->event->m);
@@ -35,7 +33,7 @@ void Node::WorkerThread::activate()
 	setStatus(ACTIVE);
 }
 
-void Node::WorkerThread::pause()
+void WorkerThread::pause()
 {
 	if (this->event){
 		std::unique_lock<std::mutex> lock(this->event->m);
@@ -47,7 +45,7 @@ void Node::WorkerThread::pause()
 		setStatus(PAUSE);
 }
 
-void Node::WorkerThread::kill()
+void WorkerThread::kill()
 {
 	if (this->event){
 		std::unique_lock<std::mutex> lock(this->event->m);
@@ -59,13 +57,13 @@ void Node::WorkerThread::kill()
 		setStatus(KILL);
 }
 
-void Node::WorkerThread::close()
+void WorkerThread::close()
 {
 	kill();
 	if (this->t) this->t->join();
 }
 
-void Node::WorkerThread::setStatus(Status status)
+void WorkerThread::setStatus(Status status)
 {
 	*this->status = status;
 }

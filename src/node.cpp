@@ -144,7 +144,7 @@ void Node::createServers()
 	}
 }
 
-unique_ptr<Node::WorkerThread> Node::createServerThread(const DeviceDescriptor& servDev)
+unique_ptr<WorkerThread> Node::createServerThread(const DeviceDescriptor& servDev)
 {
 	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::Status::ACTIVE);
 	auto event = make_shared<SyncEvent>();
@@ -158,7 +158,7 @@ unique_ptr<Node::WorkerThread> Node::createServerThread(const DeviceDescriptor& 
 
 
 void Node::serverThread(DeviceDescriptor devDes, 
-	shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
+	shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
 {
 	Message req;
 	Message rsp;
@@ -168,11 +168,11 @@ void Node::serverThread(DeviceDescriptor devDes,
 	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
 
 	do{
-		unique_lock<std::mutex> lock(event->m);
+		unique_lock<mutex> lock(event->m);
 		event->cv.wait(lock, 
 			[status]
 			{
-				return *status != Node::WorkerThread::PAUSE;
+				return *status != WorkerThread::PAUSE;
 			});
 		lock.unlock();
 		try{
@@ -198,7 +198,7 @@ void Node::serverThread(DeviceDescriptor devDes,
 
 		req.clear();
 		rsp.clear();
-	} while (*status != Node::WorkerThread::Status::KILL);
+	} while (*status != WorkerThread::Status::KILL);
 }
 
 void Node::createJobManager()
@@ -206,7 +206,7 @@ void Node::createJobManager()
 	this->jobManager = createJobManagerThread();
 }
 
-unique_ptr<Node::WorkerThread> Node::createJobManagerThread()
+unique_ptr<WorkerThread> Node::createJobManagerThread()
 {
 	auto status = make_shared<atomic<WorkerThread::Status>>(WorkerThread::ACTIVE);
 	auto event = make_shared<SyncEvent>();
@@ -218,14 +218,14 @@ unique_ptr<Node::WorkerThread> Node::createJobManagerThread()
 	return make_unique<WorkerThread>(move(tJobManager), status, event);
 }
 
-void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
+void Node::jobManagerThread(shared_ptr<atomic<WorkerThread::Status>> status, shared_ptr<SyncEvent> event)
 {
 	do{
 		unique_lock<std::mutex> lock(event->m);
 		event->cv.wait(lock, 
 			[this, status]
 			{
-				return (!this->jobs.empty() && *status != Node::WorkerThread::PAUSE) || *status == Node::WorkerThread::KILL;
+				return (!this->jobs.empty() && *status != WorkerThread::PAUSE) || *status == WorkerThread::KILL;
 			});
 		if (this->jobs.size() > 0){
 			cout << "Job manager: has items " << this->jobs.size() << endl;
@@ -238,7 +238,7 @@ void Node::jobManagerThread(shared_ptr<atomic<Node::WorkerThread::Status>> statu
 		}
 		lock.unlock();
 		this_thread::sleep_for (std::chrono::milliseconds(20));
-	} while(*status != Node::WorkerThread::Status::KILL);
+	} while(*status != WorkerThread::Status::KILL);
 }
 
 void Node::activateWorkerThreads()
