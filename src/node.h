@@ -54,11 +54,19 @@ private:
 		BUSY,
 		INACTIVE
 	};
-
 	vector<DeviceDescriptor> localDevs;	
 	map<DeviceDescriptor, vector<DeviceDescriptor>> local2remote;
 	map<DeviceDescriptor, vector<DeviceDescriptor>> remote2local;
 	map<DeviceDescriptor, DevStatus> remoteStatus;
+
+	enum chunkStatus
+	{
+		HAVE,
+		NEED,
+		REQUESTING
+	};
+	map<string, vector<DeviceDescriptor>> torName2dev;
+	map<DeviceDescriptor, unordered_set<chunkStatus>> dev2chunks;
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;
@@ -76,6 +84,9 @@ private:
 	void serverThread(DeviceDescriptor devDes);
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread();
+
+	void requestAllNearbyTorrents();
+	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 
 	// server/client control
 	void activateServerThreads();

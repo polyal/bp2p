@@ -299,38 +299,49 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		DeviceDescriptor dev{addr};
 		devs.push_back(dev);
 	}
-	pauseWorkerThreads();
-	map<DeviceDescriptor, vector<string>> nearbyTorrents;
 	if (devs.empty()){
-		for(auto const& [key, val] : this->remote2local)
-		{
-			int index = Utils::grnd(0, val.size()-1);
-			TorrentListReq req{key, val[index]};
-			carryOutRequest(req);
-			nearbyTorrents[key] = req.getTorrentList();
-		}
+		requestAllNearbyTorrents();
 	}
 	else{
-		for (auto dev : devs){
-			auto keyVal = this->remote2local.find(dev);
-			if (keyVal != this->remote2local.end()){
-				auto remote = keyVal->first;
-				auto locals = keyVal->second;
-				int index = Utils::grnd(0, locals.size()-1);
-				TorrentListReq req{remote, locals[index]};
-				carryOutRequest(req);
-				nearbyTorrents[remote] = req.getTorrentList();
-			}
+		requestNearbyTorrents(devs);
+	}
+	return 0;
+}
+
+void Node::requestAllNearbyTorrents()
+{
+	map<DeviceDescriptor, vector<string>> nearbyTorrents;
+	pauseWorkerThreads();
+	for(auto const& [key, val] : this->remote2local)
+	{
+		int index = Utils::grnd(0, val.size()-1);
+		TorrentListReq req{key, val[index]};
+		carryOutRequest(req);
+		nearbyTorrents[key] = req.getTorrentList();
+	}
+	activateWorkerThreads();
+	this->torName2dev.clear();
+	Utils::swapKeyVal(this->torName2dev, nearbyTorrents);
+}
+
+void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
+{
+	map<DeviceDescriptor, vector<string>> nearbyTorrents;
+	pauseWorkerThreads();
+	for (auto dev : devs){
+		auto keyVal = this->remote2local.find(dev);
+		if (keyVal != this->remote2local.end()){
+			auto remote = keyVal->first;
+			auto locals = keyVal->second;
+			int index = Utils::grnd(0, locals.size()-1);
+			TorrentListReq req{remote, locals[index]};
+			carryOutRequest(req);
+			nearbyTorrents[remote] = req.getTorrentList();
 		}
 	}
 	activateWorkerThreads();
-	for (auto const&  [key, val] : nearbyTorrents){
-		cout << key.addr << "\n\t";
-		for (auto const& tor : val)
-			cout << tor << " ";
-		cout << endl;
-	}
-	return 0;
+	this->torName2dev.clear();
+	Utils::swapKeyVal(this->torName2dev, nearbyTorrents);
 }
 
 int Node::requestTorrentFile(const string& name, const string& addr)
@@ -351,7 +362,19 @@ int Node::requestTorrentFile(const string& name, const string& addr)
 
 int Node::requestTorrentData(const string& name)
 {
-	return 0;
+	int status = 0;
+	if (this->torName2dev.empty()){
+		requestAllNearbyTorrents();
+	}
+	auto keyVal = this->torName2dev.find(name);
+	if (keyVal != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs =  keyVal->second;
+		int index = Utils::grnd(0, devs.size()-1);
+	}
+	else{
+		status = -1;
+	}
+	return status;
 }
 
 int main(int argc, char *argv[]){
