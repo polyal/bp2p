@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <unordered_set>
+#include <map>
 
 using namespace std;
 
@@ -41,6 +42,22 @@ public:
 			newItems.insert(item);
 		}
 		return newItems;
+	}
+
+	template <typename OK, typename OV>
+	static void swapKeyVal(map<OV, vector<OK>>& dest, const map<OK, vector<OV>>& source)
+	{
+		for (auto const&  [key, vals] : source){
+			for (auto const& val : vals){
+				if (dest.find(val) == dest.end()){
+					vector<OK> newVals{key};
+					dest[val] = newVals;
+				}
+				else{
+					dest[val].push_back(key);
+				}
+			}
+		}
 	}
 };
 
