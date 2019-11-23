@@ -21,7 +21,7 @@
 #include <linux/limits.h>
 #include <vector>
 #include <tuple>
-
+#include <functional>
 #include "nlohmann/json.hpp"
 
 using namespace std;
@@ -36,9 +36,9 @@ private:
 	struct Chunk
 	{
 		unsigned int index;
-		string hash;
+		size_t hash;
 		bool exists;
-		Chunk(unsigned int index, string hash, bool exists) 
+		Chunk(unsigned int index, size_t hash, bool exists) 
 		: index{index}, hash{hash}, exists{exists} {}
 	};
 	
@@ -46,7 +46,7 @@ private:
 	vector<string> files;                // files in torrent
 	string packagePath;                  // path to the package
 	string torrentPath;                  // path to the torrent
-	string uid;                          // hash of the package used as UID
+	size_t uid = 0;                      // hash of the package used as UID
 	unsigned int numPieces;              // total num chunks needed to construct package
 	vector<Chunk> chunks;  				 // chunks that the [ackage is made up of
 	unsigned long long size;             // size of the package
@@ -172,11 +172,6 @@ private:
 	//  divides the package into chunks that can be transfered
 	//  accross a channel and checked against a hash
 	int generateChunks();
-
-	////////////////////////////////////////////////////////////
-	//  hashes the contents of the package.  This is used
-	//  as a UID for the torrent
-	int generateFileHash();
 
 	////////////////////////////////////////////////////////////
 	//  Serializes the contents of the torrent object to be

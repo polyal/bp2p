@@ -1,4 +1,3 @@
-#include "torrent.h"
 #include <stdio.h>
 #include <iostream>
 #include <string>
@@ -10,9 +9,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "hash.h"
 #include "utils.h"
 #include "package.h"
+#include "torrent.h"
 
 #define DEBUG 0
 
@@ -25,7 +24,6 @@ Torrent::Torrent()
 	this->name = "";
 	this->packagePath = "";
 	this->torrentPath = "";
-	this->uid = "";
 	this->serializedObj = "";
 	this->size = 0;
 }
@@ -37,7 +35,6 @@ Torrent::Torrent(const string& name, const vector<string>& files)
 	this->files = files;
 	this->packagePath = "";
 	this->torrentPath = "";
-	this->uid = "";
 	this->size = 0;
 	this->serializedObj = "";
 }
@@ -48,7 +45,6 @@ Torrent::Torrent(const string& name)
 	this->name = name;
 	this->packagePath = "";
 	this->torrentPath = "";
-	this->uid = "";
 	this->size = 0;
 	this->serializedObj = "";
 }
@@ -78,7 +74,7 @@ bool Torrent::create()
 {
 	package();
 	generateChunks();
-	generateFileHash();
+	//generateFileHash();
 	serialize();
 	dumpToTorrentFile();
 	return isValid();
@@ -163,28 +159,22 @@ int Torrent::generateChunks()
 	this->chunks.clear();
 	if (this->packagePath.empty())
 		return -1;
-
-	Sha256FileHasher fileHasher{this->packagePath};
-	fileHasher.computeFileChunkHash();
-	vector<string> hashs = fileHasher.chunkHashsToString();
-	for (unsigned int i = 0; i < hashs.size(); i++)
-		this->chunks.push_back(Chunk{i, hashs[i], true});
-	this->numPieces = hashs.size();
+    vector<char> fileChunk (this->chunkSize, 0);  // stores a chunk of the file for hashing
+    string strChunk;
+    unsigned int i = 0;
+    ifstream file {this->packagePath, ifstream::binary};
+    while(!file.eof()){
+        file.read(fileChunk.data(), this->chunkSize);
+        strChunk.assign(fileChunk.begin(), fileChunk.end());
+        size_t chunkHash = hash<string>()(strChunk);
+        this->chunks.push_back(Chunk{i, chunkHash, true});
+        fileChunk.clear();
+        strChunk.clear();
+        this->uid = (this->uid ^ (chunkHash << 1)) >> 1;
+        i++;
+    }
+    this->numPieces = chunks.size();
     return 0;
-}
-
-int Torrent::generateFileHash()
-{
-	if (this->packagePath.empty())
-	{
-		cout << "File Hash Input Error: invalid input" << endl;
-		return -1;
-	}
-
-	Sha256FileHasher fileHasher{this->packagePath};
-	fileHasher.computeFileHash();
-	this->uid = fileHasher.fileHashToString();
-	return 0;
 }
 
 void Torrent::serialize()
@@ -222,7 +212,7 @@ void Torrent::deserialize(const bool create)
 	{
 		unsigned int index = i;
 		auto hashpair = this->jobj[to_string(i)];
-  		string hash = hashpair[0];
+  		size_t hash = hashpair[0];
   		bool exists = false;
   		if (!create)
 			exists = hashpair[1];
@@ -320,12 +310,11 @@ bool Torrent::isComplete()
 
 bool Torrent::isValid()
 {
-	return (numPieces > 0
-			&& !name.empty()
-			&& !packagePath.empty()
-			&& !uid.empty()
-			&& !chunks.empty()
-			&& !serializedObj.empty());
+	return (this->numPieces > 0
+			&& !this->name.empty()
+			&& !this->packagePath.empty()
+			&& !this->chunks.empty()
+			&& !this->serializedObj.empty());
 }
 
 bool Torrent::torrentDataExists()
