@@ -12,7 +12,7 @@ default: utils torrent device rrpacket
 	-o out/a.out \
 	out/btdevice.o out/btchannel.o \
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
-	out/torrent.o out/package.o out/compress.o out/archiver.o out/hash.o \
+	out/torrent.o out/package.o out/compress.o out/archiver.o \
 	out/utils.o \
 	$(libs)
 
@@ -29,7 +29,7 @@ channel:
 	$(compile) -c src/btchannel.cpp
 	mv btchannel.o out/btchannel.o
 
-torrent: package hash
+torrent: package
 	$(compile) -c src/torrent.cpp $(incl)
 	mv torrent.o out/torrent.o
 
@@ -37,18 +37,14 @@ package:
 	$(compile) -c src/package.cpp src/archiver.cpp src/compress.cpp
 	mv package.o archiver.o compress.o -t out/
 
-hash:
-	$(compile) -c src/hash.cpp
-	mv hash.o out/hash.o
-
 utils:
 	$(compile) -c src/utils.cpp;
 	mv utils.o out/utils.o
 
 
 
-objs = package.o compress.o hash.o torrent.o
-cobjs = package.o compress.o archiver.o hash.o
+objs = package.o compress.o torrent.o
+cobjs = package.o compress.o archiver.o
 
 # moves obj files from root/ to out/
 mvObjs:
@@ -64,16 +60,16 @@ packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
 # compile each module as its own executable
 # make sure to set DEBUG = 1
 blueTest:
-	gcc $(wrn) src/blue.c -lbluetooth -o out/a.out
+	gcc $(wrn) src/deprecated/blue.c -lbluetooth -o out/a.out
 
-torrentTest: package hash mvCobjs
+torrentTest: package
 	$(compile) src/torrent.cpp $(incl) -o out/a.out \
 	out/utils.o \
 	$(foreach obj, $(cobjs), out/$(obj)) \
 	$(libs)
 
 hashTest:
-	$(compile) src/hash.cpp src/utils.cpp -lcrypto -o out/a.out
+	$(compile) src/deprecated/hash.cpp src/utils.cpp -lcrypto -o out/a.out
 
 packageTest:
 	$(compile) src/package.cpp src/archiver.cpp src/compress.cpp -lz -larchive -o out/a.out
@@ -99,4 +95,3 @@ clean:
 # cleanup out dir
 cleanall:
 	rm out/* torrents/* torrentData/*
-
