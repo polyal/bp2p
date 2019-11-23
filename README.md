@@ -14,6 +14,6 @@ An application that defines a decentralized peer-to-peer network where nodes com
 2. git submodule update
 
 ### Build
-type: $> make
+type: $> make<br>
       $> ./out/a.out
 
