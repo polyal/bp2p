@@ -12,3 +12,8 @@ An application that defines a decentralized peer-to-peer network where nodes com
 ##### To clone submodule nlohmann/json
 1. git submodule init
 2. git submodule update
+
+### Build
+type: $> make
+      $> ./out/a.out
+
