@@ -123,9 +123,11 @@ public:
 	bool torrentDataExists();
 
 	Torrent& operator=(const Torrent& torrent);
+	bool operator==(const Torrent& torrent) const;
 
 	string getFilename();
 	string getSerializedTorrent();
+	size_t getUid() const;
 
 	static string getTorrentsPath();
 	static string getTorrentDataPath();
@@ -156,7 +158,7 @@ private:
 
 	nlohmann::json jobj;                 // json object representing the torrent
 	string serializedObj;                // serialzed version of the json object
-	
+
 	////////////////////////////////////////////////////////////
 	//  Creates a package containing the files that were 
 	//  specified in a call to the constructor or
@@ -198,5 +200,17 @@ private:
 	//  torrentPath:  full path to the torrent file to be read in
 	void readTorrentFromFile(const string& torrentPath);
 };
+
+namespace std
+{
+	template<>
+	struct hash<Torrent>
+	{
+		size_t operator()(const Torrent& t) const
+		{
+			return t.getUid();
+		}
+	};
+}
 
 #endif

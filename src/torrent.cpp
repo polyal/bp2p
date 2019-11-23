@@ -173,6 +173,7 @@ int Torrent::generateChunks()
         this->uid = (this->uid ^ (chunkHash << 1)) >> 1;
         i++;
     }
+    this->uid = this->uid << 1;
     this->numPieces = chunks.size();
     return 0;
 }
@@ -339,6 +340,19 @@ Torrent& Torrent::operator=(const Torrent& torrent)
     return *this;  // Return a reference to myself.
 }
 
+bool Torrent::operator==(const Torrent& torrent) const
+{
+	return this->numPieces == torrent.numPieces &&
+		   this->name == torrent.name &&
+		   this->files == torrent.files &&
+		   this->packagePath == torrent.packagePath &&
+		   this->torrentPath == torrent.torrentPath &&
+		   this->uid == torrent.uid &&
+		   this->jobj == torrent.jobj &&
+		   this->serializedObj == torrent.serializedObj &&
+		   this->size == torrent.size;
+}
+
 string Torrent::getFilename()
 {
 	return this->name;
@@ -349,6 +363,10 @@ string Torrent::getSerializedTorrent()
 	return this->serializedObj;
 }
 
+size_t Torrent::getUid() const
+{
+	return this->uid;
+}
 string Torrent::getTorrentsPath()
 {
 	string appPath = Utils::getApplicationPath();
