@@ -28,32 +28,6 @@ using namespace std;
 
 class Torrent
 {
-private:
-	static const int chunkSize = 32768;  //256 kilobyte chunk size
-	inline static const string torrentFileDir = "torrents/";
-	inline static const string torrentDataDir = "torrentData/";
-
-	struct Chunk
-	{
-		unsigned int index;
-		size_t hash;
-		bool exists;
-		Chunk(unsigned int index, size_t hash, bool exists) 
-		: index{index}, hash{hash}, exists{exists} {}
-	};
-	
-	string name;
-	vector<string> files;                // files in torrent
-	string packagePath;                  // path to the package
-	string torrentPath;                  // path to the torrent
-	size_t uid = 0;                      // hash of the package used as UID
-	unsigned int numPieces;              // total num chunks needed to construct package
-	vector<Chunk> chunks;  				 // chunks that the [ackage is made up of
-	unsigned long long size;             // size of the package
-
-	nlohmann::json jobj;                 // json object representing the torrent
-	string serializedObj;                // serialzed version of the json object
-
 public:
 	Torrent();
 
@@ -158,6 +132,31 @@ public:
 	static vector<string> getTorrentNames();
 
 private:
+	static const int chunkSize = 32768;  //256 kilobyte chunk size
+	inline static const string torrentFileDir = "torrents/";
+	inline static const string torrentDataDir = "torrentData/";
+
+	struct Chunk
+	{
+		unsigned int index;
+		size_t hash;
+		bool exists;
+		Chunk(unsigned int index, size_t hash, bool exists) 
+		: index{index}, hash{hash}, exists{exists} {}
+	};
+	
+	string name;
+	vector<string> files;                // files in torrent
+	string packagePath;                  // path to the package
+	string torrentPath;                  // path to the torrent
+	size_t uid = 0;                      // hash of the package used as UID
+	unsigned int numPieces;              // total num chunks needed to construct package
+	vector<Chunk> chunks;  				 // chunks that the [ackage is made up of
+	unsigned long long size;             // size of the package
+
+	nlohmann::json jobj;                 // json object representing the torrent
+	string serializedObj;                // serialzed version of the json object
+	
 	////////////////////////////////////////////////////////////
 	//  Creates a package containing the files that were 
 	//  specified in a call to the constructor or
