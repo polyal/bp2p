@@ -15,7 +15,8 @@
 using namespace std;
 
 
-void Utils::tokenize(const string& text, const string& sep, vector<string>& tokens){
+void Utils::tokenize(const string& text, const string& sep, vector<string>& tokens)
+{
 	size_t pos = 0;
 	size_t prevPos = 0;
 
@@ -36,7 +37,8 @@ void Utils::tokenize(const string& text, const string& sep, vector<string>& toke
 	}
 }
 
-string Utils::getHomeDir(){
+string Utils::getHomeDir()
+{
 	string home;
 	char* cstrHome = getenv("HOME");
 	
@@ -46,17 +48,31 @@ string Utils::getHomeDir(){
 	return home;
 }
 
-string Utils::getApplicationPath(){
-	string home = getHomeDir();
-	return home + applicationDir;
+string Utils::getExePath()
+{
+	vector<char> buf(PATH_MAX);
+	readlink("/proc/self/exe", buf.data(), buf.size());
+	string path{buf.begin(), buf.end()};
+	return path;
 }
 
-bool Utils::doesFileExist(const string& filename){
+string Utils::getApplicationPath()
+{
+	string exePath = getExePath();
+	size_t pos = exePath.find(applicationOutDir);
+	if (pos != string::npos)
+		exePath.erase(pos+applicationDir.size(), exePath.size());
+	return exePath;
+}
+
+bool Utils::doesFileExist(const string& filename)
+{
 	struct stat st;   
   	return (stat (filename.c_str(), &st) == 0); 
 }
 
-void Utils::converToFullpath(const string& relPath, string& fullPath){
+void Utils::converToFullpath(const string& relPath, string& fullPath)
+{
 	const char* cstrRelPath;
 	char* cstrFullPath = NULL;
 	fullPath = "";
@@ -77,7 +93,8 @@ int Utils::isRegulaFile(const string& path)
     return S_ISREG(pathStat.st_mode);
 }
 
-int Utils::listFileInDir(const string& dirName, vector<string>& filenames){
+int Utils::listFileInDir(const string& dirName, vector<string>& filenames)
+{
 	DIR *dir;
 	struct dirent *ent;
 
@@ -107,7 +124,8 @@ unsigned long long Utils::filesize(const char* filename)
 }
 
 
-string Utils::bytesToHex(char* bytes, int len){
+string Utils::bytesToHex(char* bytes, int len)
+{
 	std::stringstream digest;
 
 	digest.setf(std::ios_base::hex, std::ios::basefield);
@@ -128,12 +146,11 @@ unsigned int Utils::value(char c)
 	if (c >= 'A' && c <= 'F') { return c - 'A' + 10; }
 	if (c >= 'a' && c <= 'f') { return c - 'a' + 10; }
 
-	return -1; // Error!
+	return -1;
 }
 
-//we suppose the size is always going to be even as it is supposed to be an encrypted value
-//converts cstring to
-char* Utils::hexToBytes(const string& strhex, int* size){
+char* Utils::hexToBytes(const string& strhex, int* size)
+{
 	const char* str = strhex.c_str();
 	int bufSize = strhex.length() / 2;
 
@@ -152,6 +169,6 @@ int Utils::grnd(int min, int max)
 {
 	std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(min, max); // distribution in range [1, 6]
+    std::uniform_int_distribution<std::mt19937::result_type> dist(min, max);
     return dist(rng);
 }

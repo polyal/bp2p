@@ -13,7 +13,9 @@ class Utils{
 public:
 	// application type utils
 	inline static const string applicationDir = "/bp2p/";
+	inline static const string applicationOutDir = "/bp2p/out/";
 	static string getHomeDir();
+	static string getExePath();
 	static string getApplicationPath();
 
 	// string utils
