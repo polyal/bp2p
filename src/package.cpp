@@ -19,6 +19,7 @@
 #include <string.h>
 #include <iostream>
 #include <string>
+#include "utils.h"
 #include "archiver.h"
 #include "compress.h"
 #include "package.h"
@@ -56,6 +57,10 @@ void Package::setup(const string& name, const vector<string> filenames)
 
 int Package::package()
 {
+    for (const auto& file : this->files){
+        if (!Utils::doesFileExist(file))
+            return -1;
+    }
     archive();
     int ret = compress();
     remove(this->tempName.c_str());

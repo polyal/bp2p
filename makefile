@@ -2,7 +2,7 @@ cc = g++
 cv = -std=c++1z
 wrn = -Wall -Wextra -pedantic
 compile = $(cc) $(cv) $(wrn)
-libs = -lz -larchive -lcrypto -lbluetooth -pthread
+libs = -lz -larchive -lbluetooth -pthread
 incl = -Ilib/json/include
 
 
@@ -62,7 +62,7 @@ packageObjs: mvObjs $(foreach obj, $(objs), out/$(obj))
 blueTest:
 	gcc $(wrn) src/deprecated/blue.c -lbluetooth -o out/a.out
 
-torrentTest: package
+torrentTest: utils package
 	$(compile) src/torrent.cpp $(incl) -o out/a.out \
 	out/utils.o \
 	$(foreach obj, $(cobjs), out/$(obj)) \

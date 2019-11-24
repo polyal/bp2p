@@ -413,6 +413,7 @@ int main(int argc, char *argv[])
 		cout << endl;
 
 		Torrent newTorrent(archive, files);
+		newTorrent.create();
 	}
 
     return 0;
