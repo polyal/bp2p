@@ -367,6 +367,17 @@ size_t Torrent::getUid() const
 {
 	return this->uid;
 }
+
+vector<int> Torrent::getChunkAvail() const
+{
+	vector<int> avail;
+	for (const auto& chunk : this->chunks){
+		if (chunk.exists)
+			avail.push_back(chunk.index);
+	}
+	return avail;
+}
+
 string Torrent::getTorrentsPath()
 {
 	string appPath = Utils::getApplicationPath();

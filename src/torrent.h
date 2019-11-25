@@ -128,6 +128,7 @@ public:
 	string getFilename();
 	string getSerializedTorrent();
 	size_t getUid() const;
+	vector<int> getChunkAvail() const;
 
 	static string getTorrentsPath();
 	static string getTorrentDataPath();
