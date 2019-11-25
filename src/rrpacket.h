@@ -22,12 +22,14 @@ public:
 	inline static const string commString = "bp2p";
 	inline static const string commSeparator = "||";
 
-	typedef enum _requestType {
+	enum requestType
+	{
 		badReq,
 		torrentList,
-		torrentFile, 
+		torrentFile,
+		torrentAvailability,
 		chunk
-	} requestType;
+	};
 
 	RRPacket();
 	RRPacket(const Message& req);
