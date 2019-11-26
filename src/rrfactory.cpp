@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "torrentFileReq.h"
 #include "torrentListReq.h"
+#include "torrentAvailReq.h"
 #include "chunkReq.h"
 #include "rrfactory.h"
 
@@ -49,6 +50,8 @@ unique_ptr<RRPacket> RRFactory::create(const Message& req)
 	    	return make_unique<ChunkReq>(req);
 	    case RRPacket::torrentList:
 	    	return make_unique<TorrentListReq>(req);
+	    case RRPacket::torrentAvailability:
+	     	return make_unique<TorrentAvailReq>(req);
 	    default:
 	    	cout << "Bad Request" << endl;
 	    	return nullptr;

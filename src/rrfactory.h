@@ -1,6 +1,6 @@
-#include "rrpacket.h"
-#include "message.h"
 #include <vector>
+#include "message.h"
+#include "rrpacket.h"
 
 class RRFactory 
 {
