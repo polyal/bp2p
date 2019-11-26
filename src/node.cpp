@@ -5,6 +5,7 @@
 #include "btdevice.h"
 #include "torrentFileReq.h"
 #include "torrentListReq.h"
+#include "torrentAvailReq.h"
 #include "chunkReq.h"
 #include "rrfactory.h"
 #include "node.h"
@@ -381,7 +382,7 @@ int Node::requestTorrentData(const string& name)
 	return status;
 }
 
-int Node::requestTorrentAvail(const string& name)
+int Node::requestTorrentAvail(const string& name, const string& addr)
 {
 	DeviceDescriptor dev{addr};
 	pauseWorkerThreads();
@@ -445,7 +446,7 @@ int main(int argc, char *argv[]){
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
 			else if (args[0].compare(Node::requestChunkAvailCmd) == 0)
-				requestTorrentAvail(args[2], args[3]);
+				myNode.requestTorrentAvail(args[2], args[3]);
 			else if(args[0].compare("-p") == 0){
 				myNode.pauseWorkerThreads();
 			}

@@ -48,7 +48,7 @@ public:
 	int requestTorrentFile(const string& name, const string& addr);
 	int requestTorrentData(const string& name);
 
-	int requestTorrentAvail(const string& name);  // testing
+	int requestTorrentAvail(const string& name, const string& addr);  // testing
 
 private:
 	inline static const string cli = "bp2p> ";
