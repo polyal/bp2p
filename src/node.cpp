@@ -446,7 +446,7 @@ int main(int argc, char *argv[]){
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
 			else if (args[0].compare(Node::requestChunkAvailCmd) == 0)
-				myNode.requestTorrentAvail(args[2], args[3]);
+				myNode.requestTorrentAvail(args[1], args[2]);
 			else if(args[0].compare("-p") == 0){
 				myNode.pauseWorkerThreads();
 			}
