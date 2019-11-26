@@ -420,9 +420,9 @@ int main(int argc, char *argv[]){
 		ArgParser argparser{in, args};
 
 		if (!args.empty()){
-			if (args[0].compare(Node::createTorCmd) == 0 && args.size() > 2){
-				string filename = args[0];
-				vector<string> files{args.begin() + 1, args.end()};
+			if (args[0].compare(Node::createTorCmd) == 0 && args.size() > 3){
+				string filename = args[1];
+				vector<string> files{args.begin() + 2, args.end()};
 				if (!myNode.createTorrent(filename, files))
 					cout << "Create Torrent Failed" << endl;
 			}
