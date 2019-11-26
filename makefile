@@ -11,15 +11,16 @@ default: utils torrent device rrpacket
 	$(incl) \
 	-o out/a.out \
 	out/btdevice.o out/btchannel.o \
-	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o \
+	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o out/torrentAvailReq.o \
 	out/torrent.o out/package.o out/compress.o out/archiver.o \
 	out/utils.o \
 	$(libs)
 
 rrpacket:
 	$(compile) -c -Ilib/json/include \
-	src/rrfactory.cpp src/rrpacket.cpp src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp;
-	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o -t out/
+	src/rrpacket.cpp src/rrfactory.cpp \
+	src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp src/torrentAvailReq.cpp;
+	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o torrentAvailReq.o -t out/
 
 device: channel
 	$(compile) -c src/btdevice.cpp
