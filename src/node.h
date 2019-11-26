@@ -8,6 +8,7 @@
 #include "rrpacket.h"
 #include "utils.h"
 #include "workerThread.h"
+#include "torrent.h"
 
 using namespace std;
 
@@ -19,6 +20,8 @@ public:
 	inline static const string requestTorCmd = "-tr";      // request torrent file command
 	inline static const string requestTorDataCmd = "-td";  // request torrent data command
 	inline static const string quitCmd = "-q";             // quit
+
+	inline static const string requestChunkAvailCmd = "-rc"; // testing request
 
 	Node();
 
@@ -45,6 +48,8 @@ public:
 	int requestTorrentFile(const string& name, const string& addr);
 	int requestTorrentData(const string& name);
 
+	int requestTorrentAvail(const string& name);  // testing
+
 private:
 	inline static const string cli = "bp2p> ";
 
@@ -66,7 +71,8 @@ private:
 		REQUESTING
 	};
 	map<string, vector<DeviceDescriptor>> torName2dev;
-	map<DeviceDescriptor, unordered_set<chunkStatus>> dev2chunks;
+	map<DeviceDescriptor, map<int, chunkStatus>> dev2chunks;
+	unordered_set<Torrent> torrents;
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;

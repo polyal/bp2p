@@ -348,10 +348,10 @@ int Node::requestTorrentFile(const string& name, const string& addr)
 {
 	DeviceDescriptor dev{addr};
 	pauseWorkerThreads();
-	auto keyVal = this->remote2local.find(dev);
-	if (keyVal != this->remote2local.end()){
-		auto remote = keyVal->first;
-		auto locals = keyVal->second;
+	auto remoteLocalPair = this->remote2local.find(dev);
+	if (remoteLocalPair != this->remote2local.end()){
+		auto remote = remoteLocalPair->first;
+		auto locals = remoteLocalPair->second;
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentFileReq req{remote, locals[index], name};
 		carryOutRequest(req);
@@ -366,15 +366,35 @@ int Node::requestTorrentData(const string& name)
 	if (this->torName2dev.empty()){
 		requestAllNearbyTorrents();
 	}
-	auto keyVal = this->torName2dev.find(name);
-	if (keyVal != this->torName2dev.end()){
-		vector<DeviceDescriptor> devs =  keyVal->second;
+	auto TorNameDevPair = this->torName2dev.find(name);
+	if (TorNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
+		for (const auto&  dev : devs){
+			// update this->dev2chunks by requesting chunks from each dev
+		}
+
 		int index = Utils::grnd(0, devs.size()-1);
 	}
 	else{
 		status = -1;
 	}
 	return status;
+}
+
+int Node::requestTorrentAvail(const string& name)
+{
+	DeviceDescriptor dev{addr};
+	pauseWorkerThreads();
+	auto remoteLocalPair = this->remote2local.find(dev);
+	if (remoteLocalPair != this->remote2local.end()){
+		auto remote = remoteLocalPair->first;
+		auto locals = remoteLocalPair->second;
+		int index = Utils::grnd(0, locals.size()-1);
+		TorrentAvailReq req{remote, locals[index], name};
+		carryOutRequest(req);
+	}
+	activateWorkerThreads();
+	return 0;
 }
 
 int main(int argc, char *argv[]){
@@ -424,6 +444,8 @@ int main(int argc, char *argv[]){
 			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
+			else if (args[0].compare(Node::requestChunkAvailCmd) == 0)
+				requestTorrentAvail(args[2], args[3]);
 			else if(args[0].compare("-p") == 0){
 				myNode.pauseWorkerThreads();
 			}
