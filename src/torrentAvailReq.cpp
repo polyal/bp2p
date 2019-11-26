@@ -90,8 +90,17 @@ void TorrentAvailReq::processResponse()
 	string strRsp{this->rsp.data.begin(), this->rsp.data.end()};
 	vector<string> strAvailChunks;
 	Utils::tokenize(strRsp, RRPacket::commSeparator, strAvailChunks);
-	for (const auto& availChunk : strAvailChunks)
-		this->torrentAvail.push_back(stoi(availChunk));
+	for (const auto& strAvailChunk : strAvailChunks){
+		int availChunk = -1;
+		try {
+		 	availChunk = stoi(strAvailChunk);
+		}
+		catch(invalid_argument& e){
+		 	this->torrentAvail.clear();
+		 	break;
+		}
+		this->torrentAvail.push_back(availChunk);
+	}
 }
 
 vector<int> TorrentAvailReq::getTorrentAvail() const
