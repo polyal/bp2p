@@ -321,8 +321,7 @@ void Node::requestAllNearbyTorrents()
 		nearbyTorrents[key] = req.getTorrentList();
 	}
 	activateWorkerThreads();
-	this->torName2dev.clear();
-	Utils::swapKeyVal(this->torName2dev, nearbyTorrents);
+	this->dev2tor = nearbyTorrents;
 }
 
 void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
@@ -341,8 +340,9 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 		}
 	}
 	activateWorkerThreads();
-	this->torName2dev.clear();
-	Utils::swapKeyVal(this->torName2dev, nearbyTorrents);
+	for (const auto& [dev, tors] : nearbyTorrents){
+		this->dev2tor[dev] = tors;
+	}
 }
 
 int Node::requestTorrentFile(const string& name, const string& addr)
@@ -364,17 +364,24 @@ int Node::requestTorrentFile(const string& name, const string& addr)
 int Node::requestTorrentData(const string& name)
 {
 	int status = 0;
-	if (this->torName2dev.empty()){
+	if (this->dev2tor.empty() || this->torName2dev.find(name) == this->torName2dev.end()){
 		requestAllNearbyTorrents();
 	}
+	this->torName2dev.clear();
+	Utils::swapKeyVal(this->torName2dev, this->dev2tor);
 	auto TorNameDevPair = this->torName2dev.find(name);
 	if (TorNameDevPair != this->torName2dev.end()){
 		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
+		vector<int> avail;
 		for (const auto&  dev : devs){
-			// update this->dev2chunks by requesting chunks from each dev
+			requestTorrentAvail(name, dev, avail);
+			for (int chunkAvail : avail){
+				if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
+					this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
+				torName2Avail[name][chunkAvail].push_back(dev);
+			}
+			avail.clear();
 		}
-
-		int index = Utils::grnd(0, devs.size()-1);
 	}
 	else{
 		status = -1;
@@ -385,6 +392,13 @@ int Node::requestTorrentData(const string& name)
 int Node::requestTorrentAvail(const string& name, const string& addr)
 {
 	DeviceDescriptor dev{addr};
+	vector<int> avail;
+	return requestTorrentAvail(name, dev, avail);
+}
+
+int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail)
+{
+	
 	pauseWorkerThreads();
 	auto remoteLocalPair = this->remote2local.find(dev);
 	if (remoteLocalPair != this->remote2local.end()){
@@ -393,6 +407,7 @@ int Node::requestTorrentAvail(const string& name, const string& addr)
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentAvailReq req{remote, locals[index], name};
 		carryOutRequest(req);
+		avail = req.getTorrentAvail();
 	}
 	activateWorkerThreads();
 	return 0;

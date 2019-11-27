@@ -70,8 +70,10 @@ private:
 		NEED,
 		REQUESTING
 	};
-	map<string, vector<DeviceDescriptor>> torName2dev;
-	map<DeviceDescriptor, map<int, chunkStatus>> dev2chunks;
+	map<DeviceDescriptor, vector<string>> dev2tor;                  // remote devices torrents
+	map<string, vector<DeviceDescriptor>> torName2dev;              // torrents available from remote devices
+	map<string, map<int, vector<DeviceDescriptor>>> torName2Avail;  // torrents available chunks
+	map<DeviceDescriptor, unordered_set<int>> dev2chunks;
 	unordered_set<Torrent> torrents;
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
@@ -93,6 +95,7 @@ private:
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
+	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
 
 	// server/client control
 	void activateServerThreads();
