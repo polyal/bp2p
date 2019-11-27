@@ -286,6 +286,17 @@ void Node::killJobManager()
 		this->jobManager->close();
 }
 
+void Node::insertJob(const shared_ptr<RRPacket> job)
+{
+	if (this->jobManager){
+		this->jobManager->modify(
+			[this, job]
+			{
+				this->jobs.push_back(job);
+			});	
+	}	
+}
+
 bool Node::createTorrent(const string& name, const vector<string>& files)
 {
 	Torrent t{name, files};

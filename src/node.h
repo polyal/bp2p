@@ -93,6 +93,8 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread();
 
+	void insertJob(const shared_ptr<RRPacket> job);
+
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
