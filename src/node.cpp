@@ -293,8 +293,8 @@ void Node::insertJob(const shared_ptr<RRPacket> job)
 			[this, job]
 			{
 				this->jobs.push_back(job);
-			});	
-	}	
+			});
+	}
 }
 
 bool Node::createTorrent(const string& name, const vector<string>& files)
