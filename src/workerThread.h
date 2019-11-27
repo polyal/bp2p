@@ -64,6 +64,13 @@ public:
 	void pause();
 	void kill();
 	void close();
+	template <typename Work>  // used to modify work items 
+	void modify(Work m)
+	{
+		unique_lock<std::mutex> lock(this->event->m);
+		m();
+		lock.unlock();
+	}
 
 protected:
 	unique_ptr<thread> t = nullptr;
