@@ -86,4 +86,10 @@ void TorrentFileReq::processResponse()
 	string strresp{this->rsp.data.begin(), this->rsp.data.end()};
 	Torrent torrent;
 	torrent.createTorrentFromSerializedObj(strresp);
+	this->torrent = torrent;
+}
+
+Torrent TorrentFileReq::getTorrent() const
+{
+	return this->torrent;
 }

@@ -21,6 +21,8 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
+	Torrent getTorrent() const;
+
 private:
 	Torrent torrent;
 	string torrentName;
