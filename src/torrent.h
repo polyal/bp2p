@@ -125,7 +125,7 @@ public:
 	Torrent& operator=(const Torrent& torrent);
 	bool operator==(const Torrent& torrent) const;
 
-	string getFilename();
+	string getFilename() const;
 	string getSerializedTorrent();
 	size_t getUid() const;
 	vector<int> getChunkAvail() const;

@@ -353,7 +353,7 @@ bool Torrent::operator==(const Torrent& torrent) const
 		   this->size == torrent.size;
 }
 
-string Torrent::getFilename()
+string Torrent::getFilename() const
 {
 	return this->name;
 }
