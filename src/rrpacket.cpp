@@ -1,7 +1,5 @@
 #include "rrpacket.h"
 
-class TorrentFileReq;
-
 
 RRPacket::RRPacket()
 {

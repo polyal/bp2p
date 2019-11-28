@@ -12,23 +12,17 @@ using namespace std;
 
 class RRPacket 
 {
-protected:
-	Message req;
-	Message rsp;
-	DeviceDescriptor localAddr;
-	DeviceDescriptor remoteAddr;
-
 public:
 	inline static const string commString = "bp2p";
 	inline static const string commSeparator = "||";
 
-	enum requestType
+	enum RequestType
 	{
-		badReq,
-		torrentList,
-		torrentFile,
-		torrentAvailability,
-		chunk
+		BadReq,
+		TorrentList,
+		TorrentFile,
+		TorrentAvailability,
+		Chunk
 	};
 
 	RRPacket();
@@ -45,6 +39,15 @@ public:
 	virtual void createRequest() = 0;
 	virtual void processRequest() = 0;
 	virtual void processResponse(const Message& rsp) = 0;
+
+	virtual RequestType getType() = 0;
+
+protected:
+	Message req;
+	Message rsp;
+	DeviceDescriptor localAddr;
+	DeviceDescriptor remoteAddr;
+	RequestType type;
 };
 
 #endif

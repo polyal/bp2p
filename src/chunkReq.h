@@ -22,18 +22,19 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
+	RequestType getType();
+
 	string getTorrentName() const;
 	int getChunkNum() const;
 
 private:
 	string torrentName;
 	int chunkNum = -1;
-
 	void getTorrentNameFromReq(string& torrentName);
 	int getChunkNumFromReq(const string& req);
 	void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size);
-
 	void processResponse();
+	RequestType type = Chunk;
 };
 
 #endif

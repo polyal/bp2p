@@ -8,5 +8,5 @@ public:
 	static unique_ptr<RRPacket> create(const Message& req);
 
 private:
-	static RRPacket::requestType getReqTypeFromReq(const Message& req);
+	static RRPacket::RequestType getReqTypeFromReq(const Message& req);
 };

@@ -19,6 +19,8 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
+	RequestType getType();
+
 	vector<string> getTorrentList() const;
 
 private:
@@ -27,6 +29,7 @@ private:
 	void getTorrentList(vector<string>& torrentNames);
 	void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
 	void parseTorrentList(const string& resp, vector<string>& torrentList);
+	RequestType type = TorrentList;
 };
 
 #endif

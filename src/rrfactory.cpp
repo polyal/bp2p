@@ -6,24 +6,24 @@
 #include "chunkReq.h"
 #include "rrfactory.h"
 
-RRPacket::requestType RRFactory::getReqTypeFromReq(const Message& req)
+RRPacket::RequestType RRFactory::getReqTypeFromReq(const Message& req)
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string strReqType;
 	int iReqType;
-	RRPacket::requestType reqType;
+	RRPacket::RequestType reqType;
 
 	vector<char> reqData = req.data;
 
 	if (reqData.size() <= prefix.length()){
 		cout << "Bad Request" << endl;
-		return RRPacket::badReq;
+		return RRPacket::BadReq;
 	}
 
 	auto it = std::search(reqData.begin(), reqData.end(), prefix.begin(), prefix.end());
 	if (std::distance(reqData.begin(), it) != 0){
 		cout << "Bad Request" << endl;
-		return RRPacket::badReq;
+		return RRPacket::BadReq;
 	}
 
 	try {
@@ -31,26 +31,26 @@ RRPacket::requestType RRFactory::getReqTypeFromReq(const Message& req)
 	}
 	catch (...) {
 		cout << "Bad Request" << endl;
-	    return RRPacket::badReq;
+	    return RRPacket::BadReq;
 	}
 	
-	reqType = static_cast<RRPacket::requestType>(iReqType);
+	reqType = static_cast<RRPacket::RequestType>(iReqType);
 
 	return reqType;
 }
 
 unique_ptr<RRPacket> RRFactory::create(const Message& req) 
 {
-	RRPacket::requestType reqType = getReqTypeFromReq(req);
+	RRPacket::RequestType reqType = getReqTypeFromReq(req);
 
 	switch(reqType) {
-	    case RRPacket::torrentFile:
+	    case RRPacket::TorrentFile:
 	    	return make_unique<TorrentFileReq>(req);
-	    case RRPacket::chunk:
+	    case RRPacket::Chunk:
 	    	return make_unique<ChunkReq>(req);
-	    case RRPacket::torrentList:
+	    case RRPacket::TorrentList:
 	    	return make_unique<TorrentListReq>(req);
-	    case RRPacket::torrentAvailability:
+	    case RRPacket::TorrentAvailability:
 	     	return make_unique<TorrentAvailReq>(req);
 	    default:
 	    	cout << "Bad Request" << endl;

@@ -21,6 +21,8 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
+	RequestType getType();
+
 	vector<int> getTorrentAvail() const;
 
 private:
@@ -29,6 +31,7 @@ private:
 	void getTorrentNameFromReq(string& torrentName);
 	void getTorrentAvailFromTorrent(const string torrentName, vector<int>& torrentAvail);
 	void processResponse();
+	RequestType type = TorrentAvailability;
 };
 
 #endif

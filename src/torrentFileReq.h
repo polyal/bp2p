@@ -21,16 +21,17 @@ public:
 	void processRequest();
 	void processResponse(const Message& msg);
 
+	RequestType getType();
+
 	Torrent getTorrent() const;
 
 private:
 	Torrent torrent;
 	string torrentName;
-
 	void processResponse();
-
 	void getTorrentNameFromReq(string& torrentName);
 	void getSerialzedTorrent(const string& torrentName, string& serializedTorrent);
+	RequestType type = TorrentFile;
 };
 
 #endif

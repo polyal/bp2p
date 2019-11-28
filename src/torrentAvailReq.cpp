@@ -37,7 +37,7 @@ TorrentAvailReq::TorrentAvailReq(const DeviceDescriptor& remoteAddr, const Devic
 void TorrentAvailReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::torrentAvailability));
+	string request = prefix + to_string(static_cast<int>(RRPacket::TorrentAvailability));
 	request += RRPacket::commSeparator + this->torrentName;
 
 	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
@@ -106,4 +106,9 @@ void TorrentAvailReq::processResponse()
 vector<int> TorrentAvailReq::getTorrentAvail() const
 {
 	return this->torrentAvail;
+}
+
+RRPacket::RequestType TorrentAvailReq::getType()
+{
+	return type;
 }

@@ -42,7 +42,7 @@ ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& l
 void ChunkReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::chunk));
+	string request = prefix + to_string(static_cast<int>(RRPacket::Chunk));
 	request += RRPacket::commSeparator + this->torrentName;
 	request += RRPacket::commSeparator + to_string(this->chunkNum);
 
@@ -149,4 +149,9 @@ string ChunkReq::getTorrentName() const
 int ChunkReq::getChunkNum() const
 {
 	return this->chunkNum;
+}
+
+RRPacket::RequestType ChunkReq::getType()
+{
+	return type;
 }

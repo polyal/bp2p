@@ -38,7 +38,7 @@ TorrentFileReq::TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceD
 void TorrentFileReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::torrentFile));
+	string request = prefix + to_string(static_cast<int>(RRPacket::TorrentFile));
 	request += RRPacket::commSeparator + this->torrentName;
 
 	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
@@ -92,4 +92,9 @@ void TorrentFileReq::processResponse()
 Torrent TorrentFileReq::getTorrent() const
 {
 	return this->torrent;
+}
+
+RRPacket::RequestType TorrentFileReq::getType()
+{
+	return type;
 }

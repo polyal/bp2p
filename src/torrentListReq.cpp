@@ -24,7 +24,7 @@ TorrentListReq::TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceD
 void TorrentListReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
-	string request = prefix + to_string(static_cast<int>(RRPacket::torrentList));
+	string request = prefix + to_string(static_cast<int>(RRPacket::TorrentList));
 
 	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
 	this->req.size = request.size();
@@ -67,11 +67,13 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 		serializedList.pop_back();
 	}
 }
+
 void TorrentListReq::processResponse(const Message& msg)
 {
 	this->rsp = msg;
 	processResponse();
 }
+
 void TorrentListReq::processResponse()
 {
 	vector<string> torrentList;
@@ -88,4 +90,9 @@ void TorrentListReq::parseTorrentList(const string& rsp, vector<string>& torrent
 vector<string> TorrentListReq::getTorrentList() const
 {
 	return torrentList;
+}
+
+RRPacket::RequestType TorrentListReq::getType()
+{
+	return type;
 }
