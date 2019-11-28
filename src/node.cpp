@@ -358,7 +358,18 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 
 int Node::requestTorrentFile(const string& name, const string& addr)
 {
+	int status = 0;
+	Torrent torrent;
 	DeviceDescriptor dev{addr};
+	status = requestTorrentFile(name, dev, torrent);
+	if (status == 0)
+		this->name2torrent[name] = torrent;
+	return status;
+}
+
+int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev, Torrent& torrent)
+{
+	int status = -1;
 	pauseWorkerThreads();
 	auto remoteLocalPair = this->remote2local.find(dev);
 	if (remoteLocalPair != this->remote2local.end()){
@@ -367,9 +378,36 @@ int Node::requestTorrentFile(const string& name, const string& addr)
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentFileReq req{remote, locals[index], name};
 		carryOutRequest(req);
+		torrent = req.getTorrent();
 	}
 	activateWorkerThreads();
-	return 0;
+	if (torrent.isValid())
+		status = 0;
+	return status;
+}
+
+int Node::requestTorrentFileIfMissing(const string& name, Torrent& torrent)
+{
+	int status = -1;
+	auto TorNameDevPair = this->torName2dev.find(name);
+	if (TorNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
+		auto nameTorPair = this->name2torrent.find(name);
+		if (nameTorPair == this->name2torrent.end()){
+			int index = Utils::grnd(0, devs.size()-1);
+			DeviceDescriptor dev{devs[index]};	
+			status = requestTorrentFile(name, dev, torrent);
+		}
+		else{
+			torrent = this->name2torrent[name];
+		}
+	}
+	return status;
+}
+
+int Node::getMissingChunkIndex(const Torrent& torrent)
+{
+	return torrent.getMissingChunkIndex();	
 }
 
 int Node::requestTorrentData(const string& name)
@@ -393,6 +431,9 @@ int Node::requestTorrentData(const string& name)
 			}
 			avail.clear();
 		}
+		Torrent torrent;
+		status = requestTorrentFileIfMissing(name, torrent);		
+		status = requestChunk(torrent);
 	}
 	else{
 		status = -1;
@@ -422,6 +463,25 @@ int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev, v
 	}
 	activateWorkerThreads();
 	return 0;
+}
+
+int Node::requestChunk(const Torrent& torrent)
+{
+	int missingChunkIndex = getMissingChunkIndex(torrent);
+	string name = torrent.getFilename();
+	return requestChunk(name, missingChunkIndex);
+}
+
+int Node::requestChunk(const string& name, int index)
+{
+	auto req = createChunkRequest(name, index);
+	insertJob(req);
+	return 0;
+}
+
+shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index)
+{
+	return make_shared<ChunkReq>(name, index);
 }
 
 int main(int argc, char *argv[]){

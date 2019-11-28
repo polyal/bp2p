@@ -73,8 +73,8 @@ private:
 	map<DeviceDescriptor, vector<string>> dev2tor;                  // remote devices torrents
 	map<string, vector<DeviceDescriptor>> torName2dev;              // torrents available from remote devices
 	map<string, map<int, vector<DeviceDescriptor>>> torName2Avail;  // torrents available chunks
-	map<DeviceDescriptor, unordered_set<int>> dev2chunks;
-	unordered_set<Torrent> torrents;
+	//unordered_set<Torrent> torrents;
+	map<string, Torrent> name2torrent;
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;
@@ -93,11 +93,17 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread();
 
+	int getMissingChunkIndex(const Torrent& torrent);
 	void insertJob(const shared_ptr<RRPacket> job);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
+	int requestTorrentFile(const string& name, const DeviceDescriptor& dev, Torrent& torrent);
+	int requestTorrentFileIfMissing(const string& name, Torrent& torrent);
+	int requestChunk(const Torrent& torrent);
+	int requestChunk(const string& name, int index);
+	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index);
 
 	// server/client control
 	void activateServerThreads();
