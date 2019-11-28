@@ -184,11 +184,12 @@ void Node::jobManagerThread()
 {
 	if (this->jobs.size() > 0){
 		cout << "Job manager: has items " << this->jobs.size() << endl;
-		shared_ptr<RRPacket> req = jobs.front();
+		shared_ptr<ChunkReq> req = jobs.front();
 		if (req){
 			cout << "Job Manager: not NULL" << endl;
 			carryOutRequest(*req);
 			jobs.pop_front();
+
 		}
 	}
 	this_thread::sleep_for (std::chrono::milliseconds(20));
@@ -260,7 +261,7 @@ void Node::killJobManager()
 		this->jobManager->close();
 }
 
-void Node::insertJob(const shared_ptr<RRPacket> job)
+void Node::insertJob(const shared_ptr<ChunkReq> job)
 {
 	if (this->jobManager){
 		this->jobManager->modify(
@@ -333,17 +334,15 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 int Node::requestTorrentFile(const string& name, const string& addr)
 {
 	int status = 0;
-	Torrent torrent;
 	DeviceDescriptor dev{addr};
-	status = requestTorrentFile(name, dev, torrent);
-	if (status == 0)
-		this->name2torrent[name] = torrent;
+	status = requestTorrentFile(name, dev);
 	return status;
 }
 
-int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev, Torrent& torrent)
+int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 {
 	int status = -1;
+	Torrent torrent;
 	pauseWorkerThreads();
 	auto remoteLocalPair = this->remote2local.find(dev);
 	if (remoteLocalPair != this->remote2local.end()){
@@ -355,8 +354,10 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev, To
 		torrent = req.getTorrent();
 	}
 	activateWorkerThreads();
-	if (torrent.isValid())
+	if (torrent.isValid()){
+		this->name2torrent[name] = torrent;
 		status = 0;
+	}
 	return status;
 }
 
@@ -370,7 +371,9 @@ int Node::requestTorrentFileIfMissing(const string& name, Torrent& torrent)
 		if (nameTorPair == this->name2torrent.end()){
 			int index = Utils::grnd(0, devs.size()-1);
 			DeviceDescriptor dev{devs[index]};	
-			status = requestTorrentFile(name, dev, torrent);
+			status = requestTorrentFile(name, dev);
+			if (status == 0)
+				torrent = this->name2torrent[name];
 		}
 		else{
 			torrent = this->name2torrent[name];
@@ -448,14 +451,39 @@ int Node::requestChunk(const Torrent& torrent)
 
 int Node::requestChunk(const string& name, int index)
 {
-	auto req = createChunkRequest(name, index);
-	insertJob(req);
-	return 0;
+	int status = 0;
+	auto nameDevPair = this->torName2dev.find(name);
+	if (nameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs = nameDevPair->second;
+		int i = Utils::grnd(0, devs.size()-1);
+		DeviceDescriptor dev = devs[i];
+		status = requestChunk(name, index, dev);
+	}
+	else{
+		status = -1;
+	}
+	return status;
 }
 
-shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index)
+int Node::requestChunk(const string& name, int index, const DeviceDescriptor& dev)
 {
-	return make_shared<ChunkReq>(name, index);
+	int status = -1;
+	auto remoteLocalPair = this->remote2local.find(dev);
+	if (remoteLocalPair != this->remote2local.end()){
+		auto remote = remoteLocalPair->first;
+		auto locals = remoteLocalPair->second;
+		int i = Utils::grnd(0, locals.size()-1);
+		auto req = createChunkRequest(name, index, remote, locals[i]);
+		insertJob(req);
+		status = 0;
+	}
+	return status;
+}
+
+shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index, 
+	const DeviceDescriptor& remote, const DeviceDescriptor& local)
+{
+	return make_shared<ChunkReq>(remote, local, name, index);
 }
 
 int main(int argc, char *argv[]){

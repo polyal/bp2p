@@ -72,7 +72,7 @@ private:
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;
-	list<shared_ptr<RRPacket>> jobs;
+	list<shared_ptr<ChunkReq>> jobs;
 
 
 	// request/response
@@ -88,16 +88,18 @@ private:
 	void jobManagerThread();
 
 	int getMissingChunkIndex(const Torrent& torrent);
-	void insertJob(const shared_ptr<RRPacket> job);
+	void insertJob(const shared_ptr<ChunkReq> job);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
-	int requestTorrentFile(const string& name, const DeviceDescriptor& dev, Torrent& torrent);
+	int requestTorrentFile(const string& name, const DeviceDescriptor& dev);
 	int requestTorrentFileIfMissing(const string& name, Torrent& torrent);
 	int requestChunk(const Torrent& torrent);
 	int requestChunk(const string& name, int index);
-	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index);
+	int requestChunk(const string& name, int index, const DeviceDescriptor& dev);
+	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index, 
+		const DeviceDescriptor& remote, const DeviceDescriptor& local);
 
 	// server/client control
 	void activateServerThreads();
