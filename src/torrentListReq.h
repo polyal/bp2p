@@ -16,7 +16,7 @@ public:
 	TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 
 	void createRequest();
-	void processRequest();
+	void processRequest(const vector<string>& torrentList);
 	void processResponse(const Message& msg);
 
 	RequestType getType();
@@ -25,8 +25,8 @@ public:
 
 private:
 	vector<string> torrentList;
+	void processRequest();
 	void processResponse();
-	void getTorrentList(vector<string>& torrentNames);
 	void serializeTorrentList(const vector<string>& torrentNames, string& serializedList);
 	void parseTorrentList(const string& resp, vector<string>& torrentList);
 	RequestType type = TorrentList;

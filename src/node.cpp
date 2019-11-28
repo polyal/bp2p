@@ -105,10 +105,42 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 void Node::processRequest(const Message& req, Message& rsp)
 {
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
-
 	if (packet){
-		packet->processRequest();
+		processRequest(packet.get());
 		rsp = packet->getRsp();
+	}
+}
+
+void Node::processRequest(RRPacket* packet)
+{
+	RRPacket::RequestType type = packet->getType();
+	if (type == RRPacket::TorrentList){
+		auto torListReq = dynamic_cast<TorrentListReq*>(packet);
+		vector<string> torrentList;
+		getTorrentList(torrentList);
+		torListReq->processRequest(torrentList);
+	}
+	else if (type == RRPacket::TorrentFile){
+
+	}
+	else if (type == RRPacket::TorrentAvailability){
+
+	}
+	else if (type == RRPacket::Chunk){
+
+	}
+}
+
+void Node::getTorrentList(vector<string>& torrentList)
+{
+	vector<string> torrentFiles;
+	torrentFiles = Torrent::getTorrentNames();
+
+	for(auto const& filename: torrentFiles) {
+		Torrent tor {filename};
+		string torrentName = tor.getFilename();
+		if (!torrentName.empty())
+			torrentList.push_back(torrentName);
 	}
 }
 

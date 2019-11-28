@@ -30,29 +30,18 @@ void TorrentListReq::createRequest()
 	this->req.size = request.size();
 }
 
-void TorrentListReq::processRequest()
+void TorrentListReq::processRequest(const vector<string>& torrentList)
 {
-	vector<string> torrentNames;
-	string serializedList = "";
-
-	getTorrentList(torrentNames);
-	serializeTorrentList(torrentNames, serializedList);
-
-	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->rsp.data));
-	this->rsp.size = serializedList.size();
+	this->torrentList = torrentList;
+	processRequest();
 }
 
-void TorrentListReq::getTorrentList(vector<string>& torrentNames)
+void TorrentListReq::processRequest()
 {
-	vector<string> torrentFiles;
-	torrentFiles = Torrent::getTorrentNames();
-
-	for(auto const& filename: torrentFiles) {
-		Torrent tor {filename};
-		string torrentName = tor.getFilename();
-		if (!torrentName.empty())
-			torrentNames.push_back(torrentName);
-	}
+	string serializedList = "";
+	serializeTorrentList(this->torrentList, serializedList);
+	std::copy(serializedList.begin(), serializedList.end(), std::back_inserter(this->rsp.data));
+	this->rsp.size = serializedList.size();
 }
 
 void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, string& serializedList)
@@ -61,7 +50,7 @@ void TorrentListReq::serializeTorrentList(const vector<string>& torrentNames, st
 		serializedList += torrentName;
 		serializedList += commSeparator;
 	}
-
+	// remove the last commSeparator from end of string
 	if (serializedList.size() > 2){
 		serializedList.pop_back();
 		serializedList.pop_back();

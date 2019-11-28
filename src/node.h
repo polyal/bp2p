@@ -80,6 +80,9 @@ private:
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 	void processRequest(const Message& req, Message& rsp);
+	void processRequest(RRPacket* req);
+
+	void getTorrentList(vector<string>& torrentList);
 
 	// server/client init
 	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);
