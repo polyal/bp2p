@@ -118,7 +118,7 @@ public:
 	//  Creates an empty package of the appropriate size
 	void createTorrentDataFile();
 
-	bool isComplete();
+	bool isComplete() const;
 	bool isValid();
 	bool torrentDataExists();
 
@@ -129,6 +129,7 @@ public:
 	string getSerializedTorrent();
 	size_t getUid() const;
 	vector<int> getChunkAvail() const;
+	int getMissingChunkIndex() const;
 
 	static string getTorrentsPath();
 	static string getTorrentDataPath();
@@ -146,6 +147,8 @@ private:
 		bool exists;
 		Chunk(unsigned int index, size_t hash, bool exists) 
 		: index{index}, hash{hash}, exists{exists} {}
+		Chunk()
+		: index{0} , hash{0}, exists{false} {}
 	};
 	
 	string name;

@@ -292,7 +292,7 @@ void Torrent::createTorrentDataFile()
     ofs.write("", 1);
 }
 
-bool Torrent::isComplete()
+bool Torrent::isComplete() const
 {
 	bool complete = true;
 	if (chunks.empty())
@@ -376,6 +376,20 @@ vector<int> Torrent::getChunkAvail() const
 			avail.push_back(chunk.index);
 	}
 	return avail;
+}
+
+int Torrent::getMissingChunkIndex() const
+{
+	int chunkIndex = -1;
+	Chunk chunk;
+	if (this->chunks.size() > 0 && !isComplete()){
+		do{
+			int index = Utils::grnd(0, this->chunks.size()-1);
+			chunk = this->chunks[index];
+		} while (chunk.exists);
+		chunkIndex = chunk.index;
+	}
+	return chunkIndex;
 }
 
 string Torrent::getTorrentsPath()
