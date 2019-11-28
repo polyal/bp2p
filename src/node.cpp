@@ -73,32 +73,6 @@ void Node::scanForDevs()
 	}
 }
 
-/*void Node::requestTorrentList(const DeviceDescriptor& client, const DeviceDescriptor& server, Message& rsp)
-{
-	TorrentListReq req;
-	req.createRequest();
-	sendRequestWait4Response(req, rsp, client, server);
-	req.processResponse(rsp);
-}
-
-void Node::requestTorrentFile(const DeviceDescriptor& client, const DeviceDescriptor& server, 
-	const string& torrentName, Message& rsp)
-{
-	TorrentFileReq req{torrentName};
-	req.createRequest();
-	sendRequestWait4Response(req, rsp, client, server);
-	req.processResponse(rsp);
-}
-
-void Node::requestChunk(const DeviceDescriptor& client, const DeviceDescriptor& server, 
-	const string& torrentName, const int chunkNum, Message& rsp)
-{
-	ChunkReq req{torrentName, chunkNum};
-	req.createRequest();
-	sendRequestWait4Response(req, rsp, client, server);
-	req.processResponse(rsp);
-}*/
-
 void Node::carryOutRequest(RRPacket& req)
 {
 	Message rsp;
