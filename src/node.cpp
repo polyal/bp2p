@@ -184,12 +184,16 @@ void Node::jobManagerThread()
 {
 	if (this->jobs.size() > 0){
 		cout << "Job manager: has items " << this->jobs.size() << endl;
-		shared_ptr<ChunkReq> req = jobs.front();
-		if (req){
+		shared_ptr<RRPacket> req = jobs.front();
+		auto chunkReq = dynamic_pointer_cast<ChunkReq>(req);
+		if (chunkReq){
 			cout << "Job Manager: not NULL" << endl;
-			carryOutRequest(*req);
+			carryOutRequest(*chunkReq);
+			string name = chunkReq->getTorrentName();
+			int index = chunkReq->getChunkNum();
+			Torrent torrent = this->name2torrent[name];
+			// mark chunk as received
 			jobs.pop_front();
-
 		}
 	}
 	this_thread::sleep_for (std::chrono::milliseconds(20));
@@ -261,7 +265,7 @@ void Node::killJobManager()
 		this->jobManager->close();
 }
 
-void Node::insertJob(const shared_ptr<ChunkReq> job)
+void Node::insertJob(const shared_ptr<RRPacket> job)
 {
 	if (this->jobManager){
 		this->jobManager->modify(

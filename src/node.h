@@ -72,7 +72,7 @@ private:
 
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;
-	list<shared_ptr<ChunkReq>> jobs;
+	list<shared_ptr<RRPacket>> jobs;
 
 
 	// request/response
@@ -88,7 +88,7 @@ private:
 	void jobManagerThread();
 
 	int getMissingChunkIndex(const Torrent& torrent);
-	void insertJob(const shared_ptr<ChunkReq> job);
+	void insertJob(const shared_ptr<RRPacket> job);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
