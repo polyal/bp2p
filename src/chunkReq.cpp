@@ -8,11 +8,32 @@ ChunkReq::ChunkReq()
 {
 }
 
+ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr)
+	: RRPacket(remoteAddr, localAddr)
+{
+	this->torrentName = "";
+	this->chunkNum = 0;
+}
+
 ChunkReq::ChunkReq(const Message& req) : RRPacket(req)
 {
 }
 
+ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr,
+	const Message& req) : RRPacket(remoteAddr, localAddr, req)
+{
+	this->torrentName = "";
+	this->chunkNum = 0;
+}
+
 ChunkReq::ChunkReq(const string& torrentName, const int chunkNum)
+{
+	this->torrentName = torrentName;
+	this->chunkNum = chunkNum;
+}
+
+ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr,
+	const string& torrentName, const int chunkNum) : RRPacket(remoteAddr, localAddr) 
 {
 	this->torrentName = torrentName;
 	this->chunkNum = chunkNum;
@@ -118,4 +139,14 @@ void ChunkReq::processResponse()
 		torrent.putChunk(this->rsp.data, this->rsp.size, this->chunkNum);
 	}
 	cout << "put " << this->rsp.data.size() << " " << this->rsp.size << " " << this->chunkNum << endl;
+}
+
+string ChunkReq::getTorrentName() const
+{
+	return this->torrentName;
+}
+
+int ChunkReq::getChunkNum() const
+{
+	return this->chunkNum;
 }

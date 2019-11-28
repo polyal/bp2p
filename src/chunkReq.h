@@ -11,12 +11,19 @@ class ChunkReq : public RRPacket
 {
 public:
 	ChunkReq();
+	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
 	ChunkReq(const Message& req);
+	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
 	ChunkReq(const string& torrentName, const int chunkNum);
+	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, 
+		const string& torrentName, const int chunkNum);
 
 	void createRequest();
 	void processRequest();
 	void processResponse(const Message& msg);
+
+	string getTorrentName() const;
+	int getChunkNum() const;
 
 private:
 	string torrentName;
