@@ -521,7 +521,7 @@ shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index,
 	return make_shared<ChunkReq>(remote, local, name, index);
 }
 
-void Node::populateTorrents()
+void Node::populateLocalTorrents()
 {
 
 }

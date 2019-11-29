@@ -112,6 +112,8 @@ private:
 	void killServers();
 	void killJobManager();
 
+	void populateLocalTorrents();
+
 };
 
 class ArgParser
