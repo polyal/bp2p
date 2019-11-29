@@ -87,6 +87,7 @@ private:
 	void getTorrentNameList(vector<string>& torrentList);
 	void getSerializedTorrent(string& serializedTorrent, const string& name);
 	void getTorrentAvailFromTorrent(vector<int>& torrentAvail, const string& name);
+	void retrieveChunk(vector<char>& chunk, const string& name, const int& index);
 
 	// server/client init
 	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);

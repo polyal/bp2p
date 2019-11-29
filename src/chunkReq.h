@@ -14,25 +14,27 @@ public:
 	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
 	ChunkReq(const Message& req);
 	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const Message& req);
-	ChunkReq(const string& torrentName, const int chunkNum);
+	ChunkReq(const string& torrentName, const int index);
 	ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, 
-		const string& torrentName, const int chunkNum);
+		const string& torrentName, const int index);
 
 	void createRequest();
-	void processRequest();
+	void extractNameAndIndex(string& name, int& index);
+	void processRequest(const vector<char>& chunk);
 	void processResponse(const Message& msg);
 
 	RequestType getType();
 
 	string getTorrentName() const;
-	int getChunkNum() const;
+	int getIndex() const;
 
 private:
+	string strreq;
 	string torrentName;
-	int chunkNum = -1;
-	void getTorrentNameFromReq(string& torrentName);
-	int getChunkNumFromReq(const string& req);
-	void retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size);
+	int index = -1;
+	void extractTorrentName(string& name);
+	void extractIndexFromReq(int& index);
+	void processRequest();
 	void processResponse();
 	RequestType type = Chunk;
 };

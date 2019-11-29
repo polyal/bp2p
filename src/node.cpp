@@ -123,7 +123,7 @@ void Node::processRequest(RRPacket* packet)
 	else if (type == RRPacket::TorrentFile){
 		auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
 		string name, serializedTorrent;
-		torFileReq->getTorrentName(name);
+		torFileReq->extractTorrentName(name);
 		getSerializedTorrent(serializedTorrent, name);
 		torFileReq->processRequest(serializedTorrent);
 	}
@@ -131,12 +131,18 @@ void Node::processRequest(RRPacket* packet)
 		auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
 		string name;
 		vector<int> torAvail;
-		torAvailReq->getTorrentName(name);
+		torAvailReq->extractTorrentName(name);
 		getTorrentAvailFromTorrent(torAvail, name);
 		torAvailReq->processRequest(torAvail);
 	}
 	else if (type == RRPacket::Chunk){
-
+		auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+		string name;
+		int index;
+		chunkReq->extractNameAndIndex(name, index);
+		vector<char> chunk;
+		retrieveChunk(chunk, name, index);
+		chunkReq->processRequest(chunk);
 	}
 }
 
@@ -165,6 +171,16 @@ void Node::getTorrentAvailFromTorrent(vector<int>& torrentAvail, const string& n
 		Torrent tor = nameTorPair->second;
 		if (tor.open())
 			torrentAvail = tor.getChunkAvail();
+	}
+}
+
+void Node::retrieveChunk(vector<char>& chunk, const string& name, const int& index)
+{
+	auto nameTorPair = this->name2torrent.find(name);
+	if (nameTorPair != this->name2torrent.end()){
+		Torrent tor = nameTorPair->second;
+		if (tor.open())
+			chunk = tor.getChunk(index);
 	}
 }
 
@@ -245,9 +261,9 @@ void Node::jobManagerThread()
 		if (chunkReq){
 			cout << "Job Manager: not NULL" << endl;
 			carryOutRequest(*chunkReq);
-			string name = chunkReq->getTorrentName();
-			int index = chunkReq->getChunkNum();
-			Torrent torrent = this->name2torrent[name];
+			//string name = chunkReq->getTorrentName();
+			//int index = chunkReq->getChunkNum();
+			//Torrent torrent = this->name2torrent[name];
 			// mark chunk as received
 			jobs.pop_front();
 		}

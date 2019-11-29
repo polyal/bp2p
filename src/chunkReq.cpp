@@ -12,7 +12,7 @@ ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& l
 	: RRPacket(remoteAddr, localAddr)
 {
 	this->torrentName = "";
-	this->chunkNum = 0;
+	this->index = 0;
 }
 
 ChunkReq::ChunkReq(const Message& req) : RRPacket(req)
@@ -23,20 +23,20 @@ ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& l
 	const Message& req) : RRPacket(remoteAddr, localAddr, req)
 {
 	this->torrentName = "";
-	this->chunkNum = 0;
+	this->index = 0;
 }
 
-ChunkReq::ChunkReq(const string& torrentName, const int chunkNum)
+ChunkReq::ChunkReq(const string& torrentName, const int index)
 {
 	this->torrentName = torrentName;
-	this->chunkNum = chunkNum;
+	this->index = index;
 }
 
 ChunkReq::ChunkReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr,
-	const string& torrentName, const int chunkNum) : RRPacket(remoteAddr, localAddr) 
+	const string& torrentName, const int index) : RRPacket(remoteAddr, localAddr) 
 {
 	this->torrentName = torrentName;
-	this->chunkNum = chunkNum;
+	this->index = index;
 }
 
 void ChunkReq::createRequest()
@@ -44,83 +44,53 @@ void ChunkReq::createRequest()
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
 	string request = prefix + to_string(static_cast<int>(RRPacket::Chunk));
 	request += RRPacket::commSeparator + this->torrentName;
-	request += RRPacket::commSeparator + to_string(this->chunkNum);
+	request += RRPacket::commSeparator + to_string(this->index);
 
 	std::copy(request.begin(), request.end(), std::back_inserter(this->req.data));
 	this->req.size = request.size();
 }
 
+void ChunkReq::processRequest(const vector<char>& chunk)
+{
+	this->rsp.data = chunk;
+	this->rsp.size = chunk.size();
+}
+
 void ChunkReq::processRequest()
 {
-	string torrentName = "";
-	int chunkNum = -1, size = 0;
-	vector<char> chunk;
-	string strReq {this->req.data.begin(), this->req.data.end()};
-
-	getTorrentNameFromReq(torrentName);
-	chunkNum = getChunkNumFromReq(strReq);
-	retrieveChunk(torrentName, chunkNum, chunk, size);
-
-	this->rsp.data = chunk;
-	this->rsp.size = size;
-
-	cout << "processRequest " << this->rsp.size << " " << this->rsp.data.size() << " " << chunkNum << endl;
-
-	// testing purposes
-	/*string filename = Torrent::getTorrentDataPath() + "download";
-	ofstream fTorrent {filename};
-
-	if (fTorrent.is_open()){
-		fTorrent.write(chunk.data(), size);
- 		fTorrent.close();
- 		Torrent dowload{};
- 		dowload.unpackage(filename);
-	}
-	else{
-		cout << "Dump Error: error opening output torrent file" << endl;
-	}*/
 }
 
-void ChunkReq::getTorrentNameFromReq(string& torrentName)
+void ChunkReq::extractNameAndIndex(string& name, int& index)
 {
+	this->strreq.assign(this->req.data.begin(), this->req.data.end());
+	extractTorrentName(name);
+	extractIndexFromReq(index);
+}
+
+void ChunkReq::extractTorrentName(string& name)
+{
+	name.clear();
 	vector<string> tokens;
-	torrentName = "";
-	string strReq {this->req.data.begin(), this->req.data.end()};
-
-	Utils::tokenize(strReq, commSeparator, tokens);
-
+	Utils::tokenize(strreq, commSeparator, tokens);
 	if (tokens.size() > 2){
-		torrentName = tokens[2];
+		name = tokens[2];
 	}
 }
 
-int ChunkReq::getChunkNumFromReq(const string& req)
+void ChunkReq::extractIndexFromReq(int& index)
 {
+	index = -1;
 	vector<string> tokens;
-	int chunkNum = -1;
-
-	Utils::tokenize(req, commSeparator, tokens);
+	Utils::tokenize(strreq, commSeparator, tokens);
 
 	if (tokens.size() > 3){
 		try {
-    		chunkNum = stoi(tokens[3]);
+    		index = stoi(tokens[3]);
 		}
 		catch (...) {
-			cout << "Bad Chunk Num" << endl;
-		    chunkNum = -1;
+			cout << "Bad Index" << endl;
 		}
 	}
-
-	return chunkNum;
-}
-
-void ChunkReq::retrieveChunk(const string& torrentName, const int& chunkNum, vector<char>& chunk, int& size)
-{
-	Torrent torrent {torrentName};
-	if (torrent.open())
-		chunk = torrent.getChunk(chunkNum, size);
-	else
-		cout << "retreive chunk failed" << endl;
 }
 
 void ChunkReq::processResponse(const Message& msg)
@@ -136,9 +106,9 @@ void ChunkReq::processResponse()
 	{
 		if (!torrent.torrentDataExists())
 			torrent.createTorrentDataFile();
-		torrent.putChunk(this->rsp.data, this->rsp.size, this->chunkNum);
+		torrent.putChunk(this->rsp.data, this->rsp.size, this->index);
 	}
-	cout << "put " << this->rsp.data.size() << " " << this->rsp.size << " " << this->chunkNum << endl;
+	cout << "put " << this->rsp.data.size() << " " << this->rsp.size << " " << this->index << endl;
 }
 
 string ChunkReq::getTorrentName() const
@@ -146,9 +116,9 @@ string ChunkReq::getTorrentName() const
 	return this->torrentName;
 }
 
-int ChunkReq::getChunkNum() const
+int ChunkReq::getIndex() const
 {
-	return this->chunkNum;
+	return this->index;
 }
 
 RRPacket::RequestType ChunkReq::getType()
