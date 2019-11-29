@@ -18,7 +18,8 @@ public:
 	TorrentAvailReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName);
 
 	void createRequest();
-	void processRequest();
+	void getTorrentName(string& torrentName);
+	void processRequest(const vector<int>& torrentAvail);
 	void processResponse(const Message& msg);
 
 	RequestType getType();
@@ -28,8 +29,7 @@ public:
 private:
 	string torrentName;
 	vector<int> torrentAvail;
-	void getTorrentNameFromReq(string& torrentName);
-	void getTorrentAvailFromTorrent(const string torrentName, vector<int>& torrentAvail);
+	void processRequest();
 	void processResponse();
 	RequestType type = TorrentAvailability;
 };

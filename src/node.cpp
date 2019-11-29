@@ -128,7 +128,12 @@ void Node::processRequest(RRPacket* packet)
 		torFileReq->processRequest(serializedTorrent);
 	}
 	else if (type == RRPacket::TorrentAvailability){
-
+		auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+		string name;
+		vector<int> torAvail;
+		torAvailReq->getTorrentName(name);
+		getTorrentAvailFromTorrent(torAvail, name);
+		torAvailReq->processRequest(torAvail);
 	}
 	else if (type == RRPacket::Chunk){
 
@@ -149,6 +154,17 @@ void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
 		Torrent tor = nameTorPair->second;
 		if (tor.open())
 			serializedTorrent = tor.getSerializedTorrent();
+	}
+}
+
+void Node::getTorrentAvailFromTorrent(vector<int>& torrentAvail, const string& name)
+{
+	torrentAvail.clear();
+	auto nameTorPair = this->name2torrent.find(name);
+	if (nameTorPair != this->name2torrent.end()){
+		Torrent tor = nameTorPair->second;
+		if (tor.open())
+			torrentAvail = tor.getChunkAvail();
 	}
 }
 

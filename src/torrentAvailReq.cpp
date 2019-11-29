@@ -44,13 +44,16 @@ void TorrentAvailReq::createRequest()
 	this->req.size = request.size();
 }
 
+void TorrentAvailReq::processRequest(const vector<int>& torrentAvail)
+{
+	this->torrentAvail = torrentAvail;
+	processRequest();
+}
+
 void TorrentAvailReq::processRequest()
 {
-	getTorrentNameFromReq(this->torrentName);
-	getTorrentAvailFromTorrent(this->torrentName, this->torrentAvail);
 	string strRsp;
-	if (!this->torrentAvail.empty())
-  	{
+	if (!this->torrentAvail.empty()){
   		ostringstream oss;
     	copy(this->torrentAvail.begin(), this->torrentAvail.end()-1, 
     		ostream_iterator<int>(oss, RRPacket::commSeparator.c_str()));
@@ -61,7 +64,7 @@ void TorrentAvailReq::processRequest()
 	this->rsp.size = strRsp.size();
 }
 
-void TorrentAvailReq::getTorrentNameFromReq(string& torrentName)
+void TorrentAvailReq::getTorrentName(string& torrentName)
 {
 	vector<string> tokens;
 	this->torrentName = "";
@@ -70,13 +73,6 @@ void TorrentAvailReq::getTorrentNameFromReq(string& torrentName)
 	if (tokens.size() > 2){
 		torrentName = tokens[2];
 	}
-}
-
-void TorrentAvailReq::getTorrentAvailFromTorrent(const string torrentName, vector<int>& torrentAvail)
-{
-	Torrent torrent {torrentName};
-	if (torrent.open())
-		torrentAvail = torrent.getChunkAvail();
 }
 
 void TorrentAvailReq::processResponse(const Message& msg)
