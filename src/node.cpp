@@ -124,7 +124,14 @@ void Node::processResponse(RRPacket* packet, const Message& rsp)
 	}
 	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
 	if (torAvailReq){
-		
+		DeviceDescriptor dev = torAvailReq->getRemoteAddr();
+		string name = torAvailReq->getTorrentName();
+		vector<int> torAvail = torAvailReq->getTorrentAvail();
+		for (int chunkAvail : torAvail){
+			if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
+				this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
+			this->torName2Avail[name][chunkAvail].push_back(dev);
+		} 
 		return;
 	}
 	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
