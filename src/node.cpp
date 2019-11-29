@@ -78,7 +78,7 @@ void Node::carryOutRequest(RRPacket& req)
 	Message rsp;
 	req.createRequest();
 	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
-	req.processResponse(rsp);
+	processResponse(&req, rsp);
 }
 
 void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
