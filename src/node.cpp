@@ -113,36 +113,39 @@ void Node::processRequest(const Message& req, Message& rsp)
 
 void Node::processRequest(RRPacket* packet)
 {
-	RRPacket::RequestType type = packet->getType();
-	if (type == RRPacket::TorrentList){
-		auto torListReq = dynamic_cast<TorrentListReq*>(packet);
+	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
+	if (torListReq){
 		vector<string> torrentList;
 		getTorrentNameList(torrentList);
 		torListReq->processRequest(torrentList);
+		return;
 	}
-	else if (type == RRPacket::TorrentFile){
-		auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
+	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
+	if (torFileReq){
 		string name, serializedTorrent;
 		torFileReq->extractTorrentName(name);
 		getSerializedTorrent(serializedTorrent, name);
 		torFileReq->processRequest(serializedTorrent);
+		return;
 	}
-	else if (type == RRPacket::TorrentAvailability){
-		auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+	if (torAvailReq){
 		string name;
 		vector<int> torAvail;
 		torAvailReq->extractTorrentName(name);
 		getTorrentAvailFromTorrent(torAvail, name);
 		torAvailReq->processRequest(torAvail);
+		return;
 	}
-	else if (type == RRPacket::Chunk){
-		auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+	if (chunkReq){
 		string name;
 		int index;
 		chunkReq->extractNameAndIndex(name, index);
 		vector<char> chunk;
 		retrieveChunk(chunk, name, index);
 		chunkReq->processRequest(chunk);
+		return;
 	}
 }
 
