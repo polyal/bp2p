@@ -136,7 +136,15 @@ void Node::processResponse(RRPacket* packet, const Message& rsp)
 	}
 	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
 	if (chunkReq){
-		
+		string name = chunkReq->getTorrentName();
+		int index = chunkReq->getIndex();
+		vector<char> chunk = chunkReq->getChunk();
+		Torrent tor = this->name2torrent[name];
+		if (tor.open()){
+			if (!tor.torrentDataExists())
+				tor.createTorrentDataFile();
+			tor.putChunk(chunk, index);
+		}
 		return;
 	}
 }
