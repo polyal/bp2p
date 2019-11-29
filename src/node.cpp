@@ -92,8 +92,8 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-	//string strresp{rsp.data.begin(), rsp.data.end()};
-	//cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
+	string strresp{rsp.data.begin(), rsp.data.end()};
+	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << " " << strresp << endl;
 	try{
 		client.endComm();
 	}
@@ -147,7 +147,8 @@ void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		serializedTorrent = tor.getSerializedTorrent();
+		if (tor.open())
+			serializedTorrent = tor.getSerializedTorrent();
 	}
 }
 
