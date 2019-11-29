@@ -121,11 +121,11 @@ void Node::processRequest(RRPacket* packet)
 		torListReq->processRequest(torrentList);
 	}
 	else if (type == RRPacket::TorrentFile){
-		auto torListReq = dynamic_cast<TorrentFileReq*>(packet);
+		auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
 		string name, serializedTorrent;
-		torListReq->getTorrentName(name);
+		torFileReq->getTorrentName(name);
 		getSerializedTorrent(serializedTorrent, name);
-		torListReq->processRequest(serializedTorrent);
+		torFileReq->processRequest(serializedTorrent);
 	}
 	else if (type == RRPacket::TorrentAvailability){
 
