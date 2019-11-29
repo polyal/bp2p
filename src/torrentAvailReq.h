@@ -24,6 +24,7 @@ public:
 
 	RequestType getType();
 
+	string getTorrentName() const;
 	vector<int> getTorrentAvail() const;
 
 private:

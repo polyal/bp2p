@@ -99,6 +99,11 @@ void TorrentAvailReq::processResponse()
 	}
 }
 
+string TorrentAvailReq::getTorrentName() const
+{
+	return this->torrentName;
+}
+
 vector<int> TorrentAvailReq::getTorrentAvail() const
 {
 	return this->torrentAvail;
