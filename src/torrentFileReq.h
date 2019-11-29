@@ -18,7 +18,7 @@ public:
 	TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName);
 
 	void createRequest();
-	void getTorrentName(string& torrentName);
+	void extractTorrentName(string& torrentName);
 	void processRequest(const string& serializedTorrent);
 	void processResponse(const Message& msg);
 

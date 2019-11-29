@@ -57,7 +57,7 @@ void TorrentFileReq::processRequest()
 	this->rsp.size = this->serializedTorrent.size();
 }
 
-void TorrentFileReq::getTorrentName(string& torrentName)
+void TorrentFileReq::extractTorrentName(string& torrentName)
 {
 	vector<string> tokens;
 	torrentName = "";
