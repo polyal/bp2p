@@ -96,19 +96,6 @@ void ChunkReq::extractIndexFromReq(int& index)
 void ChunkReq::processResponse(const Message& msg)
 {
 	this->rsp = msg;
-	processResponse();
-}
-
-void ChunkReq::processResponse()
-{
-	Torrent torrent{torrentName};
-	if (torrent.open())
-	{
-		if (!torrent.torrentDataExists())
-			torrent.createTorrentDataFile();
-		torrent.putChunk(this->rsp.data, this->rsp.size, this->index);
-	}
-	cout << "put " << this->rsp.data.size() << " " << this->rsp.size << " " << this->index << endl;
 }
 
 string ChunkReq::getTorrentName() const
@@ -119,6 +106,11 @@ string ChunkReq::getTorrentName() const
 int ChunkReq::getIndex() const
 {
 	return this->index;
+}
+
+vector<char> ChunkReq::getChunk()
+{
+	return this->rsp.data;
 }
 
 RRPacket::RequestType ChunkReq::getType()

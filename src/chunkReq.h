@@ -27,6 +27,7 @@ public:
 
 	string getTorrentName() const;
 	int getIndex() const;
+	vector<char> getChunk();
 
 private:
 	string strreq;
@@ -35,7 +36,6 @@ private:
 	void extractTorrentName(string& name);
 	void extractIndexFromReq(int& index);
 	void processRequest();
-	void processResponse();
 	RequestType type = Chunk;
 };
 
