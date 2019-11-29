@@ -351,7 +351,11 @@ void Node::insertJob(const shared_ptr<RRPacket> job)
 bool Node::createTorrent(const string& name, const vector<string>& files)
 {
 	Torrent t{name, files};
-	return t.create();
+	if (t.create()){
+		this->name2torrent[name] = t;
+		return true;
+	}
+	return false;
 }
 
 int Node::listNearbyTorrents(const vector<string>& addrs)
