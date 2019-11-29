@@ -102,6 +102,33 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	}
 }
 
+void Node::processResponse(RRPacket* packet, const Message& rsp)
+{
+	packet->processResponse(rsp);
+	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
+	if (torListReq){
+		DeviceDescriptor dev = packet->getRemoteAddr();
+		vector<string> torrentNames = packet->getTorrentList();
+		this->dev2tor[dev] = torrentNames;
+		return;
+	}
+	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
+	if (torFileReq){
+		
+		return;
+	}
+	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+	if (torAvailReq){
+		
+		return;
+	}
+	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+	if (chunkReq){
+		
+		return;
+	}
+}
+
 void Node::processRequest(const Message& req, Message& rsp)
 {
 	unique_ptr<RRPacket> packet = RRFactory::create(req);

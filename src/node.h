@@ -81,6 +81,7 @@ private:
 	void carryOutRequest(RRPacket& req);
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
+	void processResponse(RRPacket* packet, const Message& rsp);
 	void processRequest(const Message& req, Message& rsp);
 	void processRequest(RRPacket* req);
 
