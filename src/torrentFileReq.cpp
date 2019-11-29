@@ -48,6 +48,7 @@ void TorrentFileReq::createRequest()
 void TorrentFileReq::processRequest(const string& serializedTorrent)
 {
 	this->serializedTorrent = serializedTorrent;
+	processRequest();
 }
 
 void TorrentFileReq::processRequest()
