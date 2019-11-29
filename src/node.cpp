@@ -148,8 +148,8 @@ void Node::processRequest(RRPacket* packet)
 
 void Node::getTorrentNameList(vector<string>& torrentList)
 {
-	for (const auto& [name, tor] : this->name2torrent)
-		torrentList.push_back(name);
+	for (const auto& pair :  this->name2torrent)
+		torrentList.push_back(pair.first);
 }
 
 void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
