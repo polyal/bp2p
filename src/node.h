@@ -85,6 +85,7 @@ private:
 	void processRequest(RRPacket* req);
 
 	void getTorrentNameList(vector<string>& torrentList);
+	void getSerializedTorrent(string& serializedTorrent, const string& name);
 
 	// server/client init
 	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);

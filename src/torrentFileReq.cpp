@@ -45,19 +45,18 @@ void TorrentFileReq::createRequest()
 	this->req.size = request.size();
 }
 
-void TorrentFileReq::processRequest()
+void TorrentFileReq::processRequest(const string& serializedTorrent)
 {
-	string torrentName = "";
-	string strResp;
-
-	getTorrentNameFromReq(torrentName);
-	getSerialzedTorrent(torrentName, strResp);
-
-	std::copy(strResp.begin(), strResp.end(), std::back_inserter(this->rsp.data));
-	this->rsp.size = strResp.size();
+	this->serializedTorrent = serializedTorrent;
 }
 
-void TorrentFileReq::getTorrentNameFromReq(string& torrentName)
+void TorrentFileReq::processRequest()
+{
+	std::copy(this->serializedTorrent.begin(), this->serializedTorrent.end(), std::back_inserter(this->rsp.data));
+	this->rsp.size = this->serializedTorrent.size();
+}
+
+void TorrentFileReq::getTorrentName(string& torrentName)
 {
 	vector<string> tokens;
 	torrentName = "";
@@ -66,13 +65,6 @@ void TorrentFileReq::getTorrentNameFromReq(string& torrentName)
 	if (tokens.size() > 2){
 		torrentName = tokens[2];
 	}
-}
-
-void TorrentFileReq::getSerialzedTorrent(const string& torrentName, string& serializedTorrent)
-{
-	Torrent torrent {torrentName};
-	if (torrent.open())
-		serializedTorrent = torrent.getSerializedTorrent();
 }
 
 void TorrentFileReq::processResponse(const Message& msg)

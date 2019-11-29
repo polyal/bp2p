@@ -122,6 +122,10 @@ void Node::processRequest(RRPacket* packet)
 	}
 	else if (type == RRPacket::TorrentFile){
 		auto torListReq = dynamic_cast<TorrentFileReq*>(packet);
+		string name, serializedTorrent;
+		torListReq->getTorrentName(name);
+		getSerializedTorrent(serializedTorrent, name);
+		torListReq->processRequest(serializedTorrent);
 	}
 	else if (type == RRPacket::TorrentAvailability){
 
@@ -135,6 +139,16 @@ void Node::getTorrentNameList(vector<string>& torrentList)
 {
 	for (const auto& [name, tor] : this->name2torrent)
 		torrentList.push_back(name);
+}
+
+void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
+{
+	serializedTorrent.clear();
+	auto nameTorPair = this->name2torrent.find(name);
+	if (nameTorPair != this->name2torrent.end()){
+		Torrent tor = nameTorPair->second;
+		serializedTorrent = tor.getSerializedTorrent();
+	}
 }
 
 void Node::createServers()

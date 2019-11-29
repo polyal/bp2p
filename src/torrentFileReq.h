@@ -18,7 +18,8 @@ public:
 	TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName);
 
 	void createRequest();
-	void processRequest();
+	void getTorrentName(string& torrentName);
+	void processRequest(const string& serializedTorrent);
 	void processResponse(const Message& msg);
 
 	RequestType getType();
@@ -28,9 +29,9 @@ public:
 private:
 	Torrent torrent;
 	string torrentName;
+	string serializedTorrent;
+	void processRequest();
 	void processResponse();
-	void getTorrentNameFromReq(string& torrentName);
-	void getSerialzedTorrent(const string& torrentName, string& serializedTorrent);
 	RequestType type = TorrentFile;
 };
 
