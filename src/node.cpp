@@ -121,7 +121,7 @@ void Node::processRequest(RRPacket* packet)
 		torListReq->processRequest(torrentList);
 	}
 	else if (type == RRPacket::TorrentFile){
-
+		auto torListReq = dynamic_cast<TorrentFileReq*>(packet);
 	}
 	else if (type == RRPacket::TorrentAvailability){
 
@@ -138,9 +138,8 @@ void Node::getTorrentList(vector<string>& torrentList)
 
 	for(auto const& filename: torrentFiles) {
 		Torrent tor {filename};
-		string torrentName = tor.getFilename();
-		if (!torrentName.empty())
-			torrentList.push_back(torrentName);
+		if (tor.open())
+			torrentList.push_back(filename);
 	}
 }
 
@@ -520,6 +519,11 @@ shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index,
 	const DeviceDescriptor& remote, const DeviceDescriptor& local)
 {
 	return make_shared<ChunkReq>(remote, local, name, index);
+}
+
+void Node::populateTorrents()
+{
+
 }
 
 int main(int argc, char *argv[]){
