@@ -117,7 +117,7 @@ void Node::processRequest(RRPacket* packet)
 	if (type == RRPacket::TorrentList){
 		auto torListReq = dynamic_cast<TorrentListReq*>(packet);
 		vector<string> torrentList;
-		getTorrentList(torrentList);
+		getTorrentNameList(torrentList);
 		torListReq->processRequest(torrentList);
 	}
 	else if (type == RRPacket::TorrentFile){
@@ -131,16 +131,10 @@ void Node::processRequest(RRPacket* packet)
 	}
 }
 
-void Node::getTorrentList(vector<string>& torrentList)
+void Node::getTorrentNameList(vector<string>& torrentList)
 {
-	vector<string> torrentFiles;
-	torrentFiles = Torrent::getTorrentNames();
-
-	for(auto const& filename: torrentFiles) {
-		Torrent tor {filename};
-		if (tor.open())
-			torrentList.push_back(filename);
-	}
+	for (const auto& [name, tor] : this->name2torrent)
+		torrentList.push_back(name);
 }
 
 void Node::createServers()
@@ -523,7 +517,23 @@ shared_ptr<ChunkReq> Node::createChunkRequest(const string& name, int index,
 
 void Node::populateLocalTorrents()
 {
+	vector<Torrent> torList;
+	getTorrentList(torList);
+	this->name2torrent.clear();
+	for (const auto& tor : torList)
+		this->name2torrent[tor.getFilename()] = tor;
+}
 
+void Node::getTorrentList(vector<Torrent>& torrentList)
+{
+	vector<string> torrentFiles;
+	torrentFiles = Torrent::getTorrentNames();
+
+	for(auto const& filename: torrentFiles) {
+		Torrent tor {filename};
+		if (tor.open())
+			torrentList.push_back(filename);
+	}
 }
 
 int main(int argc, char *argv[]){
@@ -534,6 +544,7 @@ int main(int argc, char *argv[]){
 	myNode.scanForDevs();
 	cout << "done. " << endl << endl;
 
+	myNode.populateLocalTorrents();
 	// create server
 	myNode.createServers();	
 	myNode.createJobManager();

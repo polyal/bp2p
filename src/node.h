@@ -44,6 +44,8 @@ public:
 
 	int requestTorrentAvail(const string& name, const string& addr);  // testing
 
+	void populateLocalTorrents();
+
 private:
 	inline static const string cli = "bp2p> ";
 
@@ -82,7 +84,7 @@ private:
 	void processRequest(const Message& req, Message& rsp);
 	void processRequest(RRPacket* req);
 
-	void getTorrentList(vector<string>& torrentList);
+	void getTorrentNameList(vector<string>& torrentList);
 
 	// server/client init
 	unique_ptr<WorkerThread> createServerThread(const DeviceDescriptor& servDev);
@@ -112,7 +114,7 @@ private:
 	void killServers();
 	void killJobManager();
 
-	void populateLocalTorrents();
+	void getTorrentList(vector<Torrent>& torrentList);
 
 };
 
