@@ -100,19 +100,19 @@ public:
 	///////////////////////////////////////////////////////////
 	//  Retreives a chunk from a torrent package
 	//
-	//  chunkNum:  The piece of the file to be returned
-	//  size:      The size of the piece
+	//  index:  The piece of the file to be returned
+	//  size:   The size of the piece
 	//
 	//  returns the requested chunk or empty list of invalid
-	vector<char> getChunk(const int& chunkNum, int& size);
+	vector<char> getChunk(int index);
 
 	///////////////////////////////////////////////////////////
 	//  Puts a chunk of data into a torrent package
 	//
-	//  chunk:    The piece of the package to be inserted
-	//  size:     The size of the piece
-	//  chunkNum: The chunk index
-	void putChunk(const vector<char>& chunk, const int size, const int chunkNum);
+	//  chunk:  The piece of the package to be inserted
+	//  size:   The size of the piece
+	//  index:  The chunk index
+	void putChunk(const vector<char>& chunk, const int size, const int index);
 
 	///////////////////////////////////////////////////////////
 	//  Creates an empty package of the appropriate size

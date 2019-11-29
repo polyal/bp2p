@@ -263,27 +263,27 @@ void Torrent::readTorrentFromFile(const string& torrentPath)
 	this->serializedObj = data;
 }
 
-vector<char> Torrent::getChunk(const int& chunkNum, int& size)
+vector<char> Torrent::getChunk(int index)
 {
 	vector<char> chunk(chunkSize);
 	ifstream fTorrent {this->packagePath, ifstream::binary};
 	if (fTorrent.is_open())
 	{
-		fTorrent.seekg (chunkNum * this->chunkSize);
+		fTorrent.seekg (index * this->chunkSize);
 		fTorrent.read (&chunk[0], this->chunkSize);
 	}
-    size = fTorrent.gcount();
+    int size = fTorrent.gcount();
     chunk.resize(size);
 	return chunk;
 }
 
-void Torrent::putChunk(const vector<char>& chunk, const int size, const int chunkNum)
+void Torrent::putChunk(const vector<char>& chunk, const int size, const int index)
 {
 	string fullpath = getTorrentDataPath() + this->name;
 	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
 	if (ofs.is_open())
 	{
-    	ofs.seekp(this->chunkSize * chunkNum, std::ios_base::beg);
+    	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
     	ofs.write(chunk.data(), size);
 	}
 }
