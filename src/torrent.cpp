@@ -168,13 +168,12 @@ int Torrent::generateChunks()
         strChunk.assign(fileChunk.begin(), fileChunk.end());
         size_t chunkHash = hash<string>()(strChunk);
         this->chunks.push_back(Chunk{i, chunkHash, true});
+        this->uid = (this->uid ^ (chunkHash << 1)) >> 1;
         fileChunk.clear();
         strChunk.clear();
-        this->uid = (this->uid ^ (chunkHash << 1)) >> 1;
         i++;
     }
-    this->uid = this->uid << 1;
-    this->numPieces = chunks.size();
+    this->numPieces = this->chunks.size();
     return 0;
 }
 
