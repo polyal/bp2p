@@ -110,9 +110,8 @@ public:
 	//  Puts a chunk of data into a torrent package
 	//
 	//  chunk:  The piece of the package to be inserted
-	//  size:   The size of the piece
 	//  index:  The chunk index
-	void putChunk(const vector<char>& chunk, const int size, const int index);
+	void putChunk(const vector<char>& chunk, const int index);
 
 	///////////////////////////////////////////////////////////
 	//  Creates an empty package of the appropriate size

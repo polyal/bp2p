@@ -276,14 +276,14 @@ vector<char> Torrent::getChunk(int index)
 	return chunk;
 }
 
-void Torrent::putChunk(const vector<char>& chunk, const int size, const int index)
+void Torrent::putChunk(const vector<char>& chunk, const int index)
 {
 	string fullpath = getTorrentDataPath() + this->name;
 	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
 	if (ofs.is_open())
 	{
     	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
-    	ofs.write(chunk.data(), size);
+    	ofs.write(chunk.data(), chunk.size());
 	}
 }
 
