@@ -18,7 +18,7 @@ public:
 	TorrentAvailReq(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName);
 
 	void createRequest();
-	void getTorrentName(string& torrentName);
+	void extractTorrentName(string& torrentName);
 	void processRequest(const vector<int>& torrentAvail);
 	void processResponse(const Message& msg);
 

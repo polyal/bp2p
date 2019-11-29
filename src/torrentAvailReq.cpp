@@ -64,7 +64,7 @@ void TorrentAvailReq::processRequest()
 	this->rsp.size = strRsp.size();
 }
 
-void TorrentAvailReq::getTorrentName(string& torrentName)
+void TorrentAvailReq::extractTorrentName(string& torrentName)
 {
 	vector<string> tokens;
 	this->torrentName = "";
