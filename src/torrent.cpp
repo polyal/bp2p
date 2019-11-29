@@ -202,24 +202,28 @@ void Torrent::deserialize(const bool create)
 		cout << "Deserialize error" << endl;
 		return;
 	}
-
-	this->jobj = nlohmann::json::parse(this->serializedObj);
-	this->name = this->jobj["name"].get<std::string>();
-	this->numPieces = this->jobj["numPieces"];
-	this->uid = this->jobj["uid"];
-	this->size = this->jobj["size"];
-	this->packagePath = Torrent::getTorrentDataPath() + this->name;
-	for (unsigned int i = 0; i < this->numPieces; i++)
-	{
-		unsigned int index = i;
-		auto hashpair = this->jobj[to_string(i)];
-  		size_t hash = hashpair[0];
-  		bool exists = false;
-  		if (!create)
-			exists = hashpair[1];
-		this->chunks.push_back(Chunk{index, hash, exists});
+	try{
+		this->jobj = nlohmann::json::parse(this->serializedObj);
+		this->name = this->jobj["name"].get<std::string>();
+		this->numPieces = this->jobj["numPieces"];
+		this->uid = this->jobj["uid"];
+		this->size = this->jobj["size"];
+		this->packagePath = Torrent::getTorrentDataPath() + this->name;
+		for (unsigned int i = 0; i < this->numPieces; i++)
+		{
+			unsigned int index = i;
+			auto hashpair = this->jobj[to_string(i)];
+	  		size_t hash = hashpair[0];
+	  		bool exists = false;
+	  		if (!create)
+				exists = hashpair[1];
+			this->chunks.push_back(Chunk{index, hash, exists});
+		}
 	}
-	sort(chunks.begin(), chunks.end(), 
+	catch(...){
+		this->chunks.clear();
+	}
+	sort(this->chunks.begin(), this->chunks.end(), 
 		[](const Chunk& first, const Chunk& second)->bool
 		{
 			return first.index < second.index;
