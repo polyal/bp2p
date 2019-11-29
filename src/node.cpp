@@ -107,14 +107,19 @@ void Node::processResponse(RRPacket* packet, const Message& rsp)
 	packet->processResponse(rsp);
 	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
 	if (torListReq){
-		DeviceDescriptor dev = packet->getRemoteAddr();
-		vector<string> torrentNames = packet->getTorrentList();
+		DeviceDescriptor dev = torListReq->getRemoteAddr();
+		vector<string> torrentNames = torListReq->getTorrentList();
 		this->dev2tor[dev] = torrentNames;
 		return;
 	}
 	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
 	if (torFileReq){
-		
+		string name = torFileReq->getTorrentName();
+		string serializedTorrent = torFileReq->getSerializedTorrent();
+		Torrent tor;
+		tor.createTorrentFromSerializedObj(serializedTorrent);
+		if (tor.open())
+			this->name2torrent[name] = tor;
 		return;
 	}
 	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
@@ -461,13 +466,8 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentFileReq req{remote, locals[index], name};
 		carryOutRequest(req);
-		torrent = req.getTorrent();
 	}
 	activateWorkerThreads();
-	if (torrent.isValid()){
-		this->name2torrent[name] = torrent;
-		status = 0;
-	}
 	return status;
 }
 
