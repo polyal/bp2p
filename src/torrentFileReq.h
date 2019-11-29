@@ -2,7 +2,6 @@
 #define TORRENTFILEREQ_H
 
 #include <vector>
-#include "torrent.h"
 #include "rrpacket.h"
 
 using namespace std;
@@ -24,10 +23,10 @@ public:
 
 	RequestType getType();
 
-	Torrent getTorrent() const;
+	string getSerializedTorrent() const;
+	string getTorrentName() const;
 
 private:
-	Torrent torrent;
 	string torrentName;
 	string serializedTorrent;
 	void processRequest();

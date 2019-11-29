@@ -76,15 +76,17 @@ void TorrentFileReq::processResponse(const Message& msg)
 
 void TorrentFileReq::processResponse()
 {
-	string strresp{this->rsp.data.begin(), this->rsp.data.end()};
-	Torrent torrent;
-	torrent.createTorrentFromSerializedObj(strresp);
-	this->torrent = torrent;
+	this->serializedTorrent.assign(this->rsp.data.begin(), this->rsp.data.end());
 }
 
-Torrent TorrentFileReq::getTorrent() const
+string TorrentFileReq::getSerializedTorrent() const
 {
-	return this->torrent;
+	return this->serializedTorrent;
+}
+
+string TorrentFileReq::getTorrentName() const
+{
+	return this->torrentName;
 }
 
 RRPacket::RequestType TorrentFileReq::getType()
