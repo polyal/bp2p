@@ -500,7 +500,7 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 	return status;
 }
 
-int Node::requestTorrentFileIfMissing(const string& name, Torrent& torrent)
+int Node::requestTorrentFileIfMissing(const string& name)
 {
 	int status = -1;
 	auto TorNameDevPair = this->torName2dev.find(name);
@@ -511,19 +511,23 @@ int Node::requestTorrentFileIfMissing(const string& name, Torrent& torrent)
 			int index = Utils::grnd(0, devs.size()-1);
 			DeviceDescriptor dev{devs[index]};	
 			status = requestTorrentFile(name, dev);
-			if (status == 0)
-				torrent = this->name2torrent[name];
 		}
 		else{
-			torrent = this->name2torrent[name];
+			status = 0;
 		}
 	}
 	return status;
 }
 
-int Node::getMissingChunkIndex(const Torrent& torrent)
+int Node::getMissingChunkIndex(const string& name)
 {
-	return torrent.getMissingChunkIndex();	
+	int chunk = -1;
+	auto name2torrentpair = this->name2torrent.find(name);
+	if (name2torrentpair != this->name2torrent.end()){
+		Torrent torrent = name2torrentpair->second;
+		chunk = torrent.getMissingChunkIndex();
+	}
+	return chunk;
 }
 
 int Node::requestTorrentData(const string& name)
@@ -547,9 +551,8 @@ int Node::requestTorrentData(const string& name)
 			}
 			avail.clear();
 		}
-		Torrent torrent;
-		status = requestTorrentFileIfMissing(name, torrent);		
-		status = requestChunk(torrent);
+		status = requestTorrentFileIfMissing(name);		
+		status = requestChunk(name);
 	}
 	else{
 		status = -1;
@@ -581,11 +584,10 @@ int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev, v
 	return 0;
 }
 
-int Node::requestChunk(const Torrent& torrent)
+int Node::requestChunk(const string& name)
 {
-	int missingChunkIndex = getMissingChunkIndex(torrent);
-	string name = torrent.getFilename();
-	return requestChunk(name, missingChunkIndex);
+	int index = getMissingChunkIndex(name);
+	return requestChunk(name, index);
 }
 
 int Node::requestChunk(const string& name, int index)

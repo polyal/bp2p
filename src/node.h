@@ -100,15 +100,15 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread();
 
-	int getMissingChunkIndex(const Torrent& torrent);
+	int getMissingChunkIndex(const string& torrent);
 	void insertJob(const shared_ptr<RRPacket> job);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
 	int requestTorrentFile(const string& name, const DeviceDescriptor& dev);
-	int requestTorrentFileIfMissing(const string& name, Torrent& torrent);
-	int requestChunk(const Torrent& torrent);
+	int requestTorrentFileIfMissing(const string& name);
+	int requestChunk(const string& torrent);
 	int requestChunk(const string& name, int index);
 	int requestChunk(const string& name, int index, const DeviceDescriptor& dev);
 	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index, 
