@@ -82,6 +82,10 @@ private:
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
 	void processResponse(RRPacket* packet, const Message& rsp);
+	void processResponse(const TorrentListReq* const req);
+	void processResponse(const TorrentFileReq* const req);
+	void processResponse(const TorrentAvailReq* const req);
+	void processResponse(const ChunkReq* const req);
 	void processRequest(const Message& req, Message& rsp);
 	void processRequest(RRPacket* req);
 

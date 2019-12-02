@@ -106,46 +106,62 @@ void Node::processResponse(RRPacket* packet, const Message& rsp)
 {
 	packet->processResponse(rsp);
 	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
-	if (torListReq){
-		DeviceDescriptor dev = torListReq->getRemoteAddr();
-		vector<string> torrentNames = torListReq->getTorrentList();
-		this->dev2tor[dev] = torrentNames;
-		return;
-	}
+	processResponse(torListReq);
 	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
-	if (torFileReq){
-		string name = torFileReq->getTorrentName();
-		string serializedTorrent = torFileReq->getSerializedTorrent();
+	processResponse(torFileReq);
+	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+	processResponse(torAvailReq);
+	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+	processResponse(chunkReq);
+}
+
+void Node::processResponse(const TorrentListReq* const req)
+{	
+	if (req){
+		DeviceDescriptor dev = req->getRemoteAddr();
+		vector<string> torrentNames = req->getTorrentList();
+		this->dev2tor[dev] = torrentNames;
+	}
+}
+
+void Node::processResponse(const TorrentFileReq* const req)
+{
+	if (req){
+		string name = req->getTorrentName();
+		string serializedTorrent = req->getSerializedTorrent();
 		Torrent tor;
 		tor.createTorrentFromSerializedObj(serializedTorrent);
 		if (tor.open())
 			this->name2torrent[name] = tor;
-		return;
 	}
-	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
-	if (torAvailReq){
-		DeviceDescriptor dev = torAvailReq->getRemoteAddr();
-		string name = torAvailReq->getTorrentName();
-		vector<int> torAvail = torAvailReq->getTorrentAvail();
+}
+
+void Node::processResponse(const TorrentAvailReq* const req)
+{
+	if (req){
+		DeviceDescriptor dev = req->getRemoteAddr();
+		string name = req->getTorrentName();
+		vector<int> torAvail = req->getTorrentAvail();
 		for (int chunkAvail : torAvail){
 			if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
 				this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
 			this->torName2Avail[name][chunkAvail].push_back(dev);
-		} 
-		return;
+		}
 	}
-	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
-	if (chunkReq){
-		string name = chunkReq->getTorrentName();
-		int index = chunkReq->getIndex();
-		vector<char> chunk = chunkReq->getChunk();
+}
+
+void Node::processResponse(const ChunkReq* const req)
+{
+	if (req){
+		string name = req->getTorrentName();
+		int index = req->getIndex();
+		vector<char> chunk = req->getChunk();
 		Torrent tor = this->name2torrent[name];
 		if (tor.open()){
 			if (!tor.torrentDataExists())
 				tor.createTorrentDataFile();
 			tor.putChunk(chunk, index);
 		}
-		return;
 	}
 }
 
