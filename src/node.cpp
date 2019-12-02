@@ -75,10 +75,17 @@ void Node::scanForDevs()
 
 void Node::carryOutRequest(RRPacket& req)
 {
-	Message rsp;
-	req.createRequest();
-	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
-	processResponse(&req, rsp);
+	carryOutRequest(&req);
+}
+
+void Node::carryOutRequest(RRPacket* const req)
+{
+	if (req){
+		Message rsp;
+		req->createRequest();
+		sendRequestWait4Response(req->getReq(), rsp, req->getLocalAddr(), req->getRemoteAddr());
+		processResponse(req, rsp);
+	}
 }
 
 void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
@@ -327,9 +334,6 @@ void Node::jobManagerThread()
 		if (chunkReq){
 			cout << "Job Manager: not NULL" << endl;
 			carryOutRequest(*chunkReq);
-			//string name = chunkReq->getTorrentName();
-			//int index = chunkReq->getChunkNum();
-			//Torrent torrent = this->name2torrent[name];
 			// mark chunk as received
 			jobs.pop_front();
 		}
