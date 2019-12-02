@@ -75,17 +75,10 @@ void Node::scanForDevs()
 
 void Node::carryOutRequest(RRPacket& req)
 {
-	carryOutRequest(&req);
-}
-
-void Node::carryOutRequest(RRPacket* const req)
-{
-	if (req){
-		Message rsp;
-		req->createRequest();
-		sendRequestWait4Response(req->getReq(), rsp, req->getLocalAddr(), req->getRemoteAddr());
-		processResponse(req, rsp);
-	}
+	Message rsp;
+	req.createRequest();
+	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
+	processResponse(req, rsp);
 }
 
 void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
@@ -109,16 +102,17 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	}
 }
 
-void Node::processResponse(RRPacket* packet, const Message& rsp)
+void Node::processResponse(RRPacket& packet, const Message& rsp)
 {
-	packet->processResponse(rsp);
-	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
+	RRPacket* packetptr = &packet;
+	packet.processResponse(rsp);
+	auto torListReq = dynamic_cast<TorrentListReq*>(packetptr);
 	processResponse(torListReq);
-	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
+	auto torFileReq = dynamic_cast<TorrentFileReq*>(packetptr);
 	processResponse(torFileReq);
-	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
+	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packetptr);
 	processResponse(torAvailReq);
-	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
+	auto chunkReq = dynamic_cast<ChunkReq*>(packetptr);
 	processResponse(chunkReq);
 }
 
