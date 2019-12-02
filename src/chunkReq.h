@@ -27,7 +27,7 @@ public:
 
 	string getTorrentName() const;
 	int getIndex() const;
-	vector<char> getChunk();
+	vector<char> getChunk() const;
 
 private:
 	string strreq;

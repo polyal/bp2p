@@ -108,7 +108,7 @@ int ChunkReq::getIndex() const
 	return this->index;
 }
 
-vector<char> ChunkReq::getChunk()
+vector<char> ChunkReq::getChunk() const
 {
 	return this->rsp.data;
 }
