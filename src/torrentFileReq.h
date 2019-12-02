@@ -20,9 +20,7 @@ public:
 	void extractTorrentName(string& torrentName);
 	void processRequest(const string& serializedTorrent);
 	void processResponse(const Message& msg);
-
-	RequestType getType();
-
+	
 	string getSerializedTorrent() const;
 	string getTorrentName() const;
 

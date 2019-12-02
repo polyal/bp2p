@@ -112,8 +112,3 @@ vector<char> ChunkReq::getChunk() const
 {
 	return this->rsp.data;
 }
-
-RRPacket::RequestType ChunkReq::getType()
-{
-	return type;
-}

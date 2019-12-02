@@ -40,8 +40,6 @@ public:
 	virtual void processRequest() = 0;
 	virtual void processResponse(const Message& rsp) = 0;
 
-	virtual RequestType getType() = 0;
-
 protected:
 	Message req;
 	Message rsp;

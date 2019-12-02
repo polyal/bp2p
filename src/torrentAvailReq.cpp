@@ -108,8 +108,3 @@ vector<int> TorrentAvailReq::getTorrentAvail() const
 {
 	return this->torrentAvail;
 }
-
-RRPacket::RequestType TorrentAvailReq::getType()
-{
-	return type;
-}

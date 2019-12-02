@@ -19,8 +19,6 @@ public:
 	void processRequest(const vector<string>& torrentList);
 	void processResponse(const Message& msg);
 
-	RequestType getType();
-
 	vector<string> getTorrentList() const;
 
 private:

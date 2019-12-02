@@ -21,9 +21,7 @@ public:
 	void extractTorrentName(string& torrentName);
 	void processRequest(const vector<int>& torrentAvail);
 	void processResponse(const Message& msg);
-
-	RequestType getType();
-
+	
 	string getTorrentName() const;
 	vector<int> getTorrentAvail() const;
 

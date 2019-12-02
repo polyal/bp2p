@@ -88,8 +88,3 @@ string TorrentFileReq::getTorrentName() const
 {
 	return this->torrentName;
 }
-
-RRPacket::RequestType TorrentFileReq::getType()
-{
-	return type;
-}

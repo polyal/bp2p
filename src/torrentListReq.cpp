@@ -80,8 +80,3 @@ vector<string> TorrentListReq::getTorrentList() const
 {
 	return torrentList;
 }
-
-RRPacket::RequestType TorrentListReq::getType()
-{
-	return type;
-}

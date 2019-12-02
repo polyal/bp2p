@@ -22,9 +22,7 @@ public:
 	void extractNameAndIndex(string& name, int& index);
 	void processRequest(const vector<char>& chunk);
 	void processResponse(const Message& msg);
-
-	RequestType getType();
-
+	
 	string getTorrentName() const;
 	int getIndex() const;
 	vector<char> getChunk() const;
