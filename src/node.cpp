@@ -712,39 +712,7 @@ int main(int argc, char *argv[]){
 			args.clear();
 		}
 	} while (1);
-
 	myNode.killWorkerThreads();
-
-	/*unique_ptr<Node::Peer> server = myNode.createServerThread(myNode.localDevs[0]);
-	this_thread::sleep_for (std::chrono::milliseconds(10));
-	unique_ptr<Node::Peer> jobMan = myNode.createJobManagerThread();
-	{
-		std::unique_lock<std::mutex> lock(myNode.jmMutex);
-		for (int i = 0; i < 2; i++){
-			//Message rsp;
-			//this_thread::sleep_for (std::chrono::milliseconds(10));
-			//myNode.jobManagerMutex.lock();
-			auto chunk = make_shared<ChunkReq>("largerNew", i);
-			myNode.jobs.push_back(chunk);
-			//myNode.jobManagerMutex.unlock();
-			//myNode.requestChunk(myNode.localDevs[1], myNode.localDevs[0], "largerNew", i, rsp);
-
-			cout << "LOOP " << i << endl;
-		}
-		lock.unlock();
-		myNode.jmEvent.notify_one();
-	}
-
-	this_thread::sleep_for (std::chrono::seconds(10));
-	server->close();
-	// notify again just to wake up the thread so it quits
-	{
-		std::unique_lock<std::mutex> lock(myNode.jmMutex);
-		jobMan->setKill();
-		lock.unlock();
-		myNode.jmEvent.notify_one();
-	}
-	jobMan->close();*/
 
     return 0;
 }
