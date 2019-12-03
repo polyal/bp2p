@@ -81,11 +81,11 @@ private:
 	void carryOutRequest(RRPacket& req);
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
 		const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes);
-	void processResponse(RRPacket& packet, const Message& rsp);
-	void processResponse(const TorrentListReq* const req);
-	void processResponse(const TorrentFileReq* const req);
-	void processResponse(const TorrentAvailReq* const req);
-	void processResponse(const ChunkReq* const req);
+	void completeRequest(const RRPacket& packet);
+	void completeRequest(const TorrentListReq& req);
+	void completeRequest(const TorrentFileReq& req);
+	void completeRequest(const TorrentAvailReq& req);
+	void completeRequest(const ChunkReq& req);
 	void processRequest(const Message& req, Message& rsp);
 	void processRequest(RRPacket* req);
 
@@ -105,7 +105,7 @@ private:
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
-	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail);
+	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
 	int requestTorrentFile(const string& name, const DeviceDescriptor& dev);
 	int requestTorrentFileIfMissing(const string& name);
 	int requestChunk(const string& torrent);

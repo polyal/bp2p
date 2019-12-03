@@ -78,7 +78,7 @@ void Node::carryOutRequest(RRPacket& req)
 	Message rsp;
 	req.createRequest();
 	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
-	processResponse(req, rsp);
+	req.processResponse(rsp);
 }
 
 void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
@@ -102,67 +102,58 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	}
 }
 
-void Node::processResponse(RRPacket& packet, const Message& rsp)
+void Node::completeRequest(const RRPacket& packet)
 {
-	RRPacket* packetptr = &packet;
-	packet.processResponse(rsp);
-	auto torListReq = dynamic_cast<TorrentListReq*>(packetptr);
-	processResponse(torListReq);
-	auto torFileReq = dynamic_cast<TorrentFileReq*>(packetptr);
-	processResponse(torFileReq);
-	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packetptr);
-	processResponse(torAvailReq);
-	auto chunkReq = dynamic_cast<ChunkReq*>(packetptr);
-	processResponse(chunkReq);
+	const RRPacket* packetptr = &packet;
+	auto torListReq = dynamic_cast<const TorrentListReq*>(packetptr);
+	completeRequest(*torListReq);
+	auto torFileReq = dynamic_cast<const TorrentFileReq*>(packetptr);
+	completeRequest(*torFileReq);
+	auto torAvailReq = dynamic_cast<const TorrentAvailReq*>(packetptr);
+	completeRequest(*torAvailReq);
+	auto chunkReq = dynamic_cast<const ChunkReq*>(packetptr);
+	completeRequest(*chunkReq);
 }
 
-void Node::processResponse(const TorrentListReq* const req)
+void Node::completeRequest(const TorrentListReq& req)
 {	
-	if (req){
-		DeviceDescriptor dev = req->getRemoteAddr();
-		vector<string> torrentNames = req->getTorrentList();
-		this->dev2tor[dev] = torrentNames;
+	DeviceDescriptor dev = req.getRemoteAddr();
+	vector<string> torrentNames = req.getTorrentList();
+	this->dev2tor[dev] = torrentNames;
+}
+
+void Node::completeRequest(const TorrentFileReq& req)
+{
+	string name = req.getTorrentName();
+	string serializedTorrent = req.getSerializedTorrent();
+	Torrent tor;
+	tor.createTorrentFromSerializedObj(serializedTorrent);
+	if (tor.open())
+		this->name2torrent[name] = tor;
+}
+
+void Node::completeRequest(const TorrentAvailReq& req)
+{
+	DeviceDescriptor dev = req.getRemoteAddr();
+	string name = req.getTorrentName();
+	vector<int> torAvail = req.getTorrentAvail();
+	for (int chunkAvail : torAvail){
+		if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
+			this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
+		this->torName2Avail[name][chunkAvail].push_back(dev);
 	}
 }
 
-void Node::processResponse(const TorrentFileReq* const req)
+void Node::completeRequest(const ChunkReq& req)
 {
-	if (req){
-		string name = req->getTorrentName();
-		string serializedTorrent = req->getSerializedTorrent();
-		Torrent tor;
-		tor.createTorrentFromSerializedObj(serializedTorrent);
-		if (tor.open())
-			this->name2torrent[name] = tor;
-	}
-}
-
-void Node::processResponse(const TorrentAvailReq* const req)
-{
-	if (req){
-		DeviceDescriptor dev = req->getRemoteAddr();
-		string name = req->getTorrentName();
-		vector<int> torAvail = req->getTorrentAvail();
-		for (int chunkAvail : torAvail){
-			if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
-				this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
-			this->torName2Avail[name][chunkAvail].push_back(dev);
-		}
-	}
-}
-
-void Node::processResponse(const ChunkReq* const req)
-{
-	if (req){
-		string name = req->getTorrentName();
-		int index = req->getIndex();
-		vector<char> chunk = req->getChunk();
-		Torrent tor = this->name2torrent[name];
-		if (tor.open()){
-			if (!tor.torrentDataExists())
-				tor.createTorrentDataFile();
-			tor.putChunk(chunk, index);
-		}
+	string name = req.getTorrentName();
+	int index = req.getIndex();
+	vector<char> chunk = req.getChunk();
+	Torrent tor = this->name2torrent[name];
+	if (tor.open()){
+		if (!tor.torrentDataExists())
+			tor.createTorrentDataFile();
+		tor.putChunk(chunk, index);
 	}
 }
 
@@ -324,10 +315,10 @@ void Node::jobManagerThread()
 	if (this->jobs.size() > 0){
 		cout << "Job manager: has items " << this->jobs.size() << endl;
 		shared_ptr<RRPacket> req = jobs.front();
-		auto chunkReq = dynamic_pointer_cast<ChunkReq>(req);
-		if (chunkReq){
+		if (req){
 			cout << "Job Manager: not NULL" << endl;
-			carryOutRequest(*chunkReq);
+			carryOutRequest(*req);
+			completeRequest(*req);
 			// mark chunk as received
 			jobs.pop_front();
 		}
@@ -441,22 +432,19 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 
 void Node::requestAllNearbyTorrents()
 {
-	map<DeviceDescriptor, vector<string>> nearbyTorrents;
 	pauseWorkerThreads();
 	for(auto const& [key, val] : this->remote2local)
 	{
 		int index = Utils::grnd(0, val.size()-1);
 		TorrentListReq req{key, val[index]};
 		carryOutRequest(req);
-		nearbyTorrents[key] = req.getTorrentList();
+		completeRequest(req);
 	}
 	activateWorkerThreads();
-	this->dev2tor = nearbyTorrents;
 }
 
 void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 {
-	map<DeviceDescriptor, vector<string>> nearbyTorrents;
 	pauseWorkerThreads();
 	for (auto dev : devs){
 		auto keyVal = this->remote2local.find(dev);
@@ -466,13 +454,10 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 			int index = Utils::grnd(0, locals.size()-1);
 			TorrentListReq req{remote, locals[index]};
 			carryOutRequest(req);
-			nearbyTorrents[remote] = req.getTorrentList();
+			completeRequest(req);
 		}
 	}
 	activateWorkerThreads();
-	for (const auto& [dev, tors] : nearbyTorrents){
-		this->dev2tor[dev] = tors;
-	}
 }
 
 int Node::requestTorrentFile(const string& name, const string& addr)
@@ -495,6 +480,7 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentFileReq req{remote, locals[index], name};
 		carryOutRequest(req);
+		completeRequest(req);
 	}
 	activateWorkerThreads();
 	return status;
@@ -541,16 +527,8 @@ int Node::requestTorrentData(const string& name)
 	auto TorNameDevPair = this->torName2dev.find(name);
 	if (TorNameDevPair != this->torName2dev.end()){
 		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
-		vector<int> avail;
-		for (const auto&  dev : devs){
-			requestTorrentAvail(name, dev, avail);
-			for (int chunkAvail : avail){
-				if (this->torName2Avail[name].find(chunkAvail) == this->torName2Avail[name].end())
-					this->torName2Avail[name].insert(pair<int, vector<DeviceDescriptor>>(chunkAvail, vector<DeviceDescriptor>()));
-				torName2Avail[name][chunkAvail].push_back(dev);
-			}
-			avail.clear();
-		}
+		for (const auto&  dev : devs)
+			requestTorrentAvail(name, dev);
 		status = requestTorrentFileIfMissing(name);		
 		status = requestChunk(name);
 	}
@@ -563,11 +541,10 @@ int Node::requestTorrentData(const string& name)
 int Node::requestTorrentAvail(const string& name, const string& addr)
 {
 	DeviceDescriptor dev{addr};
-	vector<int> avail;
-	return requestTorrentAvail(name, dev, avail);
+	return requestTorrentAvail(name, dev);
 }
 
-int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev, vector<int>& avail)
+int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev)
 {
 	
 	pauseWorkerThreads();
@@ -578,7 +555,7 @@ int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev, v
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentAvailReq req{remote, locals[index], name};
 		carryOutRequest(req);
-		avail = req.getTorrentAvail();
+		completeRequest(req);
 	}
 	activateWorkerThreads();
 	return 0;
@@ -693,6 +670,9 @@ int main(int argc, char *argv[]){
 				else{
 					cout << "Usage: ./bp2p.exe -tr [name] [addr]" << endl;
 				}
+			}
+			else if (args[0].compare(Node::requestTorDataCmd) == 0){
+
 			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
