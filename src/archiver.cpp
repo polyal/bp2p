@@ -58,8 +58,7 @@ int Archiver::archive()
     // initialize archive entry 
     entry = archive_entry_new();
 
-    for (auto& filename : this->filenames)
-    {
+    for (auto& filename : this->filenames){
     	stat(filename.c_str(), &st);
         archive_entry_set_pathname(entry, filename.c_str());
         //archive_entry_set_size(entry, st.st_size); // Note 3
@@ -69,8 +68,7 @@ int Archiver::archive()
         archive_write_header(a, entry);
 
         ifstream ifs{filename, ifstream::binary};
-        while (!ifs.eof() && !ifs.fail())
-        {
+        while (!ifs.eof() && !ifs.fail()){
         	ifs.read (&buff[0], buff.size());
         	archive_write_data(a, &buff[0], ifs.gcount());
         }
@@ -110,7 +108,7 @@ int Archiver::extract()
         exit(1);
     }
 
-    for (;;) {
+    for (;;){
         r = archive_read_next_header(a, &entry);
         if (r == ARCHIVE_EOF)
             break;
@@ -123,7 +121,7 @@ int Archiver::extract()
         r = archive_write_header(ext, entry);
         if (r < ARCHIVE_OK)
             fprintf(stderr, "%s\n", archive_error_string(ext));
-        else if (archive_entry_size(entry) > 0) {
+        else if (archive_entry_size(entry) > 0){
             r = copyArchive(a, ext);
             if (r < ARCHIVE_OK)
                 fprintf(stderr, "%s\n", archive_error_string(ext));
@@ -158,21 +156,19 @@ int Archiver::copyArchive(struct archive *ar, struct archive *aw)
     long long int offset;
 #endif
 
-    for (;;) {
+    for (;;){
         r = archive_read_data_block(ar, &buff, &size, &offset);
         if (r == ARCHIVE_EOF)
           return (ARCHIVE_OK);
         if (r < ARCHIVE_OK)
           return (r);
         r = archive_write_data_block(aw, buff, size, offset);
-        if (r < ARCHIVE_OK) {
+        if (r < ARCHIVE_OK){
           fprintf(stderr, "%s\n", archive_error_string(aw));
           return (r);
         }
     }
 }
-
-
 
 #if DEBUG == 1
 int main()

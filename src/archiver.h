@@ -21,10 +21,6 @@ using namespace std;
 
 class  Archiver
 {
-private:
-	string name;
-	vector<string> filenames;
-
 public:
 	///////////////////////////////////////////////////////////
 	//  Initializes a new archive.  The single argument
@@ -48,5 +44,8 @@ public:
 	int extract();
 
 private:
+	string name;
+	vector<string> filenames;
+
 	int copyArchive(struct archive *ar, struct archive *aw);
 };
