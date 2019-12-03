@@ -87,7 +87,11 @@ private:
 	void completeRequest(const TorrentAvailReq& req);
 	void completeRequest(const ChunkReq& req);
 	void processRequest(const Message& req, Message& rsp);
-	void processRequest(RRPacket* req);
+	void processRequest(RRPacket& req);
+	void processRequest(TorrentListReq& req);
+	void processRequest(TorrentFileReq& req);
+	void processRequest(TorrentAvailReq& req);
+	void processRequest(ChunkReq& req);
 
 	void getTorrentNameList(vector<string>& torrentList);
 	void getSerializedTorrent(string& serializedTorrent, const string& name);

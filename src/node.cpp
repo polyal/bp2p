@@ -106,13 +106,17 @@ void Node::completeRequest(const RRPacket& packet)
 {
 	const RRPacket* packetptr = &packet;
 	auto torListReq = dynamic_cast<const TorrentListReq*>(packetptr);
-	completeRequest(*torListReq);
+	if (torListReq)
+		completeRequest(*torListReq);
 	auto torFileReq = dynamic_cast<const TorrentFileReq*>(packetptr);
-	completeRequest(*torFileReq);
+	if (torFileReq)
+		completeRequest(*torFileReq);
 	auto torAvailReq = dynamic_cast<const TorrentAvailReq*>(packetptr);
-	completeRequest(*torAvailReq);
+	if (torAvailReq)
+		completeRequest(*torAvailReq);
 	auto chunkReq = dynamic_cast<const ChunkReq*>(packetptr);
-	completeRequest(*chunkReq);
+	if (chunkReq)
+		completeRequest(*chunkReq);
 }
 
 void Node::completeRequest(const TorrentListReq& req)
@@ -161,47 +165,60 @@ void Node::processRequest(const Message& req, Message& rsp)
 {
 	unique_ptr<RRPacket> packet = RRFactory::create(req);
 	if (packet){
-		processRequest(packet.get());
+		processRequest(*packet);
 		rsp = packet->getRsp();
 	}
 }
 
-void Node::processRequest(RRPacket* packet)
+void Node::processRequest(RRPacket& packet)
 {
-	auto torListReq = dynamic_cast<TorrentListReq*>(packet);
-	if (torListReq){
-		vector<string> torrentList;
-		getTorrentNameList(torrentList);
-		torListReq->processRequest(torrentList);
-		return;
-	}
-	auto torFileReq = dynamic_cast<TorrentFileReq*>(packet);
-	if (torFileReq){
-		string name, serializedTorrent;
-		torFileReq->extractTorrentName(name);
-		getSerializedTorrent(serializedTorrent, name);
-		torFileReq->processRequest(serializedTorrent);
-		return;
-	}
-	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packet);
-	if (torAvailReq){
-		string name;
-		vector<int> torAvail;
-		torAvailReq->extractTorrentName(name);
-		getTorrentAvailFromTorrent(torAvail, name);
-		torAvailReq->processRequest(torAvail);
-		return;
-	}
-	auto chunkReq = dynamic_cast<ChunkReq*>(packet);
-	if (chunkReq){
-		string name;
-		int index;
-		chunkReq->extractNameAndIndex(name, index);
-		vector<char> chunk;
-		retrieveChunk(chunk, name, index);
-		chunkReq->processRequest(chunk);
-		return;
-	}
+	auto packetptr = &packet;
+	auto torListReq = dynamic_cast<TorrentListReq*>(packetptr);
+	if (torListReq)
+		processRequest(*torListReq);
+	auto torFileReq = dynamic_cast<TorrentFileReq*>(packetptr);
+	if (torFileReq)
+		processRequest(*torFileReq);
+	auto torAvailReq = dynamic_cast<TorrentAvailReq*>(packetptr);
+	if (torAvailReq)
+		processRequest(*torAvailReq);
+	auto chunkReq = dynamic_cast<ChunkReq*>(packetptr);
+	if (chunkReq)
+		processRequest(*chunkReq);
+}
+
+void Node::processRequest(TorrentListReq& req)
+{
+	vector<string> torrentList;
+	getTorrentNameList(torrentList);
+	req.processRequest(torrentList);
+}
+
+void Node::processRequest(TorrentFileReq& req)
+{
+	string name, serializedTorrent;
+	req.extractTorrentName(name);
+	getSerializedTorrent(serializedTorrent, name);
+	req.processRequest(serializedTorrent);
+}
+
+void Node::processRequest(TorrentAvailReq& req)
+{
+	string name;
+	vector<int> torAvail;
+	req.extractTorrentName(name);
+	getTorrentAvailFromTorrent(torAvail, name);
+	req.processRequest(torAvail);
+}
+
+void Node::processRequest(ChunkReq& req)
+{
+	string name;
+	int index;
+	req.extractNameAndIndex(name, index);
+	vector<char> chunk;
+	retrieveChunk(chunk, name, index);
+	req.processRequest(chunk);
 }
 
 void Node::getTorrentNameList(vector<string>& torrentList)
