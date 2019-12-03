@@ -342,6 +342,8 @@ void Node::jobManagerThread()
 				Torrent tor = this->name2torrent[name];
 				if (!tor.isComplete())
 					requestChunk(name);
+				else
+					tor.unpackage();
 			}
 			jobs.pop_front();
 		}
