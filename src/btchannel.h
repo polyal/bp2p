@@ -11,23 +11,6 @@ using namespace std;
 
 class BTChannel : public Channel
 {
-private:
-	static const unsigned int chunkSize = 32768;
-	static const unsigned int btChunk = 1008;  // bluetooth transfers data in chuncks of 1008 bytes
-	inline static const string zaddr = "00:00:00:00:00:00";
-	inline static constexpr bdaddr_t bdAddrAny = {{0, 0, 0, 0, 0, 0}}; // replaces BDADDR_ANY from bluetooth.h
-
-	Message omsg;  // output
-	Message imsg;  // input
-	int sock = -1;
-	int remoteSock = -1;
-	struct sockaddr_rc addr;
-	struct sockaddr_rc remoteAddr;
-
-	static const int timeout = 2;  // in seconds
-	void setReusePort();
-	void setTimeout();
-
 public:
 	BTChannel();
 	BTChannel(const struct sockaddr_rc& addr);
@@ -68,4 +51,21 @@ protected:
 	void accept();
 
 	void close(int& sock);
+
+private:
+	static const unsigned int chunkSize = 32768;
+	static const unsigned int btChunk = 1008;  // bluetooth transfers data in chuncks of 1008 bytes
+	inline static const string zaddr = "00:00:00:00:00:00";
+	inline static constexpr bdaddr_t bdAddrAny = {{0, 0, 0, 0, 0, 0}}; // replaces BDADDR_ANY from bluetooth.h
+
+	Message omsg;  // output
+	Message imsg;  // input
+	int sock = -1;
+	int remoteSock = -1;
+	struct sockaddr_rc addr;
+	struct sockaddr_rc remoteAddr;
+
+	static const int timeout = 2;  // in seconds
+	void setReusePort();
+	void setTimeout();
 };

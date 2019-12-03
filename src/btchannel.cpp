@@ -136,7 +136,7 @@ void BTChannel::write(int sock, const Message& msg)
 void BTChannel::write(int sock)
 {
 	int status = ::write(sock, this->omsg.data.data(), this->omsg.size);
-    if( status == -1 ){
+    if(status == -1){
         cout << "Channel Error: Write error. " << errno << endl;
         throw errno;
     }
@@ -185,13 +185,11 @@ void BTChannel::read(int sock)
         if (bytesRead < (int)this->btChunk || (errno != 0 && errno != ENOENT))
             break;
     }
-    if( bytesRead == -1 ){
+    if(bytesRead == -1){
         cout << "Channel Error: Failed to read message. " << errno << endl;
         if (errno != ECONNRESET)
             throw errno;
     }
-    //string rspp{this->imsg.data.begin(), this->imsg.data.end()};
-    //cout << "Read Msg: " << rspp << endl;
     this->imsg.size = totalSize;
     this->imsg.data.resize(totalSize);
 }
@@ -219,7 +217,6 @@ void BTChannel::setTimeout()
     struct timeval timeout;      
     timeout.tv_sec = BTChannel::timeout;
     timeout.tv_usec = 0;
-
     if (setsockopt (this->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0){
         cout << "Channel Error: Couldn't set timeout" << endl;
     }
@@ -246,9 +243,10 @@ void BTChannel::accept(DeviceDescriptor& dev)
     vector<char> cAddr(18, 0);
     ba2str(&this->remoteAddr.rc_bdaddr, &cAddr[0]);
     transform(cAddr.begin(), cAddr.end(), std::back_inserter(dev.addr),
-               [](char c) {
-                   return c;
-                });
+        [](char c)
+        {
+            return c;
+        });
 }
 
 void BTChannel::accept()
