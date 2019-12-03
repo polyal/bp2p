@@ -336,7 +336,14 @@ void Node::jobManagerThread()
 			cout << "Job Manager: not NULL" << endl;
 			carryOutRequest(*req);
 			completeRequest(*req);
-			// mark chunk as received
+
+			auto chunkReq = dynamic_cast<ChunkReq*>(req.get());
+			if (chunkReq){
+				string name = chunkReq->getTorrentName();
+				Torrent tor = this->name2torrent[name];
+				if (!tor.isComplete())
+					requestChunk(name);
+			}
 			jobs.pop_front();
 		}
 	}
