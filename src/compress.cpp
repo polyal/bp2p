@@ -7,7 +7,7 @@
 void zerr(int ret)
 {
     fputs("zpipe: ", stderr);
-    switch (ret) {
+    switch (ret){
     case Z_ERRNO:
         if (ferror(stdin))
             fputs("error reading stdin\n", stderr);
@@ -82,20 +82,17 @@ int Ezlib::compress()
     ofstream fDest {this->dest, ifstream::binary};
     if (!fSource.is_open() || !fDest.is_open()) return Z_ERRNO;
 
-    do
-    {
+    do{
         fSource.read(&in[0], in.size());
         this->strm.avail_in = fSource.gcount();
-        if (fSource.fail() && !fSource.eof())
-        {
+        if (fSource.fail() && !fSource.eof()){
             (void)deflateEnd(&this->strm);
             return Z_ERRNO;
         }
         flush = fSource.eof() ?  Z_FINISH : Z_NO_FLUSH;
         this->strm.next_in = reinterpret_cast<unsigned char*>(&in[0]);
 
-        do
-        {
+        do{
             this->strm.avail_out = this->chunkSize;
             this->strm.next_out = reinterpret_cast<unsigned char*>(&out[0]);
             ret = deflate(&this->strm, flush); // no bad return value
@@ -104,14 +101,13 @@ int Ezlib::compress()
             have = this->chunkSize - this->strm.avail_out;
             unsigned long before = fDest.tellp();
             fDest.write(&out[0], have);
-            if (fDest.fail() || (unsigned long)fDest.tellp() - before != have)
-            {
+            if (fDest.fail() || (unsigned long)fDest.tellp() - before != have){
                 (void)deflateEnd(&strm);
                 return Z_ERRNO;
             }
-        } while (strm.avail_out == 0);
+        }while (strm.avail_out == 0);
         //assert(strm.avail_in == 0);     /* all input will be used */
-    } while(flush != Z_FINISH);
+    }while(flush != Z_FINISH);
 
     /* clean up and return */
     (void)deflateEnd(&strm);
@@ -131,15 +127,14 @@ int Ezlib::decompress()
 
     ifstream fSource {this->source, ifstream::binary};
     ofstream fDest {this->dest, ifstream::binary};
-    if (!fSource.is_open() || !fDest.is_open()) return Z_ERRNO;
+    if (!fSource.is_open() || !fDest.is_open())
+        return Z_ERRNO;
 
     // decompress until deflate stream ends or end of file
-    do
-    {
+    do{
         fSource.read(&in[0], in.size());
         this->strm.avail_in = fSource.gcount();
-        if (fSource.fail() && !fSource.eof())
-        {
+        if (fSource.fail() && !fSource.eof()){
             (void)inflateEnd(&this->strm);
             return Z_ERRNO;
         }
@@ -149,16 +144,14 @@ int Ezlib::decompress()
         this->strm.next_in = reinterpret_cast<unsigned char*>(&in[0]);
 
         // run inflate() on input until output buffer not full
-        do
-        {
+        do{
             this->strm.avail_out = this->chunkSize;
             this->strm.next_out = reinterpret_cast<unsigned char*>(&out[0]);
 
             ret = inflate(&this->strm, Z_NO_FLUSH);
             //assert(ret != Z_STREAM_ERROR);  // state not clobbered
 
-            switch (ret) 
-            {
+            switch (ret){
             case Z_NEED_DICT:
                 ret = Z_DATA_ERROR;     // and fall through
             case Z_DATA_ERROR:
@@ -170,15 +163,14 @@ int Ezlib::decompress()
             have = this->chunkSize - this->strm.avail_out;
             unsigned long before = fDest.tellp();
             fDest.write(&out[0], have);
-            if (fDest.fail() || (unsigned long)fDest.tellp() - before != have)
-            {
+            if (fDest.fail() || (unsigned long)fDest.tellp() - before != have){
                 (void)inflateEnd(&this->strm);
                 return Z_ERRNO;
             }
-        } while (this->strm.avail_out == 0);
+        }while (this->strm.avail_out == 0);
 
     // done when inflate() says it's done
-    } while (ret != Z_STREAM_END);
+    }while (ret != Z_STREAM_END);
 
     // clean up and return
     (void)inflateEnd(&this->strm);

@@ -26,15 +26,6 @@ void zerr(int ret);
 
 class Ezlib
 {
-private:
-    inline static const string ext = ".ez"; 
-    static const int chunkSize = 32768;
-
-    int level = 9;  // highest compression level
-    z_stream strm;
-    string source;
-    string dest;
-
 public:
     ///////////////////////////////////////////////////////////
     //  Initilizes source and destination filenames and
@@ -75,6 +66,13 @@ public:
     int decompress();
 
 private:
+    inline static const string ext = ".ez"; 
+    static const int chunkSize = 32768;
+
+    int level = 9;  // highest compression level
+    z_stream strm;
+    string source;
+    string dest;
 
     ///////////////////////////////////////////////////////////
     //  Initializes the state of the z_stream and prepares for
