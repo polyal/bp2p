@@ -6,12 +6,6 @@ using namespace std;
 
 class Package
 {
-private:
-	inline static const string tempName = "temp";
-
-	string name;
-	vector<string> files;
-
 public:
 	Package();
 	Package(const string& name);
@@ -24,9 +18,12 @@ public:
 	int unpackage();
 
 private:
+	inline static const string tempName = "temp";
+	string name;
+	vector<string> files;
+
 	int archive();
 	int extract();
 	int compress();
 	int decompress();
-
 };
