@@ -695,7 +695,7 @@ int main(int argc, char *argv[]){
 			}
 			else if (args[0].compare(Node::requestTorDataCmd) == 0){
 				string name;
-				if (args.size() > 2){
+				if (args.size() > 1){
 					name = args[1];
 					myNode.requestTorrentData(name);
 				}
