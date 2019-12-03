@@ -3,9 +3,6 @@
 
 class Device
 {
-protected:
-	DeviceDescriptor des;
-
 public:
 	virtual void connect2Device(const DeviceDescriptor& dev) = 0;
 	virtual void sendReqWait4Resp(const Message& msg, Message& resp) = 0;
@@ -18,4 +15,7 @@ public:
 	string getDevAddr() { return this->des.addr; }
 	int getDevID() { return this->des.devID; }
 	string getDevName() { return this->des.name; }
+
+protected:
+	DeviceDescriptor des;
 };
