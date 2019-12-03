@@ -117,6 +117,10 @@ public:
 	//  Creates an empty package of the appropriate size
 	void createTorrentDataFile();
 
+	////////////////////////////////////////////////////////////
+	//  Unpacked a package.
+	int unpackage ();
+
 	bool isComplete() const;
 	bool isValid();
 	bool torrentDataExists();
@@ -177,10 +181,6 @@ private:
 	//  specified in a call to the constructor or
 	//  a call to createTorrent.
 	int package();
-
-	////////////////////////////////////////////////////////////
-	//  Unpacked a package.
-	int unpackage ();
 
 	////////////////////////////////////////////////////////////
 	//  divides the package into chunks that can be transfered
