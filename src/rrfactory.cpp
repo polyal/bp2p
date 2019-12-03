@@ -12,7 +12,6 @@ RRPacket::RequestType RRFactory::getReqTypeFromReq(const Message& req)
 	string strReqType;
 	int iReqType;
 	RRPacket::RequestType reqType;
-
 	vector<char> reqData = req.data;
 
 	if (reqData.size() <= prefix.length()){
@@ -33,9 +32,8 @@ RRPacket::RequestType RRFactory::getReqTypeFromReq(const Message& req)
 		cout << "Bad Request" << endl;
 	    return RRPacket::BadReq;
 	}
-	
-	reqType = static_cast<RRPacket::RequestType>(iReqType);
 
+	reqType = static_cast<RRPacket::RequestType>(iReqType);
 	return reqType;
 }
 
@@ -43,7 +41,7 @@ unique_ptr<RRPacket> RRFactory::create(const Message& req)
 {
 	RRPacket::RequestType reqType = getReqTypeFromReq(req);
 
-	switch(reqType) {
+	switch(reqType){
 	    case RRPacket::TorrentFile:
 	    	return make_unique<TorrentFileReq>(req);
 	    case RRPacket::Chunk:
