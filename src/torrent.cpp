@@ -436,8 +436,11 @@ int main(int argc, char *argv[])
 	string archive { argv[1] };
 	cout << argc << archive << endl;
 
-	if (argc == 2)
+	if (argc == 2){
 		Torrent newTorrent(archive);
+		if (newTorrent.open())
+			newTorrent.unpackage();
+	}
 	else
 	{
 		vector<string> files {argv+2, argv+argc};
