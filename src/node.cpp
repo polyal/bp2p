@@ -92,8 +92,8 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-	string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << " " << strresp << endl;
+	//string strresp{rsp.data.begin(), rsp.data.end()};
+	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
 	try{
 		client.endComm();
 	}
@@ -154,11 +154,10 @@ void Node::completeRequest(const ChunkReq& req)
 	int index = req.getIndex();
 	vector<char> chunk = req.getChunk();
 	Torrent tor = this->name2torrent[name];
-	if (tor.open()){
-		if (!tor.torrentDataExists())
-			tor.createTorrentDataFile();
-		tor.putChunk(chunk, index);
-	}
+	if (!tor.torrentDataExists())
+		tor.createTorrentDataFile();
+	tor.putChunk(chunk, index);
+	this->name2torrent[name] = tor;
 }
 
 void Node::processRequest(const Message& req, Message& rsp)
@@ -233,8 +232,7 @@ void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		if (tor.open())
-			serializedTorrent = tor.getSerializedTorrent();
+		serializedTorrent = tor.getSerializedTorrent();
 	}
 }
 
@@ -244,8 +242,7 @@ void Node::getTorrentAvailFromTorrent(vector<int>& torrentAvail, const string& n
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		if (tor.open())
-			torrentAvail = tor.getChunkAvail();
+		torrentAvail = tor.getChunkAvail();
 	}
 }
 
@@ -254,8 +251,7 @@ void Node::retrieveChunk(vector<char>& chunk, const string& name, const int& ind
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		if (tor.open())
-			chunk = tor.getChunk(index);
+		chunk = tor.getChunk(index);
 	}
 }
 
@@ -330,16 +326,16 @@ unique_ptr<WorkerThread> Node::createJobManagerThread()
 void Node::jobManagerThread()
 {
 	if (this->jobs.size() > 0){
-		cout << "Job manager: has items " << this->jobs.size() << endl;
+		cout << "!!!!Job manager: has items " << this->jobs.size() << endl;
 		shared_ptr<RRPacket> req = jobs.front();
 		if (req){
-			cout << "Job Manager: not NULL" << endl;
 			carryOutRequest(*req);
 			completeRequest(*req);
 
 			auto chunkReq = dynamic_cast<ChunkReq*>(req.get());
 			if (chunkReq){
 				string name = chunkReq->getTorrentName();
+				int index = chunkReq->getIndex();
 				Torrent tor = this->name2torrent[name];
 				if (!tor.isComplete())
 					requestChunk(name);
