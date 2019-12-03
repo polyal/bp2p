@@ -92,8 +92,8 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-	//string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
+	string strresp{rsp.data.begin(), rsp.data.end()};
+	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << " " << strresp << endl;
 	try{
 		client.endComm();
 	}
@@ -232,7 +232,8 @@ void Node::getSerializedTorrent(string& serializedTorrent, const string& name)
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		serializedTorrent = tor.getSerializedTorrent();
+		if (tor.open())
+			serializedTorrent = tor.getSerializedTorrent();
 	}
 }
 
@@ -242,7 +243,8 @@ void Node::getTorrentAvailFromTorrent(vector<int>& torrentAvail, const string& n
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		torrentAvail = tor.getChunkAvail();
+		if (tor.open())
+			torrentAvail = tor.getChunkAvail();
 	}
 }
 
@@ -251,7 +253,8 @@ void Node::retrieveChunk(vector<char>& chunk, const string& name, const int& ind
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair != this->name2torrent.end()){
 		Torrent tor = nameTorPair->second;
-		chunk = tor.getChunk(index);
+		if (tor.open())
+			chunk = tor.getChunk(index);
 	}
 }
 
