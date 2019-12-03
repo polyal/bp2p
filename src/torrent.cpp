@@ -278,12 +278,15 @@ vector<char> Torrent::getChunk(int index)
 
 void Torrent::putChunk(const vector<char>& chunk, const int index)
 {
+	if (index < 0)
+		return;
 	string fullpath = getTorrentDataPath() + this->name;
 	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
 	if (ofs.is_open())
 	{
     	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
     	ofs.write(chunk.data(), chunk.size());
+    	this->chunks[index].exists = true;
 	}
 }
 
@@ -298,7 +301,7 @@ void Torrent::createTorrentDataFile()
 bool Torrent::isComplete() const
 {
 	bool complete = true;
-	if (chunks.empty())
+	if (this->chunks.empty())
 		return false;
 
 	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++)
