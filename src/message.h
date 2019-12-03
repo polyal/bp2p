@@ -14,38 +14,38 @@ struct Message
 
 	Message(vector<char> m, unsigned int s)
 	{
-		size = s;
-		data = m;
+		this->data = m;
+		this->size = s;
 	}
 
 	Message(string m)
 	{
-		copy(m.begin(), m.end(), std::back_inserter(data));
-		size = data.size();
+		copy(m.begin(), m.end(), std::back_inserter(this->data));
+		this->size = data.size();
 	}
 
 	void create(vector<char> m, unsigned int s)
 	{
-		size = s;
-		data = m;
+		this->data = m;
+		this->size = s;
 	}
 
 	void create(string m)
 	{
-		size = m.size();
-		copy(m.begin(), m.end(), std::back_inserter(data));
+		copy(m.begin(), m.end(), std::back_inserter(this->data));
+		this->size = m.size();
 	}
 
 	void clear()
 	{
-		this->size = 0;
 		this->data.clear();
+		this->size = 0;
 	}
 
 	Message& operator=(const Message& msg)
 	{
-		this->size = msg.size;
 		this->data = msg.data;
+		this->size = msg.size;
 		return *this;
 	}
 
