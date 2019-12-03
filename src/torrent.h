@@ -146,8 +146,18 @@ private:
 		bool exists;
 		Chunk(unsigned int index, size_t hash, bool exists) 
 		: index{index}, hash{hash}, exists{exists} {}
+		Chunk(const Chunk& chunk)
+		: index{chunk.index} , hash{chunk.hash}, exists{chunk.exists} {}
 		Chunk()
 		: index{0} , hash{0}, exists{false} {}
+
+		Chunk& operator=(const Chunk& chunk)
+		{
+			this->index = chunk.index;
+			this->hash = chunk.hash;
+			this->exists = chunk.exists;
+			return *this;
+		}
 	};
 	
 	string name;
