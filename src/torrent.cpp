@@ -75,7 +75,6 @@ bool Torrent::create()
 {
 	package();
 	generateChunks();
-	//generateFileHash();
 	serialize();
 	dumpToTorrentFile();
 	return isValid();
@@ -89,15 +88,12 @@ bool Torrent::open(const string& name)
 
 bool Torrent::open()
 {
-	if (this->name.empty())
-	{
+	if (this->name.empty()){
 		cout << "Error: Torrent Name Invalid" << endl;
 		return false;
 	}
-
 	string torrentPath = getTorrentsPath() + this->name;
-	if (Utils::doesFileExist(torrentPath))
-	{
+	if (Utils::doesFileExist(torrentPath)){
 		readTorrentFromFile(torrentPath);
 		deserialize(false);
 	}
@@ -106,8 +102,7 @@ bool Torrent::open()
 
 bool Torrent::createTorrentFromSerializedObj(const string& serializedObj)
 {
-	if (serializedObj.empty())
-	{
+	if (serializedObj.empty()){
 		cout << "Create Torrent From Serialized Obj Error: invalid input" << endl;
 		return false;
 	}
@@ -122,21 +117,16 @@ int Torrent::package()
 {
 	int ret = 0;
 	string packagePath;
-
     if (this->name.empty() || this->files.empty())
     	return -1;
-
     // prepare package location
 	packagePath = getTorrentDataPath() + this->name;
-
 	Package package{packagePath, this->files};
 	ret = package.package();
-	if (ret != 0)
-	{
+	if (ret != 0){
 		cout << "Create Package Error: " << ret << endl;
 		return ret;
 	}
-
 	this->packagePath = packagePath;
 	this->size = Utils::filesize(packagePath.c_str());
 	return ret;
@@ -147,8 +137,7 @@ int Torrent::unpackage()
 	string packagePath = getTorrentDataPath() + this->name;
 	Package package{packagePath, this->files};
 	int ret = package.unpackage();
-	if (ret != 0)
-	{
+	if (ret != 0){
 		cout << "Depackage Error: invalid input" << endl;
 		return ret;
 	}
@@ -181,12 +170,10 @@ int Torrent::generateChunks()
 
 void Torrent::serialize()
 {
-	if (this->name.empty() || this->numPieces == 0 || this->chunks.empty())
-	{
+	if (this->name.empty() || this->numPieces == 0 || this->chunks.empty()){
 		cout << "Serialize Error" << endl;
 		return;
 	}
-
 	jobj["name"] = this->name;
 	jobj["uid"] = this->uid;
 	jobj["numPieces"] = this->numPieces;
@@ -198,8 +185,7 @@ void Torrent::serialize()
 
 void Torrent::deserialize(const bool create)
 {
-	if (this->serializedObj.empty())
-	{
+	if (this->serializedObj.empty()){
 		cout << "Deserialize error" << endl;
 		return;
 	}
@@ -211,8 +197,7 @@ void Torrent::deserialize(const bool create)
 		this->uid = this->jobj["uid"];
 		this->size = this->jobj["size"];
 		this->packagePath = Torrent::getTorrentDataPath() + this->name;
-		for (unsigned int i = 0; i < this->numPieces; i++)
-		{
+		for (unsigned int i = 0; i < this->numPieces; i++){
 			unsigned int index = i;
 			auto hashpair = this->jobj[to_string(i)];
 	  		size_t hash = hashpair[0];
@@ -234,12 +219,10 @@ void Torrent::deserialize(const bool create)
 
 void Torrent::dumpToTorrentFile()
 {
-	if (this->serializedObj.empty())
-	{
+	if (this->serializedObj.empty()){
 		cout << "Dump Error: input error" << endl;
 		return;
 	}
-
 	string packagePath = Torrent::getTorrentsPath() + this->name;
 	ofstream fTorrent {packagePath};
 	if (fTorrent.is_open())
@@ -248,16 +231,13 @@ void Torrent::dumpToTorrentFile()
 
 void Torrent::readTorrentFromFile(const string& torrentPath)
 {
-	if (torrentPath.empty())
-	{
+	if (torrentPath.empty()){
 		cout << "Read Torrent File: input error" << endl;
 		return;
 	}
-
 	string data = "";
  	ifstream fTorrent{torrentPath};
- 	if (fTorrent.is_open())
- 	{
+ 	if (fTorrent.is_open()){
 		std::string str((std::istreambuf_iterator<char>(fTorrent)), std::istreambuf_iterator<char>());
 		data = str;
  	}
@@ -269,8 +249,7 @@ vector<char> Torrent::getChunk(int index)
 {
 	vector<char> chunk(chunkSize);
 	ifstream fTorrent {this->packagePath, ifstream::binary};
-	if (fTorrent.is_open())
-	{
+	if (fTorrent.is_open()){
 		fTorrent.seekg (index * this->chunkSize);
 		fTorrent.read (&chunk[0], this->chunkSize);
 	}
@@ -285,8 +264,7 @@ void Torrent::putChunk(const vector<char>& chunk, const int index)
 		return;
 	string fullpath = getTorrentDataPath() + this->name;
 	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
-	if (ofs.is_open())
-	{
+	if (ofs.is_open()){
     	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
     	ofs.write(chunk.data(), chunk.size());
     	this->chunks[index].exists = true;
@@ -345,8 +323,7 @@ Torrent& Torrent::operator=(const Torrent& torrent)
 	this->jobj = torrent.jobj;
 	this->serializedObj = torrent.serializedObj;
 	this->size = torrent.size;
-
-    return *this;  // Return a reference to myself.
+    return *this;
 }
 
 bool Torrent::operator==(const Torrent& torrent) const
@@ -427,22 +404,18 @@ vector<string> Torrent::getTorrentNames()
 #if DEBUG == 1
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
-	{
+	if (argc < 2){
 		cout << "Usage: IMPORT: ./a.out [torrent]\n       EXPORT: ./a.out [torrent] [file1 | file2 | ...]" << endl;
 		return 0;
 	}
-
 	string archive { argv[1] };
 	cout << argc << archive << endl;
-
 	if (argc == 2){
 		Torrent newTorrent(archive);
 		if (newTorrent.open())
 			newTorrent.unpackage();
 	}
-	else
-	{
+	else{
 		vector<string> files {argv+2, argv+argc};
 
 		for (auto& file : files)
@@ -452,7 +425,6 @@ int main(int argc, char *argv[])
 		Torrent newTorrent(archive, files);
 		newTorrent.create();
 	}
-
     return 0;
 }
 #endif
