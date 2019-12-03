@@ -92,8 +92,9 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 	catch(int e){
 		cout << "Caught Exception " << e << endl;
 	}
-	string strresp{rsp.data.begin(), rsp.data.end()};
-	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << " " << strresp << endl;
+	//string strresp{rsp.data.begin(), rsp.data.end()};
+	//cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << " " << strresp << endl;
+	cout << "CLIENT RSP: " << rsp.data.size() << " " << rsp.size << endl;
 	try{
 		client.endComm();
 	}
