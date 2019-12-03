@@ -301,17 +301,16 @@ void Torrent::createTorrentDataFile()
 bool Torrent::isComplete() const
 {
 	bool complete = true;
-	if (this->chunks.empty())
-		return false;
-
-	for(auto it = this->chunks.begin(); it != this->chunks.end(); it++)
-	{
-    	if (it->exists == false)
-    	{
-    		complete = false;
-    		break;
-    	}
+	if (!this->chunks.empty()){
+		for(const auto& chunk : this->chunks){
+	    	if (!chunk.exists){
+	    		complete = false;
+	    		break;
+	    	}
+		}
 	}
+	else
+		complete = false;
 	return complete;
 }
 
