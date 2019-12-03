@@ -335,7 +335,6 @@ void Node::jobManagerThread()
 			auto chunkReq = dynamic_cast<ChunkReq*>(req.get());
 			if (chunkReq){
 				string name = chunkReq->getTorrentName();
-				int index = chunkReq->getIndex();
 				Torrent tor = this->name2torrent[name];
 				if (!tor.isComplete())
 					requestChunk(name);
