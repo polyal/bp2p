@@ -46,11 +46,11 @@ public:
 	void workerLoop(Work w, Predicate p)
 	{
 		do{
-			unique_lock<std::mutex> lock(this->event->m);
+			unique_lock<recursive_mutex> lock(this->event->m);
 			event->cv.wait(lock, 
 				[this, p]
 				{
-					return (*this->status != PAUSE && !p()) || *this->status == KILL;
+					return *this->status != PAUSE || *this->status == KILL || !p();
 				});
 
 			w();
@@ -67,7 +67,7 @@ public:
 	template <typename Work>  // used to modify work items 
 	void modify(Work m)
 	{
-		unique_lock<std::mutex> lock(this->event->m);
+		unique_lock<recursive_mutex> lock(this->event->m);
 		m();
 		lock.unlock();
 	}

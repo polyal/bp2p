@@ -5,6 +5,6 @@ using namespace std;
 
 struct SyncEvent
 {
-	mutex m;
-	condition_variable cv;	
+	recursive_mutex m;
+	condition_variable_any cv;	
 };

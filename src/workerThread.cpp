@@ -17,7 +17,7 @@ WorkerThread::WorkerThread(unique_ptr<thread> t, shared_ptr<atomic<Status>> stat
 void WorkerThread::activate()
 {
 	if (this->event){
-		std::unique_lock<std::mutex> lock(this->event->m);
+		unique_lock<recursive_mutex> lock(this->event->m);
 		setStatus(ACTIVE);
 		lock.unlock();
 		this->event->cv.notify_one();
@@ -29,7 +29,7 @@ void WorkerThread::activate()
 void WorkerThread::pause()
 {
 	if (this->event){
-		std::unique_lock<std::mutex> lock(this->event->m);
+		unique_lock<recursive_mutex> lock(this->event->m);
 		setStatus(PAUSE);
 		lock.unlock();
 		this->event->cv.notify_one();
@@ -41,7 +41,7 @@ void WorkerThread::pause()
 void WorkerThread::kill()
 {
 	if (this->event){
-		std::unique_lock<std::mutex> lock(this->event->m);
+		unique_lock<recursive_mutex> lock(this->event->m);
 		setStatus(KILL);
 		lock.unlock();
 		this->event->cv.notify_one();
