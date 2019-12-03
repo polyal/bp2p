@@ -8,7 +8,6 @@
 
 BTDevice::BTDevice()
 {
-
 }
 
 BTDevice::BTDevice(const DeviceDescriptor& dev)
@@ -21,7 +20,6 @@ BTDevice::BTDevice(const string& devAddr)
 	this->des.addr = devAddr;
 	this->des.devID = hci_devid(devAddr.c_str());
 	readLocalName(this->des.name, this->des.devID);
-
     cout << "New Device " << this->des.addr << " " << this->des.devID << " " << this->des.name << endl;
 }
 
@@ -133,12 +131,9 @@ int BTDevice::findLocalDevs(vector<DeviceDescriptor>& devs)
 {
 	struct hci_dev_list_req* devList = NULL;
     int numDevs = 0, status = 0;
-
     status = getHCIDevList(devList, numDevs);
     status = HCIDevList2DevDesList(devs, devList, numDevs);
-
     if (devList) free(devList);
-
     return status;
 }
 
@@ -149,23 +144,18 @@ int BTDevice::getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs)
     if (sock >= 0){
         devList = reinterpret_cast<struct hci_dev_list_req*>
         		  (malloc(HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t)));
-	    
 	    if (devList){
 	        memset(devList, 0, HCI_MAX_DEV * sizeof(struct hci_dev_req) + sizeof(uint16_t));
     		devList->dev_num = HCI_MAX_DEV;
-
     		// request list of devices from microcontroller
 		    if (ioctl(sock, HCIGETDEVLIST, (void *) devList) >= 0){
 		    	if (devList->dev_num > 0){
 		  			status = 0;
 		  			numDevs = devList->dev_num;
 		    	}
-		    
 		    }
-
 	    }
     }
-
     if (status == -1){
     	status = errno;
     	if (devList) free(devList);
@@ -173,7 +163,6 @@ int BTDevice::getHCIDevList(struct hci_dev_list_req*& devList, int& numDevs)
     	devList = NULL;
     }
     if (sock >= 0) ::close(sock);
-
     return status;
 }
 
@@ -181,14 +170,12 @@ int BTDevice::HCIDevList2DevDesList(vector<DeviceDescriptor>& devs,
 	const struct hci_dev_list_req* const devList, int nDevs)
 {
 	if (!devList || nDevs < 1) return -1;
-
 	const struct hci_dev_req* devReq = devList->dev_req;
     for (int i = 0; i < nDevs; i++) {
     	DeviceDescriptor dev;
         if (HCIDev2DevDes(dev, devReq[i]))
         	devs.push_back(dev);
     }
-
     return 0;
 }
 
@@ -196,7 +183,6 @@ bool BTDevice::HCIDev2DevDes(DeviceDescriptor& dev, const struct hci_dev_req& de
 {
 	int decOpt = devReq.dev_opt;
 	if (!hci_test_bit(HCI_UP, &decOpt)) return false;
-
 	bdaddr_t bdaddr = {0};
     vector<char> cAddr(DeviceDescriptor::addrLenWithNull, 0);
     
@@ -216,10 +202,8 @@ int BTDevice::findNearbyDevs(vector<DeviceDescriptor>& devs)
 {
 	inquiry_info* inqInf = NULL;
 	int numDevs = 0, status = -1;
-    
     status = getInqInfo(inqInf, numDevs);
     status = inqInfList2DevDesList(devs, inqInf, numDevs);
-
     if (inqInf) free( inqInf );
     return status;
 }
@@ -227,9 +211,7 @@ int BTDevice::findNearbyDevs(vector<DeviceDescriptor>& devs)
 int BTDevice::getInqInfo(inquiry_info*& inqInf, int& numDevs)
 {
 	int status = -1;
-    
-    if (this->des.devID >= 0) {
-
+    if (this->des.devID >= 0){
         inqInf = reinterpret_cast<inquiry_info*>(malloc(sizeof(inquiry_info)* BTDevice::maxDevs));
 	    if (inqInf){
 	    	// perform bluetooth discovery, clear previously discovered devices from cache
@@ -237,7 +219,6 @@ int BTDevice::getInqInfo(inquiry_info*& inqInf, int& numDevs)
 		    status = 0;
 	    }
     }
-
     return status;
 }
 
@@ -248,7 +229,6 @@ int BTDevice::inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquir
     	inqInf2DevDes(dev, inqInf[i]);
         devs.push_back(dev);
     }
-
     return 0;
 }
 
@@ -272,9 +252,10 @@ void BTDevice::readLocalName(string& name, int devID)
     hci_read_local_name(sock2dev, cName.size(), cName.data(), 0);
     if (sock2dev >= 0) ::close(sock2dev);
     transform(cName.begin(), cName.end(), back_inserter(name),
-               [](char c) {
-                   return c;
-                });
+      	[](char c)
+      	{
+        	return c;
+       	});
 }
 
 void BTDevice::readRemoteName(string& name, bdaddr_t bdaddr)
@@ -286,9 +267,10 @@ void BTDevice::readRemoteName(string& name, bdaddr_t bdaddr)
          back_inserter(cName));
     if (sock >= 0) ::close(sock);
 	transform(cName.begin(), cName.end(), back_inserter(name),
-	   [](char c) {
-	       return c;
-	    });
+	  	[](char c)
+	  	{
+	    	return c;
+		});
 	}
 
 int BTDevice::enableScan()
@@ -382,7 +364,6 @@ int main (int argc, char *argv[])
 	else{
 		cout << "Usage: " << endl;
 	}
-	
 	return 0;
 }
 #endif

@@ -6,14 +6,6 @@ using namespace std;
 
 class BTDevice : public Device
 {
-protected:
-	static const unsigned short maxDevs = 255;  // max devs we can search for
-	static const unsigned short discUnit = 2;   // discovery unit * 1.28sec = time spent searching for devices
-	unsigned int serverCh = 15;  // server channel
-	unsigned int clientCh = 0;   // client connects to first available channel
-
-	BTChannel channel;
-
 public:
 	BTDevice();
 	BTDevice(const DeviceDescriptor& dev);
@@ -33,6 +25,15 @@ public:
 	static int findLocalDevs(vector<DeviceDescriptor>& devs);
 
 	int enableScan();
+
+protected:
+	static const unsigned short maxDevs = 255;  // max devs we can search for
+	static const unsigned short discUnit = 2;   // discovery unit * 1.28sec = time spent searching for devices
+	unsigned int serverCh = 15;  // server channel
+	unsigned int clientCh = 0;   // client connects to first available channel
+
+	BTChannel channel;
+
 private:
 	int getInqInfo(inquiry_info*& inqInf, int& numDevs);
 	int inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquiry_info* const inqInf, int numDevs);
