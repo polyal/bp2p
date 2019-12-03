@@ -57,6 +57,7 @@ Torrent::Torrent(const Torrent& torrent)
 	this->packagePath = torrent.packagePath;
 	this->torrentPath = torrent.torrentPath;
 	this->uid = torrent.uid;
+	this->chunks.clear();
 	copy(torrent.chunks.begin(), torrent.chunks.end(), back_inserter(this->chunks));
 	this->jobj = torrent.jobj;
 	this->serializedObj = torrent.serializedObj;
@@ -112,6 +113,7 @@ bool Torrent::createTorrentFromSerializedObj(const string& serializedObj)
 	}
 	this->serializedObj = serializedObj;
 	deserialize(true);
+	serialize();
 	dumpToTorrentFile();
 	return isValid();
 }
@@ -201,6 +203,7 @@ void Torrent::deserialize(const bool create)
 		cout << "Deserialize error" << endl;
 		return;
 	}
+	this->chunks.clear();
 	try{
 		this->jobj = nlohmann::json::parse(this->serializedObj);
 		this->name = this->jobj["name"].get<std::string>();
@@ -337,6 +340,7 @@ Torrent& Torrent::operator=(const Torrent& torrent)
 	this->packagePath = torrent.packagePath;
 	this->torrentPath = torrent.torrentPath;
 	this->uid = torrent.uid;
+	this->chunks.clear();
 	copy(torrent.chunks.begin(), torrent.chunks.end(), back_inserter(this->chunks));
 	this->jobj = torrent.jobj;
 	this->serializedObj = torrent.serializedObj;
