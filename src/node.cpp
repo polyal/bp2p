@@ -206,7 +206,7 @@ void Node::processRequest(RRPacket* packet)
 
 void Node::getTorrentNameList(vector<string>& torrentList)
 {
-	for (const auto& pair :  this->name2torrent)
+	for (const auto& pair : this->name2torrent)
 		torrentList.push_back(pair.first);
 }
 
@@ -421,22 +421,20 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		DeviceDescriptor dev{addr};
 		devs.push_back(dev);
 	}
-	if (devs.empty()){
+	if (devs.empty())
 		requestAllNearbyTorrents();
-	}
-	else{
+	else
 		requestNearbyTorrents(devs);
-	}
 	return 0;
 }
 
 void Node::requestAllNearbyTorrents()
 {
 	pauseWorkerThreads();
-	for(auto const& [key, val] : this->remote2local)
+	for(auto const& [remote, locals] : this->remote2local)
 	{
-		int index = Utils::grnd(0, val.size()-1);
-		TorrentListReq req{key, val[index]};
+		int index = Utils::grnd(0, locals.size()-1);
+		TorrentListReq req{remote, locals[index]};
 		carryOutRequest(req);
 		completeRequest(req);
 	}
@@ -672,7 +670,11 @@ int main(int argc, char *argv[]){
 				}
 			}
 			else if (args[0].compare(Node::requestTorDataCmd) == 0){
-
+				string name;
+				if (args.size() > 2){
+					name = args[1];
+					myNode.requestTorrentData(name);
+				}
 			}
 			else if (args[0].compare(Node::quitCmd) == 0)
 				break;
