@@ -9,7 +9,9 @@
 
 using namespace std;
 
-class Utils{
+
+class Utils
+{
 public:
 	// application type utils
 	inline static const string applicationDir = "/bp2p/";
