@@ -648,7 +648,8 @@ void Node::getTorrentList(vector<Torrent>& torrentList)
 	}
 }
 
-int main(int argc, char *argv[]){
+int main()
+{
 	cout << "hello!" << endl;
 	cout << "scanning for devices..." << endl;
 	Node myNode;
