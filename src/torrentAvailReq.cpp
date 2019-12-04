@@ -88,7 +88,7 @@ void TorrentAvailReq::processResponse()
 	Utils::tokenize(strRsp, RRPacket::commSeparator, strAvailChunks);
 	for (const auto& strAvailChunk : strAvailChunks){
 		int availChunk = -1;
-		try {
+		try{
 		 	availChunk = stoi(strAvailChunk);
 		}
 		catch(invalid_argument& e){
