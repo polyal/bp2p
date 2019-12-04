@@ -1,7 +1,6 @@
 #ifndef RRPACKET_H
 #define RRPACKET_H
 
-// request reponse packet class
 #include <vector>
 #include <string>
 #include <memory>
@@ -9,6 +8,7 @@
 #include "deviceDescriptor.h"
 
 using namespace std;
+
 
 class RRPacket 
 {
