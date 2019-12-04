@@ -23,7 +23,7 @@ void WorkerThread::activate()
 		this->event->cv.notify_one();
 	}
 	else
-	setStatus(ACTIVE);
+		setStatus(ACTIVE);
 }
 
 void WorkerThread::pause()
@@ -53,7 +53,8 @@ void WorkerThread::kill()
 void WorkerThread::close()
 {
 	kill();
-	if (this->t) this->t->join();
+	if (this->t)
+		this->t->join();
 }
 
 void WorkerThread::setStatus(Status status)
