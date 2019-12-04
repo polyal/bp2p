@@ -151,15 +151,13 @@ int Ezlib::decompress()
             ret = inflate(&this->strm, Z_NO_FLUSH);
             //assert(ret != Z_STREAM_ERROR);  // state not clobbered
 
-            switch (ret){
-            case Z_NEED_DICT:
-                ret = Z_DATA_ERROR;     // and fall through
-            case Z_DATA_ERROR:
-            case Z_MEM_ERROR:
+            if (ret == Z_DATA_ERROR || ret == Z_MEM_ERROR){
+                if (ret == Z_NEED_DICT)
+                    ret = Z_DATA_ERROR; 
                 (void)inflateEnd(&this->strm);
                 return ret;
             }
-
+            
             have = this->chunkSize - this->strm.avail_out;
             unsigned long before = fDest.tellp();
             fDest.write(&out[0], have);
