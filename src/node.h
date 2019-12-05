@@ -39,7 +39,7 @@ public:
 
 	bool createTorrent(const string& name, const vector<string>& files);
 	int listNearbyTorrents(const vector<string>& addrs);
-	int requestTorrentFile(const string& name, const string& addr);
+	bool syncRequestTorrentFile(const string& name, const string& addr);
 	int requestTorrentData(const string& name);
 
 	int requestTorrentAvail(const string& name, const string& addr);  // testing
@@ -76,7 +76,6 @@ private:
 	unique_ptr<WorkerThread> jobManager = nullptr;
 	list<shared_ptr<RRPacket>> jobs;
 
-
 	// request/response
 	void carryOutRequest(RRPacket& req);
 	void sendRequestWait4Response(const Message& req, Message& rsp, 
@@ -104,22 +103,29 @@ private:
 	unique_ptr<WorkerThread> createJobManagerThread();
 	void jobManagerThread();
 
-	void insertJob(const shared_ptr<RRPacket> job);
+	int request(RRPacket& req);
+	int syncRequest(RRPacket& req);
 	void retryRequest();
 	void retryRequest(shared_ptr<RRPacket> req);
+	void insertJob(const shared_ptr<RRPacket> job);
+
+	bool syncRequestTorrentFile(const string& name);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
-	int requestTorrentFile(const string& name);
-	int requestTorrentFile(const string& name, const DeviceDescriptor& dev);
-	int requestTorrentFileIfMissing(const string& name);
+	bool requestTorrentFile(const string& name);
+	bool requestTorrentFileIfMissing(const string& name);
 	int requestChunk(const string& torrent);
 	int requestChunk(const string& name, int index);
 	int requestChunk(const string& name, int index, const DeviceDescriptor& dev);
 	int getMissingChunkIndex(const string& torrent);
 	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index, 
 		const DeviceDescriptor& remote, const DeviceDescriptor& local);
+
+	bool createTorrentFileRequest(TorrentFileReq& req, const string& name);
+	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const string& addr);
+	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const DeviceDescriptor& dev);
 
 	// server/client control
 	void activateServerThreads();

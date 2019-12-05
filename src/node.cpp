@@ -445,6 +445,26 @@ void Node::insertJob(const shared_ptr<RRPacket> job)
 	}
 }
 
+int Node::request(RRPacket& req)
+{
+	try{
+		carryOutRequest(req);
+	}
+	catch(int e){
+		return e;
+	}
+	completeRequest(req);
+	return 0;
+}
+
+int Node::syncRequest(RRPacket& req)
+{
+	pauseWorkerThreads();
+	int status = request(req);
+	activateWorkerThreads();
+	return status;
+}
+
 void Node::retryRequest()
 {
 	shared_ptr<RRPacket> req = this->jobs.front();
@@ -533,59 +553,79 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 	activateWorkerThreads();
 }
 
-int Node::requestTorrentFile(const string& name)
+bool Node::syncRequestTorrentFile(const string& name)
 {
-	int status = -1;
+	TorrentFileReq req;
+	if (createTorrentFileRequest(req, name))
+		return syncRequest(req);
+	return false;
+}
+
+bool Node::syncRequestTorrentFile(const string& name, const string& addr)
+{
+	TorrentFileReq req;
+	if (createTorrentFileRequest(req, name, addr))
+		return syncRequest(req);
+	return false;
+}
+
+bool Node::requestTorrentFile(const string& name)
+{
+	bool status = false;
+	TorrentFileReq req;
+	if (createTorrentFileRequest(req, name)){
+		auto reqPtr = make_shared<TorrentFileReq>(req);
+		insertJob(reqPtr);
+		status = true;
+	}
+	return status;
+}
+
+bool Node::createTorrentFileRequest(TorrentFileReq& req, const string& name, const string& addr)
+{
+	bool status = false;
+	DeviceDescriptor dev{addr};
+	status = createTorrentFileRequest(req, name, dev);
+	return status;
+}
+
+bool Node::createTorrentFileRequest(TorrentFileReq& req, const string& name)
+{
+	bool status = false;
 	auto TorNameDevPair = this->torName2dev.find(name);
 	if (TorNameDevPair != this->torName2dev.end()){
 		vector<DeviceDescriptor> devs = TorNameDevPair->second;
 		int index = Utils::grnd(0, devs.size()-1);
 		DeviceDescriptor dev{devs[index]};	
-		status = requestTorrentFile(name, dev);
+		status = createTorrentFileRequest(req, name, dev);
 	}
 	return status;
 }
 
-int Node::requestTorrentFile(const string& name, const string& addr)
+bool Node::createTorrentFileRequest(TorrentFileReq& req, const string& name, const DeviceDescriptor& dev)
 {
-	int status = 0;
-	DeviceDescriptor dev{addr};
-	status = requestTorrentFile(name, dev);
-	return status;
-}
-
-int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
-{
-	int status = -1;
+	int status = false;
 	Torrent torrent;
-	pauseWorkerThreads();
 	auto remoteLocalPair = this->remote2local.find(dev);
 	if (remoteLocalPair != this->remote2local.end()){
 		auto remote = remoteLocalPair->first;
 		auto locals = remoteLocalPair->second;
 		int index = Utils::grnd(0, locals.size()-1);
-		TorrentFileReq req{remote, locals[index], name};
-		try{
-			carryOutRequest(req);
-		}
-		catch(...){
-			return status;
-		}
-		completeRequest(req);
+		req.create(remote, locals[index], name);
+		status = true;
 	}
-	activateWorkerThreads();
 	return status;
 }
 
-int Node::requestTorrentFileIfMissing(const string& name)
+bool Node::requestTorrentFileIfMissing(const string& name)
 {
-	int status = -1;
+	bool status = false;
 	auto nameTorPair = this->name2torrent.find(name);
 	if (nameTorPair == this->name2torrent.end()){
-		status = requestTorrentFile(name);
+		status = syncRequestTorrentFile(name);
 	}
 	else{
-		status = 0;
+		status = true;
 	}
 	return status;
 }
@@ -756,7 +796,7 @@ int main()
 				if (args.size() > 2){
 					name = args[1];
 					addr = args[2];
-					myNode.requestTorrentFile(name, addr);
+					myNode.syncRequestTorrentFile(name, addr);
 				}
 				else{
 					cout << "Usage: ./bp2p.exe -tr [name] [addr]" << endl;
