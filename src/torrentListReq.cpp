@@ -22,6 +22,12 @@ TorrentListReq::TorrentListReq(const DeviceDescriptor& remoteAddr, const DeviceD
 {
 }
 
+void TorrentListReq::create(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr)
+{
+	this->localAddr = localAddr;
+	this->remoteAddr = remoteAddr;
+}
+
 void TorrentListReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;

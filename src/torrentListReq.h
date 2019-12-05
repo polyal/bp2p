@@ -19,6 +19,8 @@ public:
 	void processRequest(const vector<string>& torrentList);
 	void processResponse(const Message& msg);
 
+	void create(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr);
+
 	vector<string> getTorrentList() const;
 
 private:
