@@ -533,6 +533,19 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 	activateWorkerThreads();
 }
 
+int Node::requestTorrentFile(const string& name)
+{
+	int status = -1;
+	auto TorNameDevPair = this->torName2dev.find(name);
+	if (TorNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs = TorNameDevPair->second;
+		int index = Utils::grnd(0, devs.size()-1);
+		DeviceDescriptor dev{devs[index]};	
+		status = requestTorrentFile(name, dev);
+	}
+	return status;
+}
+
 int Node::requestTorrentFile(const string& name, const string& addr)
 {
 	int status = 0;
@@ -567,18 +580,12 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 int Node::requestTorrentFileIfMissing(const string& name)
 {
 	int status = -1;
-	auto TorNameDevPair = this->torName2dev.find(name);
-	if (TorNameDevPair != this->torName2dev.end()){
-		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
-		auto nameTorPair = this->name2torrent.find(name);
-		if (nameTorPair == this->name2torrent.end()){
-			int index = Utils::grnd(0, devs.size()-1);
-			DeviceDescriptor dev{devs[index]};	
-			status = requestTorrentFile(name, dev);
-		}
-		else{
-			status = 0;
-		}
+	auto nameTorPair = this->name2torrent.find(name);
+	if (nameTorPair == this->name2torrent.end()){
+		status = requestTorrentFile(name);
+	}
+	else{
+		status = 0;
 	}
 	return status;
 }

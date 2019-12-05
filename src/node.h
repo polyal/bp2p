@@ -111,6 +111,7 @@ private:
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
+	int requestTorrentFile(const string& name);
 	int requestTorrentFile(const string& name, const DeviceDescriptor& dev);
 	int requestTorrentFileIfMissing(const string& name);
 	int requestChunk(const string& torrent);
