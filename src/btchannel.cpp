@@ -254,7 +254,8 @@ void BTChannel::accept()
 	socklen_t size = sizeof(this->remoteAddr);
 	this->remoteSock = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), &size);
     if (this->remoteSock == -1){
-        cout << "Channel Error: Failed to accept message. " << errno << endl;
+        if (errno != EAGAIN)
+            cout << "Channel Error: Failed to accept message. " << errno << endl;
         throw errno;
     }
 }
