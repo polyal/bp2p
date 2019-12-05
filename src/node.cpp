@@ -474,13 +474,13 @@ void Node::retryRequest()
 
 void Node::retryRequest(shared_ptr<RRPacket> req)
 {
-	/*auto torListReq = dynamic_pointer_cast<TorrentListReq>(req);
+	auto torListReq = dynamic_pointer_cast<TorrentListReq>(req);
 	if (torListReq)
-		completeRequest(*torListReq);
+		requestNearbyTorrents(torListReq->getRemoteAddr());
 	auto torFileReq = dynamic_pointer_cast<TorrentFileReq>(req);
 	if (torFileReq)
-		completeRequest(*torFileReq);
-	auto torAvailReq = dynamic_pointer_cast<TorrentAvailReq>(req);
+		requestTorrentFile(torFileReq->getTorrentName());
+	/*auto torAvailReq = dynamic_pointer_cast<TorrentAvailReq>(req);
 	if (torAvailReq)
 		completeRequest(*torAvailReq);*/
 	auto chunkReq = dynamic_pointer_cast<ChunkReq>(req);
@@ -507,50 +507,82 @@ int Node::listNearbyTorrents(const vector<string>& addrs)
 		devs.push_back(dev);
 	}
 	if (devs.empty())
-		requestAllNearbyTorrents();
+		syncRequestAllNearbyTorrents();
 	else
-		requestNearbyTorrents(devs);
+		syncRequestNearbyTorrents(devs);
 	return 0;
+}
+
+bool Node::syncRequestAllNearbyTorrents()
+{
+	vector<DeviceDescriptor> devs;
+	for (auto it = this->remote2local.begin(); it != this->remote2local.end(); it++){
+		devs.push_back(it->first);
+	}
+	return syncRequestNearbyTorrents(devs);
+}
+
+bool Node::syncRequestNearbyTorrents(const vector<DeviceDescriptor>& devs)
+{
+	bool status = true;
+	for (auto dev : devs){
+		syncRequestNearbyTorrents(dev);
+	}
+	return status;
+}
+
+bool Node::syncRequestNearbyTorrents(const DeviceDescriptor& dev)
+{
+	bool status = true;
+	TorrentListReq req;
+	if (createNearbyTorrentsRequest(req, dev)){
+		status = status && syncRequest(req);
+	}
+	return status;
 }
 
 void Node::requestAllNearbyTorrents()
 {
-	pauseWorkerThreads();
-	for(auto const& [remote, locals] : this->remote2local)
-	{
-		int index = Utils::grnd(0, locals.size()-1);
-		TorrentListReq req{remote, locals[index]};
-		try{
-			carryOutRequest(req);
-		}
-		catch(...){
-			return;	
-		}
-		completeRequest(req);
+	vector<DeviceDescriptor> devs;
+	for (auto it = this->remote2local.begin(); it != this->remote2local.end(); it++){
+		devs.push_back(it->first);
 	}
-	activateWorkerThreads();
+	requestNearbyTorrents(devs);
 }
 
 void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 {
-	pauseWorkerThreads();
 	for (auto dev : devs){
-		auto keyVal = this->remote2local.find(dev);
-		if (keyVal != this->remote2local.end()){
-			auto remote = keyVal->first;
-			auto locals = keyVal->second;
-			int index = Utils::grnd(0, locals.size()-1);
-			TorrentListReq req{remote, locals[index]};
-			try{
-				carryOutRequest(req);
-			}
-			catch(...){
-				return;
-			}
-			completeRequest(req);
-		}
+		requestNearbyTorrents(dev);
 	}
-	activateWorkerThreads();
+}
+
+void Node::requestNearbyTorrents(const DeviceDescriptor& remote)
+{
+	TorrentListReq req;
+	if (createNearbyTorrentsRequest(req, remote)){
+		auto reqPtr = make_shared<TorrentListReq>(req);
+		insertJob(reqPtr);
+	}
+}
+
+bool Node::createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote)
+{
+	bool status = false;
+	auto keyVal = this->remote2local.find(remote);
+	if (keyVal != this->remote2local.end()){
+		auto remote = keyVal->first;
+		auto locals = keyVal->second;
+		int index = Utils::grnd(0, locals.size()-1);
+		createNearbyTorrentsRequest(req, remote, locals[index]);
+		status = true;
+	}
+	return status;
+}
+
+void Node::createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote, const DeviceDescriptor& local)
+{
+	req.create(remote, local);
 }
 
 bool Node::syncRequestTorrentFile(const string& name)

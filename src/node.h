@@ -109,10 +109,14 @@ private:
 	void retryRequest(shared_ptr<RRPacket> req);
 	void insertJob(const shared_ptr<RRPacket> job);
 
+	bool syncRequestAllNearbyTorrents();
+	bool syncRequestNearbyTorrents(const vector<DeviceDescriptor>& devs);
+	bool syncRequestNearbyTorrents(const DeviceDescriptor& dev);
 	bool syncRequestTorrentFile(const string& name);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
+	void requestNearbyTorrents(const DeviceDescriptor& remote);
 	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
 	bool requestTorrentFile(const string& name);
 	bool requestTorrentFileIfMissing(const string& name);
@@ -123,6 +127,8 @@ private:
 	shared_ptr<ChunkReq> createChunkRequest(const string& name, int index, 
 		const DeviceDescriptor& remote, const DeviceDescriptor& local);
 
+	bool createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote);
+	void createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote, const DeviceDescriptor& local);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const string& addr);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const DeviceDescriptor& dev);
