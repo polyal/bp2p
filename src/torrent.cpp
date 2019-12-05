@@ -245,7 +245,7 @@ void Torrent::readTorrentFromFile(const string& torrentPath)
 	this->serializedObj = data;
 }
 
-vector<char> Torrent::getChunk(int index)
+vector<char> Torrent::getChunk(const unsigned int index)
 {
 	vector<char> chunk(chunkSize);
 	ifstream fTorrent {this->packagePath, ifstream::binary};
@@ -258,17 +258,33 @@ vector<char> Torrent::getChunk(int index)
 	return chunk;
 }
 
-void Torrent::putChunk(const vector<char>& chunk, const int index)
+bool Torrent::putChunk(const vector<char>& chunk, const unsigned int index)
 {
-	if (index < 0)
-		return;
-	string fullpath = getTorrentDataPath() + this->name;
-	std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
-	if (ofs.is_open()){
-    	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
-    	ofs.write(chunk.data(), chunk.size());
-    	this->chunks[index].exists = true;
+	bool status = false;
+	if (validateChunk(chunk, index)){
+		string fullpath = getTorrentDataPath() + this->name;
+		std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
+		if (ofs.is_open()){
+	    	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
+	    	ofs.write(chunk.data(), chunk.size());
+	    	this->chunks[index].exists = true;
+	    	status = true;
+		}
 	}
+	return status;
+}
+
+bool Torrent::validateChunk(const vector<char>& chunk, const unsigned int index)
+{
+	bool status = false;
+	string strChunk{chunk.begin(), chunk.end()};
+	size_t chunkHash = hash<string>()(strChunk);
+	if (index < this->chunks.size()){
+		Chunk validChunk = this->chunks[index];
+		if (validChunk.hash == chunkHash)
+			status = true;
+	}
+	return status;
 }
 
 void Torrent::createTorrentDataFile()

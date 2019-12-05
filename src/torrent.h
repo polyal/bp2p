@@ -104,14 +104,16 @@ public:
 	//  size:   The size of the piece
 	//
 	//  returns the requested chunk or empty list of invalid
-	vector<char> getChunk(int index);
+	vector<char> getChunk(const unsigned int index);
 
 	///////////////////////////////////////////////////////////
 	//  Puts a chunk of data into a torrent package
 	//
 	//  chunk:  The piece of the package to be inserted
 	//  index:  The chunk index
-	void putChunk(const vector<char>& chunk, const int index);
+	//
+	//  returns true if chunk hash matches
+	bool putChunk(const vector<char>& chunk, const unsigned int index);
 
 	///////////////////////////////////////////////////////////
 	//  Creates an empty package of the appropriate size
@@ -186,6 +188,10 @@ private:
 	//  divides the package into chunks that can be transfered
 	//  accross a channel and checked against a hash
 	int generateChunks();
+
+	////////////////////////////////////////////////////////////
+	//  verifies the hash of the chunk
+	bool validateChunk(const vector<char>& chunk, const unsigned int index);
 
 	////////////////////////////////////////////////////////////
 	//  Serializes the contents of the torrent object to be
