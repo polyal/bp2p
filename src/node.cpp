@@ -77,19 +77,30 @@ void Node::carryOutRequest(RRPacket& req)
 {
 	Message rsp;
 	req.createRequest();
-	sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
+	try {
+		sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
+	}
+	catch(...){
+		throw;
+	}
 	req.processResponse(rsp);
 }
 
 void Node::sendRequestWait4Response(const Message& req, Message& rsp, 
 	const DeviceDescriptor& clientDes, const DeviceDescriptor& serverDes)
 {
+	int error = 0;
 	BTDevice client{clientDes};
 	try{
 		client.connect2Device(serverDes);
 		client.sendReqWait4Resp(req, rsp);
 	}
 	catch(int e){
+		// data still might be valid in this case
+		// bluetooth sends data in chunks of 1008 bytes
+		// if data%1008=0, we will catch this
+		if (e != ECONNRESET) 
+			error = e;
 		cout << "Caught Exception " << e << endl;
 	}
 	//string strresp{rsp.data.begin(), rsp.data.end()};
@@ -99,8 +110,12 @@ void Node::sendRequestWait4Response(const Message& req, Message& rsp,
 		client.endComm();
 	}
 	catch(int e){
-		cout << "Caught Exception " << e << endl;
+		if (error == 0)
+			error = e;
+		cout << "Caught CLOSE Exception " << e << endl;
 	}
+	if (error > 0)
+		throw error;
 }
 
 void Node::completeRequest(const RRPacket& packet)
@@ -280,10 +295,8 @@ void Node::serverThread(DeviceDescriptor devDes)
 	Message req;
 	Message rsp;
 	DeviceDescriptor client;
-
 	BTDevice dev{devDes};
-	cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
-
+	//cout << "Server Dev: " << dev.getDevAddr() << " " << dev.getDevID() << " " << dev.getDevName() << endl;
 	try{
 		dev.initServer();
 		dev.listen4Req(client);
@@ -296,17 +309,15 @@ void Node::serverThread(DeviceDescriptor devDes)
 		dev.sendResponse(rsp);
 	}
 	catch(int e){
-		cout << "Caught Exception " << e << endl;
+		if (e != EAGAIN)
+			cout << "Server Caught Exception " << e << endl;
 	}
 	try{
 		dev.endComm();
 	}
 	catch(int e){
-		cout << "Caught Exception " << e << endl;
+		cout << "Server Caught CLOSE Exception " << e << endl;
 	}
-
-	req.clear();
-	rsp.clear();
 }
 
 void Node::createJobManager()
@@ -331,9 +342,15 @@ void Node::jobManagerThread()
 {
 	if (this->jobs.size() > 0){
 		cout << "!!!!Job manager: has items " << this->jobs.size() << endl;
-		shared_ptr<RRPacket> req = jobs.front();
+		shared_ptr<RRPacket> req = this->jobs.front();
 		if (req){
-			carryOutRequest(*req);
+			try{
+				carryOutRequest(*req);
+			}
+			catch(...){
+				retryRequest();
+				return;
+			}
 			completeRequest(*req);
 
 			auto chunkReq = dynamic_cast<ChunkReq*>(req.get());
@@ -345,7 +362,7 @@ void Node::jobManagerThread()
 				else
 					tor.unpackage();
 			}
-			jobs.pop_front();
+			this->jobs.pop_front();
 		}
 	}
 	this_thread::sleep_for (std::chrono::milliseconds(20));
@@ -426,6 +443,29 @@ void Node::insertJob(const shared_ptr<RRPacket> job)
 				this->jobs.push_back(job);
 			});
 	}
+}
+
+void Node::retryRequest()
+{
+	shared_ptr<RRPacket> req = this->jobs.front();
+	retryRequest(req);
+	this->jobs.pop_front();	
+}
+
+void Node::retryRequest(shared_ptr<RRPacket> req)
+{
+	/*auto torListReq = dynamic_pointer_cast<TorrentListReq>(req);
+	if (torListReq)
+		completeRequest(*torListReq);
+	auto torFileReq = dynamic_pointer_cast<TorrentFileReq>(req);
+	if (torFileReq)
+		completeRequest(*torFileReq);
+	auto torAvailReq = dynamic_pointer_cast<TorrentAvailReq>(req);
+	if (torAvailReq)
+		completeRequest(*torAvailReq);*/
+	auto chunkReq = dynamic_pointer_cast<ChunkReq>(req);
+	if (chunkReq)
+		requestChunk(chunkReq->getTorrentName());		
 }
 
 bool Node::createTorrent(const string& name, const vector<string>& files)
