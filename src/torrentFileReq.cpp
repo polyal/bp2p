@@ -35,6 +35,13 @@ TorrentFileReq::TorrentFileReq(const DeviceDescriptor& remoteAddr, const DeviceD
 	this->torrentName = torrentName;
 }
 
+void TorrentFileReq::create(const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr, const string& torrentName)
+{
+	this->localAddr = localAddr;
+	this->remoteAddr = remoteAddr;
+	this->torrentName = torrentName;	
+}
+
 void TorrentFileReq::createRequest()
 {
 	string prefix = RRPacket::commString + RRPacket::commSeparator;
