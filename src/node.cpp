@@ -77,7 +77,7 @@ void Node::carryOutRequest(RRPacket& req)
 {
 	Message rsp;
 	req.createRequest();
-	try {
+	try{
 		sendRequestWait4Response(req.getReq(), rsp, req.getLocalAddr(), req.getRemoteAddr());
 	}
 	catch(...){
@@ -500,7 +500,12 @@ void Node::requestAllNearbyTorrents()
 	{
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentListReq req{remote, locals[index]};
-		carryOutRequest(req);
+		try{
+			carryOutRequest(req);
+		}
+		catch(...){
+			return;	
+		}
 		completeRequest(req);
 	}
 	activateWorkerThreads();
@@ -516,7 +521,12 @@ void Node::requestNearbyTorrents(const vector<DeviceDescriptor>& devs)
 			auto locals = keyVal->second;
 			int index = Utils::grnd(0, locals.size()-1);
 			TorrentListReq req{remote, locals[index]};
-			carryOutRequest(req);
+			try{
+				carryOutRequest(req);
+			}
+			catch(...){
+				return;
+			}
 			completeRequest(req);
 		}
 	}
@@ -542,7 +552,12 @@ int Node::requestTorrentFile(const string& name, const DeviceDescriptor& dev)
 		auto locals = remoteLocalPair->second;
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentFileReq req{remote, locals[index], name};
-		carryOutRequest(req);
+		try{
+			carryOutRequest(req);
+		}
+		catch(...){
+			return status;
+		}
 		completeRequest(req);
 	}
 	activateWorkerThreads();
@@ -617,7 +632,12 @@ int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev)
 		auto locals = remoteLocalPair->second;
 		int index = Utils::grnd(0, locals.size()-1);
 		TorrentAvailReq req{remote, locals[index], name};
-		carryOutRequest(req);
+		try{
+			carryOutRequest(req);
+		}
+		catch(...){
+			return -1;
+		}
 		completeRequest(req);
 	}
 	activateWorkerThreads();
