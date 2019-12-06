@@ -23,6 +23,13 @@ TorrentAvailReq::TorrentAvailReq(const DeviceDescriptor& remoteAddr, const Devic
 {
 }
 
+void TorrentAvailReq::create(const string& torrentName, const DeviceDescriptor& remoteAddr, const DeviceDescriptor& localAddr)
+{
+	this->torrentName = torrentName;
+	this->localAddr = localAddr;
+	this->remoteAddr = remoteAddr;
+}
+
 TorrentAvailReq::TorrentAvailReq(const string& torrentName)
 {
 	this->torrentName = torrentName;
