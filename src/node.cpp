@@ -480,9 +480,9 @@ void Node::retryRequest(shared_ptr<RRPacket> req)
 	auto torFileReq = dynamic_pointer_cast<TorrentFileReq>(req);
 	if (torFileReq)
 		requestTorrentFile(torFileReq->getTorrentName());
-	/*auto torAvailReq = dynamic_pointer_cast<TorrentAvailReq>(req);
+	auto torAvailReq = dynamic_pointer_cast<TorrentAvailReq>(req);
 	if (torAvailReq)
-		completeRequest(*torAvailReq);*/
+		requestTorrentAvail(torAvailReq->getTorrentName());
 	auto chunkReq = dynamic_pointer_cast<ChunkReq>(req);
 	if (chunkReq)
 		requestChunk(chunkReq->getTorrentName());		
@@ -673,24 +673,22 @@ int Node::getMissingChunkIndex(const string& name)
 	return chunk;
 }
 
-int Node::requestTorrentData(const string& name)
+bool Node::requestTorrentData(const string& name)
 {
-	int status = 0;
+	bool status = false;
 	if (this->dev2tor.empty() || this->torName2dev.find(name) == this->torName2dev.end()){
 		requestAllNearbyTorrents();
 	}
 	this->torName2dev.clear();
 	Utils::swapKeyVal(this->torName2dev, this->dev2tor);
-	auto TorNameDevPair = this->torName2dev.find(name);
-	if (TorNameDevPair != this->torName2dev.end()){
-		vector<DeviceDescriptor> devs =  TorNameDevPair->second;
-		for (const auto&  dev : devs)
-			requestTorrentAvail(name, dev);
-		status = requestTorrentFileIfMissing(name);		
-		status = requestChunk(name);
+	if (requestAllTorrentAvail(name)){
+		if (requestTorrentFileIfMissing(name))		
+			status = requestChunk(name);
+		else
+			status = false;
 	}
 	else{
-		status = -1;
+		status = false;
 	}
 	return status;
 }
@@ -701,26 +699,90 @@ int Node::requestTorrentAvail(const string& name, const string& addr)
 	return requestTorrentAvail(name, dev);
 }
 
-int Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev)
+bool Node::syncRequestAllTorrentAvail(const string& name)
 {
-	
-	pauseWorkerThreads();
+	bool status = false;
+	auto torNameDevPair = this->torName2dev.find(name);
+	if (torNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs = torNameDevPair->second;
+		status = syncRequestTorrentAvail(name, devs);
+	}
+	return status;
+}
+
+bool Node::syncRequestTorrentAvail(const string& name, const vector<DeviceDescriptor>& devs)
+{
+	bool status = true;
+	for (const auto& dev : devs){
+		status = status && syncRequestTorrentAvail(name, dev);
+	}
+	return status;
+}
+
+bool Node::syncRequestTorrentAvail(const string& name, const DeviceDescriptor& dev)
+{
+	TorrentAvailReq req;
+	if (createTorrentAvailRequest(req, name, dev))
+		return syncRequest(req);
+	return false;
+}
+
+bool Node::requestAllTorrentAvail(const string& name)
+{
+	bool status = false;
+	auto torNameDevPair = this->torName2dev.find(name);
+	if (torNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs = torNameDevPair->second;
+		status = requestTorrentAvail(name, devs);
+	}
+	return status;
+}
+
+bool Node::requestTorrentAvail(const string& name)
+{
+	bool status = false;
+	auto torNameDevPair = this->torName2dev.find(name);
+	if (torNameDevPair != this->torName2dev.end()){
+		vector<DeviceDescriptor> devs = torNameDevPair->second;
+		int index = Utils::grnd(0, devs.size()-1);
+		status = requestTorrentAvail(name, devs[index]);
+	}
+	return status;
+}
+
+bool Node::requestTorrentAvail(const string& name, const vector<DeviceDescriptor>& devs)
+{
+	bool status = true;
+	for (const auto& dev : devs){
+		status = status && requestTorrentAvail(name, dev);
+	}
+	return status;
+}
+
+bool Node::requestTorrentAvail(const string& name, const DeviceDescriptor& dev)
+{
+	bool status = true;
+	TorrentAvailReq req;
+	if (createTorrentAvailRequest(req, name, dev)){
+		auto reqPtr = make_shared<TorrentAvailReq>(req);
+		insertJob(reqPtr);
+		status = true;
+	}
+	return status;
+}
+
+bool Node::createTorrentAvailRequest(TorrentAvailReq& req, const string& name, const DeviceDescriptor& dev)
+{
+	bool status = false;
 	auto remoteLocalPair = this->remote2local.find(dev);
 	if (remoteLocalPair != this->remote2local.end()){
 		auto remote = remoteLocalPair->first;
 		auto locals = remoteLocalPair->second;
 		int index = Utils::grnd(0, locals.size()-1);
-		TorrentAvailReq req{remote, locals[index], name};
-		try{
-			carryOutRequest(req);
-		}
-		catch(...){
-			return -1;
-		}
-		completeRequest(req);
+		req.create(name, remote, locals[index]);
+		status = true;
 	}
-	activateWorkerThreads();
-	return 0;
+	return status;
 }
 
 int Node::requestChunk(const string& name)

@@ -40,7 +40,7 @@ public:
 	bool createTorrent(const string& name, const vector<string>& files);
 	int listNearbyTorrents(const vector<string>& addrs);
 	bool syncRequestTorrentFile(const string& name, const string& addr);
-	int requestTorrentData(const string& name);
+	bool requestTorrentData(const string& name);
 
 	int requestTorrentAvail(const string& name, const string& addr);  // testing
 
@@ -112,12 +112,18 @@ private:
 	bool syncRequestAllNearbyTorrents();
 	bool syncRequestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	bool syncRequestNearbyTorrents(const DeviceDescriptor& dev);
+	bool syncRequestAllTorrentAvail(const string& name);
+	bool syncRequestTorrentAvail(const string& name, const vector<DeviceDescriptor>& devs);
+	bool syncRequestTorrentAvail(const string& name, const DeviceDescriptor& dev);
 	bool syncRequestTorrentFile(const string& name);
 
 	void requestAllNearbyTorrents();
 	void requestNearbyTorrents(const vector<DeviceDescriptor>& devs);
 	void requestNearbyTorrents(const DeviceDescriptor& remote);
-	int requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
+	bool requestAllTorrentAvail(const string& name);
+	bool requestTorrentAvail(const string& name);
+	bool requestTorrentAvail(const string& name, const vector<DeviceDescriptor>& devs);
+	bool requestTorrentAvail(const string& name, const DeviceDescriptor& dev);
 	bool requestTorrentFile(const string& name);
 	bool requestTorrentFileIfMissing(const string& name);
 	int requestChunk(const string& torrent);
@@ -129,6 +135,7 @@ private:
 
 	bool createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote);
 	void createNearbyTorrentsRequest(TorrentListReq& req, const DeviceDescriptor& remote, const DeviceDescriptor& local);
+	bool createTorrentAvailRequest(TorrentAvailReq& req, const string& name, const DeviceDescriptor& dev);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const string& addr);
 	bool createTorrentFileRequest(TorrentFileReq& req, const string& name, const DeviceDescriptor& dev);
