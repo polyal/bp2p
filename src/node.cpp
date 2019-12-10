@@ -451,6 +451,7 @@ int Node::request(RRPacket& req)
 		carryOutRequest(req);
 	}
 	catch(int e){
+		cout << "REQUEST " << e << endl;
 		return e;
 	}
 	completeRequest(req);
@@ -589,7 +590,7 @@ bool Node::syncRequestTorrentFile(const string& name)
 {
 	TorrentFileReq req;
 	if (createTorrentFileRequest(req, name))
-		return syncRequest(req);
+		return (syncRequest(req) == 0);
 	return false;
 }
 
@@ -597,7 +598,7 @@ bool Node::syncRequestTorrentFile(const string& name, const string& addr)
 {
 	TorrentFileReq req;
 	if (createTorrentFileRequest(req, name, addr))
-		return syncRequest(req);
+		return (syncRequest(req) == 0);
 	return false;
 }
 
@@ -677,11 +678,11 @@ bool Node::requestTorrentData(const string& name)
 {
 	bool status = false;
 	if (this->dev2tor.empty() || this->torName2dev.find(name) == this->torName2dev.end()){
-		requestAllNearbyTorrents();
+		syncRequestAllNearbyTorrents();
 	}
 	this->torName2dev.clear();
 	Utils::swapKeyVal(this->torName2dev, this->dev2tor);
-	if (requestAllTorrentAvail(name)){
+	if (syncRequestAllTorrentAvail(name)){
 		if (requestTorrentFileIfMissing(name))		
 			status = requestChunk(name);
 		else
@@ -723,7 +724,7 @@ bool Node::syncRequestTorrentAvail(const string& name, const DeviceDescriptor& d
 {
 	TorrentAvailReq req;
 	if (createTorrentAvailRequest(req, name, dev))
-		return syncRequest(req);
+		return (syncRequest(req) == 0);
 	return false;
 }
 
