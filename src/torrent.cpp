@@ -156,7 +156,7 @@ int Torrent::generateChunks()
     ifstream file {this->packagePath, ifstream::binary};
     while(!file.eof()){
         file.read(fileChunk.data(), this->chunkSize);
-        strChunk.assign(fileChunk.begin(), fileChunk.end());
+        strChunk.assign(fileChunk.begin(), fileChunk.begin() + file.gcount());
         size_t chunkHash = hash<string>()(strChunk);
         this->chunks.push_back(Chunk{i, chunkHash, true});
         this->uid = (this->uid ^ (chunkHash << 1)) >> 1;
