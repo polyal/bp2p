@@ -5,7 +5,6 @@ compile = $(cc) $(cv) $(wrn)
 libs = -lz -larchive -lbluetooth -pthread
 incl = -Ilib/json/include
 
-
 default: utils torrent device rrpacket
 	$(compile) src/node.cpp src/workerThread.cpp \
 	$(incl) \
@@ -87,7 +86,8 @@ channelTest:
 deviceTest:
 	$(compile) src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
 
-
+dbTest:
+	g++ -std=c++11 $(wrn) src/db.cpp -lmysqlcppconn
 
 # cleanup out dir
 clean:

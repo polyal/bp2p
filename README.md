@@ -17,6 +17,7 @@ There project is currently on development where improvements are alwasy being ad
 * libarchive-dev
 * libz-dev
 * libssl-dev
+* libmysqlcppconn-dev
 
 ##### To clone submodule nlohmann/json
 1. git submodule init
