@@ -87,7 +87,7 @@ deviceTest:
 	$(compile) src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
 
 dbTest:
-	g++ -std=c++11 $(wrn) src/db.cpp -lmysqlcppconn
+	g++ -std=c++11 $(wrn) src/db.cpp -lmysqlcppconn -o out/a.out
 
 # cleanup out dir
 clean:
