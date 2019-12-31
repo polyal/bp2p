@@ -18,6 +18,7 @@ There project is currently on development where improvements are alwasy being ad
 * libz-dev
 * libssl-dev
 * libmysqlcppconn-dev
+* mysql-server -- must have MySQL server installed and initialzed
 
 ##### To clone submodule nlohmann/json
 1. git submodule init
