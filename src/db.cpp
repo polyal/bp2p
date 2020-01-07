@@ -162,15 +162,15 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	return res;
 }
 
-sql::ResultSet* DatabaseConnector::createSchema(const string& schema, bool checkExists)
+bool DatabaseConnector::createSchema(const string& schema, bool checkExists)
 {
-	sql::ResultSet* res = nullptr;
+	bool res = false;
 	string query = DatabaseConnector::createStatment;
 	if (checkExists)
 		query += DatabaseConnector::ifNotExists;
 	query += schema;
 	try{
-		res = createStatementAndExecuteQuery(query);
+		res = createStatementAndExecute(query);
 	}
 	catch(...){
 		throw;

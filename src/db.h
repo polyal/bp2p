@@ -32,7 +32,7 @@ public:
 	bool execute(sql::Statement* stmt, const string& query);
 	sql::ResultSet* createStatementAndExecuteQuery(const string& query);
 	bool createStatementAndExecute(const string& query);
-	sql::ResultSet* createSchema(const string& schema, bool checkExists);
+	bool createSchema(const string& schema, bool checkExists);
 
 private:
 	static string tcp;
