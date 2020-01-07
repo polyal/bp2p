@@ -2,6 +2,8 @@
 
 
 string DatabaseConnector::tcp = "tcp://";
+string DatabaseConnector::createStatment = "create schema ";
+string DatabaseConnector::ifNotExists = "if not exists ";
 
 DatabaseConnector::DatabaseConnector()
 {	
@@ -117,6 +119,23 @@ sql::ResultSet* DatabaseConnector::executeQuery(sql::Statement* stmt, const stri
 	return res;
 }
 
+bool DatabaseConnector::execute(sql::Statement* stmt, const string& query)
+{
+	bool res = false;
+	try{
+		res = stmt->execute(query);
+	}
+	catch(sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		throw;
+	}
+	return res;	
+}
+
 sql::ResultSet* DatabaseConnector::createStatementAndExecuteQuery(const string& query)
 {
 	sql::ResultSet* res;
@@ -129,6 +148,37 @@ sql::ResultSet* DatabaseConnector::createStatementAndExecuteQuery(const string& 
 	}
 	return res;
 }
+
+bool DatabaseConnector::createStatementAndExecute(const string& query)
+{
+	bool res = false;
+	try{
+		sql::Statement* stmt = createStatement();
+		res = executeQuery(stmt, query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+sql::ResultSet* DatabaseConnector::createSchema(const string& schema, bool checkExists)
+{
+	sql::ResultSet* res = nullptr;
+	string query = DatabaseConnector::createStatment;
+	if (checkExists)
+		query += DatabaseConnector::ifNotExists;
+	query += schema;
+	try{
+		res = createStatementAndExecuteQuery(query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+
 
 
 

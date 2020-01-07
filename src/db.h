@@ -29,10 +29,16 @@ public:
 	void setSchema(const string& schema);
 	sql::Statement* createStatement();
 	sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
+	bool execute(sql::Statement* stmt, const string& query);
 	sql::ResultSet* createStatementAndExecuteQuery(const string& query);
+	bool createStatementAndExecute(const string& query);
+	sql::ResultSet* createSchema(const string& schema, bool checkExists);
 
 private:
 	static string tcp;
+	static string createStatment;
+	static string ifNotExists;
+
 	string ip;
 	string port;
 	string user;
