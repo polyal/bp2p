@@ -32,12 +32,15 @@ public:
 	bool execute(sql::Statement* stmt, const string& query);
 	sql::ResultSet* createStatementAndExecuteQuery(const string& query);
 	bool createStatementAndExecute(const string& query);
+	bool createSchema(bool checkExists);
 	bool createSchema(const string& schema, bool checkExists);
+	bool createTable(const string& table, bool checkExists);
 
-private:
-	static string tcp;
-	static string createStatment;
-	static string ifNotExists;
+protected:
+	static const string tcp;
+	static const string createSchemaStatment;
+	static const string createTableStatment;
+	static const string ifNotExists;
 
 	string ip;
 	string port;

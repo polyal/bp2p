@@ -1,9 +1,10 @@
 #include "db.h"
 
 
-string DatabaseConnector::tcp = "tcp://";
-string DatabaseConnector::createStatment = "create schema ";
-string DatabaseConnector::ifNotExists = "if not exists ";
+const string DatabaseConnector::tcp = "tcp://";
+const string DatabaseConnector::createSchemaStatment = "create schema ";
+const string DatabaseConnector::createTableStatment = "create table ";
+const string DatabaseConnector::ifNotExists = "if not exists ";
 
 DatabaseConnector::DatabaseConnector()
 {	
@@ -162,10 +163,26 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	return res;
 }
 
+bool DatabaseConnector::createSchema(bool checkExists)
+{
+	bool res = false;
+	string query = DatabaseConnector::createSchemaStatment;
+	if (checkExists)
+		query += DatabaseConnector::ifNotExists;
+	query += this->schema;
+	try{
+		res = createStatementAndExecute(query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
 bool DatabaseConnector::createSchema(const string& schema, bool checkExists)
 {
 	bool res = false;
-	string query = DatabaseConnector::createStatment;
+	string query = DatabaseConnector::createSchemaStatment;
 	if (checkExists)
 		query += DatabaseConnector::ifNotExists;
 	query += schema;
@@ -178,6 +195,21 @@ bool DatabaseConnector::createSchema(const string& schema, bool checkExists)
 	return res;
 }
 
+bool DatabaseConnector::createTable(const string& table, bool checkExists)
+{
+	bool res = false;
+	string query = DatabaseConnector::createTableStatment;
+	if (checkExists)
+		query += DatabaseConnector::ifNotExists;
+	query += table;
+	try{
+		res = createStatementAndExecute(query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
 
 
 
