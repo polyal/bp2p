@@ -7,11 +7,15 @@ const string DatabaseConnector::createTableStatment = "create table ";
 const string DatabaseConnector::ifNotExists = "if not exists ";
 
 DatabaseConnector::DatabaseConnector()
-{	
+{
+	this->driver = nullptr;
+	this->con = nullptr;
 }
 
 DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd)
 {
+	this->driver = nullptr;
+	this->con = nullptr;
 	this->ip = ip;
 	this->port = port;
 	this->user = user;
@@ -21,11 +25,18 @@ DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const
 DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, 
 	const string& schema)
 {
+	this->driver = nullptr;
+	this->con = nullptr;
 	this->ip = ip;
 	this->port = port;
 	this->user = user;
 	this->pwd = pwd;
 	this->schema = schema;
+}
+
+DatabaseConnector::~DatabaseConnector()
+{
+	if (this->con) delete this->con;
 }
 
 void DatabaseConnector::connect()
@@ -155,7 +166,7 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	bool res = false;
 	try{
 		sql::Statement* stmt = createStatement();
-		res = executeQuery(stmt, query);
+		res = execute(stmt, query);
 	}
 	catch(...){
 		throw;
@@ -195,13 +206,19 @@ bool DatabaseConnector::createSchema(const string& schema, bool checkExists)
 	return res;
 }
 
-bool DatabaseConnector::createTable(const string& table, bool checkExists)
+bool DatabaseConnector::createTable(const string& table, const vector<string>& columns, bool checkExists)
 {
 	bool res = false;
 	string query = DatabaseConnector::createTableStatment;
 	if (checkExists)
 		query += DatabaseConnector::ifNotExists;
 	query += table;
+	query += " (";
+	for (auto column : columns){
+		query += column + ",";
+	}
+	query.pop_back(); // remove last comma
+	query += " );";
 	try{
 		res = createStatementAndExecute(query);
 	}
@@ -209,52 +226,4 @@ bool DatabaseConnector::createTable(const string& table, bool checkExists)
 		throw;
 	}
 	return res;
-}
-
-
-
-
-int main(void)
-{
-	cout << endl;
-	cout << "Running 'SELECT * FROM testTable;'..." << endl;
-
-	try {
-	 	sql::Driver *driver;
-	 	sql::Connection *con;
-	 	sql::Statement *stmt;
-	 	sql::ResultSet *res;
-
-	  	/* Create a connection */
-	  	driver = get_driver_instance();
-	  	con = driver->connect("tcp://127.0.0.1:3306", "testUser", "pwd");
-	  	/* Connect to the MySQL test database */
-	  	con->setSchema("test");
-
-	  	stmt = con->createStatement();
-	  	res = stmt->executeQuery("SELECT * FROM testTable;");
-	  	while (res->next()) {
-	    	cout << "\t... MySQL replies: ";
-	    	/* Access column data by alias or column name */
-	    	cout << res->getString("text") << endl;
-	    	cout << "\t... MySQL says it again: ";
-	    	/* Access column fata by numeric offset, 1 is the first column */
-	    	cout << res->getString(1) << endl;
-	  	}
-	  	delete res;
-	  	delete stmt;
-	  	delete con;
-
-		} 
-		catch (sql::SQLException &e) {
-		  	cout << "# ERR: SQLException in " << __FILE__;
-		  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
-		  	cout << "# ERR: " << e.what();
-		  	cout << " (MySQL error code: " << e.getErrorCode();
-		  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-	}
-
-	cout << endl;
-
-	return EXIT_SUCCESS;
 }

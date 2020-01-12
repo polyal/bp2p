@@ -1,6 +1,8 @@
 /* Standard C++ includes */
 #include <stdlib.h>
 #include <iostream>
+#include <vector>
+#include <tuple>
 
 /*
   Include directly the different
@@ -22,6 +24,7 @@ public:
 	DatabaseConnector();
 	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd);
 	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
+	~DatabaseConnector();
 
 	void connect();
 	void connect(const string& ip, const string& port, const string& user, const string& pwd);
@@ -34,7 +37,7 @@ public:
 	bool createStatementAndExecute(const string& query);
 	bool createSchema(bool checkExists);
 	bool createSchema(const string& schema, bool checkExists);
-	bool createTable(const string& table, bool checkExists);
+	bool createTable(const string& table, const vector<string>& columns, bool checkExists);
 
 protected:
 	static const string tcp;

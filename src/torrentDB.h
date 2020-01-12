@@ -9,10 +9,19 @@ public:
 
 	bool init();
 
-private:
-	static const string schemaName;
+protected:
+	bool createTables();
+	bool createTorrentTable();
+	bool createFilesTable();
+	bool createChunksTable();
+
 	static const string dbip;
 	static const string dbport;
 	static const string dbuser;
 	static const string dbpwd;
+	static const string schemaName;
+
+	static const string torrentTable;
+	static const string filesTable;
+	static const string chunksTable;
 };
