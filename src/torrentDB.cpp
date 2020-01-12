@@ -82,10 +82,11 @@ bool TorrentDB::createFilesTable()
 {
 	bool res = false;
 	vector<string> columns;
-	columns.push_back("id INT UNSIGNED NOT NULL AUTO_INCREMENT");
 	columns.push_back("uid INT UNSIGNED NOT NULL");
 	columns.push_back("file VARCHAR(255) NOT NULL");
-	columns.push_back("PRIMARY KEY (id)");
+	columns.push_back("PRIMARY KEY (uid, file)");
+	columns.push_back("INDEX file_ind (uid, file)");
+	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
 	try{
 		res = createTable(TorrentDB::filesTable, columns, true);
 	}
@@ -100,9 +101,12 @@ bool TorrentDB::createChunksTable()
 	bool res = false;
 	vector<string> columns;
 	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_index INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_hash INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_exists INT UNSIGNED NOT NULL");
+	columns.push_back("`index` INT UNSIGNED NOT NULL");
+	columns.push_back("`hash` INT UNSIGNED NOT NULL");
+	columns.push_back("`exists` TINYINT UNSIGNED NOT NULL");
+	columns.push_back("PRIMARY KEY (uid, `index`)");
+	columns.push_back("INDEX chunk_ind (uid, `index`)");
+	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
 	try{
 		res = createTable(TorrentDB::chunksTable, columns, true);
 	}
