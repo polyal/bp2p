@@ -132,6 +132,7 @@ bool TorrentDB::insertIntoTorrents(size_t uid, const string& name, unsigned int 
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
 	return res;
 }
 
@@ -151,6 +152,7 @@ bool TorrentDB::insertIntoFiles(size_t uid, const vector<string>& files)
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
 	return res;
 }
 
@@ -170,6 +172,7 @@ bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bo
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
 	return res;
 }
 

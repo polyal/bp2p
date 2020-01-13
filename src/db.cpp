@@ -167,27 +167,31 @@ bool DatabaseConnector::execute(sql::PreparedStatement* stmt)
 
 sql::ResultSet* DatabaseConnector::createStatementAndExecuteQuery(const string& query)
 {
-	sql::ResultSet* res;
+	sql::ResultSet* res = nullptr;
+	sql::Statement* stmt = nullptr;
 	try{
-		sql::Statement* stmt = createStatement();
+		stmt = createStatement();
 		res = executeQuery(stmt, query);
 	}
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
 	return res;
 }
 
 bool DatabaseConnector::createStatementAndExecute(const string& query)
 {
 	bool res = false;
+	sql::Statement* stmt = nullptr;
 	try{
-		sql::Statement* stmt = createStatement();
+		stmt = createStatement();
 		res = execute(stmt, query);
 	}
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
 	return res;
 }
 
