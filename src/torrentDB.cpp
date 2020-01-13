@@ -212,30 +212,6 @@ int main(void)
 		test.insertIntoChunks(123, 0, 4294967295, true);
 		test.insertIntoChunks(123, 1, 123498765, false);*/
 		test.updateChunk(123, 1, true);
-	    /*sql::Driver *driver;
-	 	sql::Connection *con;
-	 	sql::Statement *stmt;
-	 	sql::ResultSet *res;
-
-	  	// Create a connection
-	  	driver = get_driver_instance();
-	  	con = driver->connect("tcp://127.0.0.1:3306", "testUser", "pwd");
-	  	// Connect to the MySQL test database
-	  	con->setSchema("test");
-
-	  	stmt = con->createStatement();
-	  	res = stmt->executeQuery("SELECT * FROM testTable;");
-	  	while (res->next()) {
-	    	cout << "\t... MySQL replies: ";
-	    	// Access column data by alias or column name
-	    	cout << res->getString("text") << endl;
-	    	cout << "\t... MySQL says it again: ";
-	    	// Access column fata by numeric offset, 1 is the first column
-	    	cout << res->getString(1) << endl;
-	  	}
-	  	delete res;
-	  	delete stmt;
-	  	delete con;*/
 	} 
 	catch (sql::SQLException &e) {
 	  	cout << "# ERR: SQLException in " << __FILE__;
