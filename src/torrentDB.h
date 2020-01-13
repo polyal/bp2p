@@ -13,6 +13,7 @@ public:
 	bool insertIntoTorrents(size_t uid, const string& name, unsigned int numPieces, unsigned int size);
 	bool insertIntoFiles(size_t uid, const vector<string>& files);
 	bool insertIntoChunks(size_t uid, unsigned int index, size_t hash, bool exists);
+	bool updateChunk(size_t uid, unsigned int index, bool exists);
 
 protected:
 	bool createTables();
