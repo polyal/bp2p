@@ -101,11 +101,11 @@ bool TorrentDB::createChunksTable()
 	bool res = false;
 	vector<string> columns;
 	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("`index` INT UNSIGNED NOT NULL");
-	columns.push_back("`hash` INT UNSIGNED NOT NULL");
-	columns.push_back("`exists` TINYINT UNSIGNED NOT NULL");
-	columns.push_back("PRIMARY KEY (uid, `index`)");
-	columns.push_back("INDEX chunk_ind (uid, `index`)");
+	columns.push_back("chunk_index INT UNSIGNED NOT NULL");
+	columns.push_back("chunk_hash INT UNSIGNED NOT NULL");
+	columns.push_back("chunk_exists TINYINT UNSIGNED NOT NULL");
+	columns.push_back("PRIMARY KEY (uid, chunk_index)");
+	columns.push_back("INDEX chunk_ind (uid, chunk_index)");
 	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
 	try{
 		res = createTable(TorrentDB::chunksTable, columns, true);
@@ -160,7 +160,7 @@ bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bo
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
-	string query = "INSERT INTO " + TorrentDB::chunksTable + " VALUES (?, ?, ?);";
+	string query = "INSERT INTO " + TorrentDB::chunksTable + " VALUES (?, ?, ?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, uid);
@@ -184,6 +184,14 @@ int main(void)
 	try {
 		TorrentDB test;
 		test.init();
+		test.insertIntoTorrents(1234567890, "torrent_name", 2, 52046);
+		vector<string> files;
+		files.push_back("file_1");
+		files.push_back("file_2");
+		files.push_back("file_3");
+		test.insertIntoFiles(1234567890, files);
+		test.insertIntoChunks(1234567890, 0, 9876543210, true);
+		test.insertIntoChunks(1234567890, 1, 123498765, false);
 	    /*sql::Driver *driver;
 	 	sql::Connection *con;
 	 	sql::Statement *stmt;
