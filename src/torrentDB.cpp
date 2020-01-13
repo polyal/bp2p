@@ -197,9 +197,6 @@ bool TorrentDB::updateChunk(size_t uid, unsigned int index, bool exists)
 
 int main(void)
 {
-	cout << endl;
-	cout << "Running 'SELECT * FROM testTable;'..." << endl;
-
 	try {
 		TorrentDB test;
 		test.init();
@@ -219,9 +216,7 @@ int main(void)
 	  	cout << "# ERR: " << e.what();
 	  	cout << " (MySQL error code: " << e.getErrorCode();
 	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
-}
-
-	cout << endl;
+	}
 
 	return EXIT_SUCCESS;
 }
