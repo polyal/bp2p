@@ -176,6 +176,25 @@ bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bo
 	return res;
 }
 
+bool TorrentDB::updateChunk(size_t uid, unsigned int index, bool exists)
+{
+	bool res = false;
+	sql::PreparedStatement* stmt = nullptr;
+	string query = "UPDATE " + TorrentDB::chunksTable + " SET chunk_exists=? WHERE uid=? AND chunk_index=?;";
+	try{
+		stmt = this->con->prepareStatement(query);
+		exists ? stmt->setUInt(1, 1) : stmt->setUInt(1, 0);
+		stmt->setUInt(2, uid);
+		stmt->setUInt(3, index);
+		execute(stmt);
+	}
+	catch(...){
+		throw;
+	}
+	if (stmt) delete stmt;
+	return res;
+}
+
 int main(void)
 {
 	cout << endl;
@@ -184,14 +203,15 @@ int main(void)
 	try {
 		TorrentDB test;
 		test.init();
-		test.insertIntoTorrents(1234567890, "torrent_name", 2, 52046);
+		/*test.insertIntoTorrents(123, "torrent_name45", 2, 52046);
 		vector<string> files;
 		files.push_back("file_1");
 		files.push_back("file_2");
 		files.push_back("file_3");
-		test.insertIntoFiles(1234567890, files);
-		test.insertIntoChunks(1234567890, 0, 9876543210, true);
-		test.insertIntoChunks(1234567890, 1, 123498765, false);
+		test.insertIntoFiles(123, files);
+		test.insertIntoChunks(123, 0, 4294967295, true);
+		test.insertIntoChunks(123, 1, 123498765, false);*/
+		test.updateChunk(123, 1, true);
 	    /*sql::Driver *driver;
 	 	sql::Connection *con;
 	 	sql::Statement *stmt;
