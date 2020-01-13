@@ -116,6 +116,62 @@ bool TorrentDB::createChunksTable()
 	return res;
 }
 
+bool TorrentDB::insertIntoTorrents(size_t uid, const string& name, unsigned int numPieces, unsigned int size)
+{
+	bool res = false;
+	sql::PreparedStatement* stmt = nullptr;
+	string query = "INSERT INTO " + TorrentDB::torrentTable + " VALUES (?, ?, ?, ?);";
+	try{
+		stmt = this->con->prepareStatement(query);
+		stmt->setUInt(1, uid);
+		stmt->setString(2, name);
+		stmt->setUInt(3, numPieces);
+		stmt->setUInt(4, size);
+		res = execute(stmt);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+bool TorrentDB::insertIntoFiles(size_t uid, const vector<string>& files)
+{
+	bool res = false;
+	sql::PreparedStatement* stmt = nullptr;
+	string query = "INSERT INTO " + TorrentDB::filesTable + " VALUES (?, ?);";
+	try{
+		stmt = this->con->prepareStatement(query);
+		for (const auto& file : files){
+			stmt->setUInt(1, uid);
+			stmt->setString(2, file);
+			execute(stmt);
+		}
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bool exists)
+{
+	bool res = false;
+	sql::PreparedStatement* stmt = nullptr;
+	string query = "INSERT INTO " + TorrentDB::chunksTable + " VALUES (?, ?, ?);";
+	try{
+		stmt = this->con->prepareStatement(query);
+		stmt->setUInt(1, uid);
+		stmt->setUInt(2, index);
+		stmt->setUInt(3, hash);
+		exists ? stmt->setUInt(4, 1) : stmt->setUInt(4, 0);
+		execute(stmt);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
 
 int main(void)
 {

@@ -148,6 +148,23 @@ bool DatabaseConnector::execute(sql::Statement* stmt, const string& query)
 	return res;	
 }
 
+bool DatabaseConnector::execute(sql::PreparedStatement* stmt)
+{
+	bool res = false;
+	try{
+		res = stmt->execute();
+	}
+	catch(sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		throw;
+	}
+	return res;	
+}
+
 sql::ResultSet* DatabaseConnector::createStatementAndExecuteQuery(const string& query)
 {
 	sql::ResultSet* res;

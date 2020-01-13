@@ -15,6 +15,7 @@
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
 
 using namespace std;
 
@@ -33,6 +34,7 @@ public:
 	sql::Statement* createStatement();
 	sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
 	bool execute(sql::Statement* stmt, const string& query);
+	bool execute(sql::PreparedStatement* stmt);
 	sql::ResultSet* createStatementAndExecuteQuery(const string& query);
 	bool createStatementAndExecute(const string& query);
 	bool createSchema(bool checkExists);
