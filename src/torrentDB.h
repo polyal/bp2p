@@ -10,15 +10,15 @@ public:
 	TorrentDB(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
 
 	bool init();
+	bool insertIntoTorrents(size_t uid, const string& name, unsigned int numPieces, unsigned int size);
+	bool insertIntoFiles(size_t uid, const vector<string>& files);
+	bool insertIntoChunks(size_t uid, unsigned int index, size_t hash, bool exists);
 
 protected:
 	bool createTables();
 	bool createTorrentTable();
 	bool createFilesTable();
 	bool createChunksTable();
-	bool insertIntoTorrents(size_t uid, const string& name, unsigned int numPieces, unsigned int size);
-	bool insertIntoFiles(size_t uid, const vector<string>& files);
-	bool insertIntoChunks(size_t uid, unsigned int index, size_t hash, bool exists);
 
 	static const string dbip;
 	static const string dbport;
