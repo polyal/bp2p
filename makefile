@@ -1,5 +1,5 @@
 cc = g++
-cv = -std=c++1z
+cv = -std=c++1y
 wrn = -Wall -Wextra -pedantic
 compile = $(cc) $(cv) $(wrn)
 libs = -lz -larchive -lbluetooth -pthread
@@ -86,8 +86,9 @@ channelTest:
 deviceTest:
 	$(compile) src/btdevice.cpp src/btchannel.cpp -lbluetooth -o out/a.out
 
-dbTest:
-	g++ -std=c++1y $(wrn) src/db.cpp src/torrentDB.cpp $(incl) -lmysqlcppconn -o out/a.out
+dbTest: utils torrent
+	$(compile) src/db.cpp src/torrentDB.cpp $(incl) -lmysqlcppconn -o out/a.out \
+	out/package.o out/archiver.o out/compress.o out/torrent.o out/utils.o $(libs)
 
 # cleanup out dir
 clean:
