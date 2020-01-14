@@ -27,8 +27,9 @@
 
 using namespace std;
 
-class Torrent : public TorrentDB
+class Torrent
 {
+	friend class torrentDB;
 public:
 	Torrent();
 
