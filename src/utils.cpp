@@ -14,6 +14,8 @@
 
 using namespace std;
 
+const string Utils::applicationDir = "/bp2p/";
+const string Utils::applicationOutDir = "/bp2p/out/";
 
 void Utils::tokenize(const string& text, const string& sep, vector<string>& tokens)
 {

@@ -14,8 +14,8 @@ class Utils
 {
 public:
 	// application type utils
-	inline static const string applicationDir = "/bp2p/";
-	inline static const string applicationOutDir = "/bp2p/out/";
+	static const string applicationDir;
+	static const string applicationOutDir;
 	static string getHomeDir();
 	static string getExePath();
 	static string getApplicationPath();
@@ -51,7 +51,9 @@ public:
 	template <typename OK, typename OV>
 	static void swapKeyVal(map<OV, vector<OK>>& dest, const map<OK, vector<OV>>& source)
 	{
-		for (auto const&  [key, vals] : source){
+		for (auto const&  pair : source){
+			auto key = pair.first;
+			auto vals = pair.second;
 			for (auto const& val : vals){
 				if (dest.find(val) == dest.end()){
 					vector<OK> newVals{key};

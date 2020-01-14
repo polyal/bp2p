@@ -142,8 +142,8 @@ public:
 
 private:
 	static const int chunkSize = 32768;  //256 kilobyte chunk size
-	inline static const string torrentFileDir = "torrents/";
-	inline static const string torrentDataDir = "torrentData/";
+	static const string torrentFileDir;
+	static const string torrentDataDir;
 
 	struct Chunk
 	{
