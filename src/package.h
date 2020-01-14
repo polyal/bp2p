@@ -18,7 +18,7 @@ public:
 	int unpackage();
 
 private:
-	inline static const string tempName = "temp";
+	static const string tempName;
 	string name;
 	vector<string> files;
 

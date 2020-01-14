@@ -26,6 +26,7 @@
 
 #define DEBUG 0
 
+const string Package::tempName = "temp";
 
 Package::Package()
 {

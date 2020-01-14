@@ -66,7 +66,7 @@ public:
     int decompress();
 
 private:
-    inline static const string ext = ".ez"; 
+    static const string ext; 
     static const int chunkSize = 32768;
 
     int level = 9;  // highest compression level
