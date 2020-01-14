@@ -23,10 +23,11 @@
 #include <tuple>
 #include <functional>
 #include "nlohmann/json.hpp"
+#include "torrentDB.h"
 
 using namespace std;
 
-class Torrent
+class Torrent : public TorrentDB
 {
 public:
 	Torrent();

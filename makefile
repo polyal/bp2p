@@ -32,7 +32,7 @@ channel:
 	mv btchannel.o out/btchannel.o
 
 torrent: package
-	$(compile) -c src/torrent.cpp $(incl)
+	$(compile14) -c src/torrent.cpp $(incl)
 	mv torrent.o out/torrent.o
 
 package:

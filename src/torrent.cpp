@@ -20,7 +20,7 @@ using namespace std;
 const string Torrent::torrentFileDir = "torrents/";
 const string Torrent::torrentDataDir = "torrentData/";
 
-Torrent::Torrent()
+Torrent::Torrent() : TorrentDB()
 {
 	this->numPieces = 0;
 	this->name = "";
@@ -30,7 +30,7 @@ Torrent::Torrent()
 	this->size = 0;
 }
 
-Torrent::Torrent(const string& name, const vector<string>& files)
+Torrent::Torrent(const string& name, const vector<string>& files) : TorrentDB()
 {
 	this->numPieces = 0;
 	this->name = name;
@@ -41,7 +41,7 @@ Torrent::Torrent(const string& name, const vector<string>& files)
 	this->serializedObj = "";
 }
 
-Torrent::Torrent(const string& name)
+Torrent::Torrent(const string& name) : TorrentDB()
 {
 	this->numPieces = 0;
 	this->name = name;
@@ -51,7 +51,7 @@ Torrent::Torrent(const string& name)
 	this->serializedObj = "";
 }
 
-Torrent::Torrent(const Torrent& torrent)
+Torrent::Torrent(const Torrent& torrent): TorrentDB()
 {
 	this->numPieces = torrent.numPieces;
 	this->name = torrent.name;
