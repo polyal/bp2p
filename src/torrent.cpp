@@ -66,6 +66,11 @@ Torrent::Torrent(const Torrent& torrent)
 	this->size = torrent.size;
 }
 
+Torrent::~Torrent()
+{
+	updateChunkStatusInDB();
+}
+
 bool Torrent::create(const string& name, const vector<string>& files)
 {
 	this->name = name;
@@ -447,6 +452,13 @@ bool Torrent::insertTorrentToDB()
 		res = false;
 	}
 	return res;
+}
+
+void Torrent::updateChunkStatusInDB()
+{
+	for (const auto& chunk : this->chunks){cout << "4" << endl;
+		this->db.updateChunk(chunk.hash, chunk.exists);
+	}
 }
 
 #if DEBUG == 1

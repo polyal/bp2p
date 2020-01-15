@@ -52,7 +52,7 @@ public:
 	//  torrent: the torrent to be duplicated
 	Torrent(const Torrent& torrent);
 		
-
+	~Torrent();
 
 	///////////////////////////////////////////////////////////
 	//  Creates a torrent.
@@ -224,6 +224,7 @@ private:
 
 	void setDBuid();
 	bool insertTorrentToDB();
+	void updateChunkStatusInDB();
 };
 
 namespace std
