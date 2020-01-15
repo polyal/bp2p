@@ -439,13 +439,12 @@ void Torrent::setDBuid()
 bool Torrent::insertTorrentToDB()
 {
 	bool res = true;
-	try{cout << "1" << endl;
-		this->db.insertIntoTorrents(this->name, this->numPieces, this->size); cout << "2" << endl;
-		this->db.insertIntoFiles(this->files);cout << "3" << endl;
-		for (const auto& chunk : this->chunks){cout << "4" << endl;
+	try{
+		this->db.insertIntoTorrents(this->name, this->numPieces, this->size);
+		this->db.insertIntoFiles(this->files);
+		for (const auto& chunk : this->chunks){
 			this->db.insertIntoChunks(chunk.index, chunk.hash, chunk.exists);
 		}
-		cout << "5" << endl;
 	}
 	catch(...){
 		cout << "Caught Insert Torrent" << endl;
@@ -456,7 +455,7 @@ bool Torrent::insertTorrentToDB()
 
 void Torrent::updateChunkStatusInDB()
 {
-	for (const auto& chunk : this->chunks){cout << "4" << endl;
+	for (const auto& chunk : this->chunks){
 		this->db.updateChunk(chunk.hash, chunk.exists);
 	}
 }
