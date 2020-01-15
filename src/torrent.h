@@ -29,7 +29,6 @@ using namespace std;
 
 class Torrent
 {
-	friend class torrentDB;
 public:
 	Torrent();
 
@@ -180,6 +179,8 @@ private:
 	nlohmann::json jobj;                 // json object representing the torrent
 	string serializedObj;                // serialzed version of the json object
 
+	TorrentDB db;
+
 	////////////////////////////////////////////////////////////
 	//  Creates a package containing the files that were 
 	//  specified in a call to the constructor or
@@ -220,6 +221,9 @@ private:
 	//
 	//  torrentPath:  full path to the torrent file to be read in
 	void readTorrentFromFile(const string& torrentPath);
+
+	void setDBuid();
+	bool insertTorrentToDB();
 };
 
 namespace std

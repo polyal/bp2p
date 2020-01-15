@@ -1,5 +1,7 @@
 #include "torrentDB.h"
 
+#define DEBUG 0
+
 const string TorrentDB::schemaName = "bp2p";
 const string TorrentDB::dbip = "127.0.0.1";
 const string TorrentDB::dbport = "3306";
@@ -116,17 +118,17 @@ bool TorrentDB::createChunksTable()
 	return res;
 }
 
-bool TorrentDB::insertIntoTorrents(size_t uid, const string& name, unsigned int numPieces, unsigned int size)
+bool TorrentDB::insertIntoTorrents(const string& name, unsigned int numPieces, unsigned long long size)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "INSERT INTO " + TorrentDB::torrentTable + " VALUES (?, ?, ?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
-		stmt->setUInt(1, uid);
+		stmt->setUInt(1, this->uid);
 		stmt->setString(2, name);
 		stmt->setUInt(3, numPieces);
-		stmt->setUInt(4, size);
+		stmt->setUInt64(4, size);
 		res = execute(stmt);
 	}
 	catch(...){
@@ -136,7 +138,7 @@ bool TorrentDB::insertIntoTorrents(size_t uid, const string& name, unsigned int 
 	return res;
 }
 
-bool TorrentDB::insertIntoFiles(size_t uid, const vector<string>& files)
+bool TorrentDB::insertIntoFiles(const vector<string>& files)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
@@ -144,7 +146,7 @@ bool TorrentDB::insertIntoFiles(size_t uid, const vector<string>& files)
 	try{
 		stmt = this->con->prepareStatement(query);
 		for (const auto& file : files){
-			stmt->setUInt(1, uid);
+			stmt->setUInt(1, this->uid);
 			stmt->setString(2, file);
 			execute(stmt);
 		}
@@ -156,14 +158,14 @@ bool TorrentDB::insertIntoFiles(size_t uid, const vector<string>& files)
 	return res;
 }
 
-bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bool exists)
+bool TorrentDB::insertIntoChunks(unsigned int index, size_t hash, bool exists)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "INSERT INTO " + TorrentDB::chunksTable + " VALUES (?, ?, ?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
-		stmt->setUInt(1, uid);
+		stmt->setUInt(1, this->uid);
 		stmt->setUInt(2, index);
 		stmt->setUInt(3, hash);
 		exists ? stmt->setUInt(4, 1) : stmt->setUInt(4, 0);
@@ -176,7 +178,7 @@ bool TorrentDB::insertIntoChunks(size_t uid, unsigned int index, size_t hash, bo
 	return res;
 }
 
-bool TorrentDB::updateChunk(size_t uid, unsigned int index, bool exists)
+bool TorrentDB::updateChunk(unsigned int index, bool exists)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
@@ -184,7 +186,7 @@ bool TorrentDB::updateChunk(size_t uid, unsigned int index, bool exists)
 	try{
 		stmt = this->con->prepareStatement(query);
 		exists ? stmt->setUInt(1, 1) : stmt->setUInt(1, 0);
-		stmt->setUInt(2, uid);
+		stmt->setUInt(2, this->uid);
 		stmt->setUInt(3, index);
 		execute(stmt);
 	}
@@ -195,6 +197,7 @@ bool TorrentDB::updateChunk(size_t uid, unsigned int index, bool exists)
 	return res;
 }
 
+#if DEBUG == 1
 int main(void)
 {
 	try {
@@ -208,7 +211,7 @@ int main(void)
 		test.insertIntoFiles(123, files);
 		test.insertIntoChunks(123, 0, 4294967295, true);
 		test.insertIntoChunks(123, 1, 123498765, false);*/
-		test.updateChunk(123, 1, true);
+		test.updateChunk(1, true);
 	} 
 	catch (sql::SQLException &e) {
 	  	cout << "# ERR: SQLException in " << __FILE__;
@@ -220,3 +223,4 @@ int main(void)
 
 	return EXIT_SUCCESS;
 }
+#endif

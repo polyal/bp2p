@@ -13,7 +13,7 @@
 #include "package.h"
 #include "torrent.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 using namespace std;
 
@@ -75,11 +75,16 @@ bool Torrent::create(const string& name, const vector<string>& files)
 
 bool Torrent::create()
 {
+	this->db.init();  // here for testing purposes
+	bool res = false;
 	package();
 	generateChunks();
 	serialize();
-	dumpToTorrentFile();
-	return isValid();
+	//dumpToTorrentFile();
+	if (isValid()){
+		res = insertTorrentToDB();
+	}
+	return res;
 }
 
 bool Torrent::open(const string& name)
@@ -111,7 +116,8 @@ bool Torrent::createTorrentFromSerializedObj(const string& serializedObj)
 	this->serializedObj = serializedObj;
 	deserialize(true);
 	serialize();
-	dumpToTorrentFile();
+	//dumpToTorrentFile();
+	// check if torrent exists in db and if it does do not save it again
 	return isValid();
 }
 
@@ -166,6 +172,7 @@ int Torrent::generateChunks()
         strChunk.clear();
         i++;
     }
+    setDBuid();
     this->numPieces = this->chunks.size();
     return 0;
 }
@@ -417,6 +424,29 @@ vector<string> Torrent::getTorrentNames()
 	if (ret > 0)
 		cout << "getTorrentNames error: " << ret << endl;
     return torrentNames;
+}
+
+void Torrent::setDBuid()
+{
+	this->db.uid = this->uid;
+}
+
+bool Torrent::insertTorrentToDB()
+{
+	bool res = true;
+	try{cout << "1" << endl;
+		this->db.insertIntoTorrents(this->name, this->numPieces, this->size); cout << "2" << endl;
+		this->db.insertIntoFiles(this->files);cout << "3" << endl;
+		for (const auto& chunk : this->chunks){cout << "4" << endl;
+			this->db.insertIntoChunks(chunk.index, chunk.hash, chunk.exists);
+		}
+		cout << "5" << endl;
+	}
+	catch(...){
+		cout << "Caught Insert Torrent" << endl;
+		res = false;
+	}
+	return res;
 }
 
 #if DEBUG == 1
