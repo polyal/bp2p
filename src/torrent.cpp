@@ -66,6 +66,12 @@ Torrent::Torrent(const Torrent& torrent)
 	this->size = torrent.size;
 }
 
+Torrent::Torrent(size_t uid)
+{
+	this->uid = uid;
+	setDBuid();
+}
+
 Torrent::~Torrent()
 {
 	updateChunkStatusInDB();
@@ -92,23 +98,24 @@ bool Torrent::create()
 	return res;
 }
 
-bool Torrent::open(const string& name)
+bool Torrent::open(size_t uid)
 {
-	this->name = name;
+	this->uid = uid;
+	setDBuid();
 	return open();
 }
 
 bool Torrent::open()
 {
-	if (this->name.empty()){
-		cout << "Error: Torrent Name Invalid" << endl;
+	if (this->uid == 0){
+		cout << "Error: Torrent UID Invalid" << endl;
 		return false;
 	}
-	string torrentPath = getTorrentsPath() + this->name;
+	/*string torrentPath = getTorrentsPath() + this->name;
 	if (Utils::doesFileExist(torrentPath)){
 		readTorrentFromFile(torrentPath);
 		deserialize(false);
-	}
+	}*/
 	return isValid();
 }
 
@@ -455,9 +462,23 @@ bool Torrent::insertTorrentToDB()
 
 void Torrent::updateChunkStatusInDB()
 {
+	vector<TorrentDB::ChunkRow> chunkRows = createChunkRows();
+	updateChunkStatusDB(chunkRows);	
+}
+
+vector<TorrentDB::ChunkRow> Torrent::createChunkRows()
+{
+	vector<TorrentDB::ChunkRow> chunkRows;
 	for (const auto& chunk : this->chunks){
-		this->db.updateChunk(chunk.hash, chunk.exists);
+		TorrentDB::ChunkRow chunkRow{chunk.index, chunk.exists};
+		chunkRows.push_back(chunkRow);
 	}
+	return chunkRows;
+}
+
+void Torrent::updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows)
+{
+	this->db.updateChunks(chunkRows);
 }
 
 #if DEBUG == 1

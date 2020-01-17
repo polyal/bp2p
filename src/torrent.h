@@ -51,6 +51,8 @@ public:
 	//
 	//  torrent: the torrent to be duplicated
 	Torrent(const Torrent& torrent);
+
+	Torrent(size_t uid);
 		
 	~Torrent();
 
@@ -78,7 +80,7 @@ public:
 	//  name:  name of the torrent to be opened
 	//
 	//  returns true on success
-	bool open(const string& name);
+	bool open(size_t uid);
 
 	///////////////////////////////////////////////////////////
 	//  Opens an existing torrent and populates torrent object.
@@ -225,6 +227,8 @@ private:
 	void setDBuid();
 	bool insertTorrentToDB();
 	void updateChunkStatusInDB();
+	vector<TorrentDB::ChunkRow> createChunkRows();
+	void updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows);
 };
 
 namespace std

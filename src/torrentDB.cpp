@@ -178,17 +178,19 @@ bool TorrentDB::insertIntoChunks(unsigned int index, size_t hash, bool exists)
 	return res;
 }
 
-bool TorrentDB::updateChunk(unsigned int index, bool exists)
+bool TorrentDB::updateChunks(const vector<ChunkRow>& chunks)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "UPDATE " + TorrentDB::chunksTable + " SET chunk_exists=? WHERE uid=? AND chunk_index=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
-		exists ? stmt->setUInt(1, 1) : stmt->setUInt(1, 0);
-		stmt->setUInt(2, this->uid);
-		stmt->setUInt(3, index);
-		execute(stmt);
+		for (const auto& chunk : chunks){
+			chunk.exists ? stmt->setUInt(1, 1) : stmt->setUInt(1, 0);
+			stmt->setUInt(2, this->uid);
+			stmt->setUInt(3, chunk.index);
+			execute(stmt);
+		}
 	}
 	catch(...){
 		throw;
