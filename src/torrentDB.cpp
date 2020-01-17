@@ -43,8 +43,6 @@ bool TorrentDB::init()
 	catch(...){
 		throw;
 	}
-	
-
 	return false;
 }
 
@@ -132,6 +130,7 @@ bool TorrentDB::insertIntoTorrents(const string& name, unsigned int numPieces, u
 		res = execute(stmt);
 	}
 	catch(...){
+		if (stmt) delete stmt;
 		throw;
 	}
 	if (stmt) delete stmt;
@@ -152,6 +151,7 @@ bool TorrentDB::insertIntoFiles(const vector<string>& files)
 		}
 	}
 	catch(...){
+		if (stmt) delete stmt;
 		throw;
 	}
 	if (stmt) delete stmt;
@@ -172,6 +172,7 @@ bool TorrentDB::insertIntoChunks(unsigned int index, size_t hash, bool exists)
 		execute(stmt);
 	}
 	catch(...){
+		if (stmt) delete stmt;
 		throw;
 	}
 	if (stmt) delete stmt;
@@ -193,6 +194,7 @@ bool TorrentDB::updateChunks(const vector<ChunkRow>& chunks)
 		}
 	}
 	catch(...){
+		if (stmt) delete stmt;
 		throw;
 	}
 	if (stmt) delete stmt;
