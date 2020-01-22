@@ -4,36 +4,41 @@ cv14 = -std=c++1y
 wrn = -Wall -Wextra -pedantic
 compile = $(cc) $(cv) $(wrn)
 compile14 = $(cc) $(cv14) $(wrn)
-libs = -lz -larchive -lbluetooth -pthread
+libs = -lz -larchive -lbluetooth -pthread -lmysqlcppconn
 incl = -Ilib/json/include
 
 default: utils torrent device rrpacket
-	$(compile) src/node.cpp src/workerThread.cpp \
+	$(compile14) src/node.cpp src/workerThread.cpp \
 	$(incl) \
 	-o out/a.out \
-	out/btdevice.o out/btchannel.o \
+	out/btdevice.o out/btchannel.o out/deviceDescriptor.o \
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o out/torrentAvailReq.o \
 	out/torrent.o out/package.o out/compress.o out/archiver.o \
+	out/db.o out/torrentDB.o \
 	out/utils.o \
 	$(libs)
 
 rrpacket:
-	$(compile) -c -Ilib/json/include \
+	$(compile14) -c -Ilib/json/include \
 	src/rrpacket.cpp src/rrfactory.cpp \
 	src/torrentFileReq.cpp src/torrentListReq.cpp src/chunkReq.cpp src/torrentAvailReq.cpp;
 	mv rrfactory.o  rrpacket.o torrentFileReq.o torrentListReq.o chunkReq.o torrentAvailReq.o -t out/
 
 device: channel
-	$(compile) -c src/btdevice.cpp
-	mv btdevice.o out/btdevice.o
+	$(compile) -c src/btdevice.cpp src/deviceDescriptor.cpp
+	mv btdevice.o deviceDescriptor.o -t out/
 
 channel:
 	$(compile) -c src/btchannel.cpp
 	mv btchannel.o out/btchannel.o
 
-torrent: package
+torrent: torrentDB package
 	$(compile14) -c src/torrent.cpp $(incl)
 	mv torrent.o out/torrent.o
+
+torrentDB:
+	$(compile14) -c src/db.cpp src/torrentDB.cpp $(incl)
+	mv db.o torrentDB.o -t out/
 
 package:
 	$(compile) -c src/package.cpp src/archiver.cpp src/compress.cpp

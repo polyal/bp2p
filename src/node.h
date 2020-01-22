@@ -15,13 +15,13 @@ using namespace std;
 class Node
 {
 public:
-	inline static const string createTorCmd = "-tc";       // create torrent
-	inline static const string listNearbyTorsCmd = "-lnt"; // list nearby torrents
-	inline static const string requestTorCmd = "-tr";      // request torrent file command
-	inline static const string requestTorDataCmd = "-td";  // request torrent data command
-	inline static const string quitCmd = "-q";             // quit
+	static const string createTorCmd;         // create torrent
+	static const string listNearbyTorsCmd;    // list nearby torrents
+	static const string requestTorCmd;        // request torrent file command
+	static const string requestTorDataCmd;    // request torrent data command
+	static const string quitCmd;              // quit
 
-	inline static const string requestChunkAvailCmd = "-rc"; // testing request
+	static const string requestChunkAvailCmd; // testing request
 
 	Node();
 
@@ -47,7 +47,7 @@ public:
 	void populateLocalTorrents();
 
 private:
-	inline static const string cli = "bp2p> ";
+	static const string cli;
 
 	enum DevStatus
 	{

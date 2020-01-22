@@ -13,6 +13,16 @@
 using namespace std;
 
 
+const string Node::createTorCmd = "-tc";
+const string Node::listNearbyTorsCmd = "-lnt";
+const string Node::requestTorCmd = "-tr";
+const string Node::requestTorDataCmd = "-td";
+const string Node::quitCmd = "-q";
+
+const string Node::requestChunkAvailCmd = "-rc";
+
+const string Node::cli = "bp2p> ";
+
 Node::Node(){
 
 }
@@ -61,12 +71,16 @@ void Node::scanForDevs()
 		remoteDevs.clear();
 	}
 
-	for (auto const& [local, remotes] : this->local2remote){
+	for (auto const& local2remotePair : this->local2remote){
+		auto local = local2remotePair.first;
+		auto remotes = local2remotePair.second;
 		cout << "--Local Dev: " << local.addr << " " << local.devID << " " << local.name << endl;
 		for (auto const& remote :  remotes)
 			cout << "\t --Remote Devs: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
 	}
-	for (auto const& [remote, locals] : this->remote2local){
+	for (auto const& remote2localPair : this->remote2local){
+		auto remote = remote2localPair.first;
+		auto locals = remote2localPair.second;
 		cout << "++Remote Dev: " << remote.addr << " " << remote.devID << " " << remote.name << endl;
 		for (auto const& local :  locals)
 			cout << "\t ++Local Devs: " << local.addr << " " << local.devID << " " << local.name << endl;
@@ -376,10 +390,10 @@ void Node::activateWorkerThreads()
 
 void Node::activateServerThreads()
 {
-	for(auto const& [key, val] : this->servers)
+	for(auto const& server : this->servers)
 	{
-		cout << "Activate Server: " << key.addr << " " << key.devID << " " << key.name << endl;
-	    val->activate();
+		cout << "Activate Server: " << server.first.addr << " " << server.first.devID << " " << server.first.name << endl;
+	    server.second->activate();
 	}
 }
 
@@ -398,10 +412,10 @@ void Node::pauseWorkerThreads()
 
 void Node::pauseServerThreads()
 {
-	for(auto const& [key, val] : this->servers)
+	for(auto const& server : this->servers)
 	{
-		cout << "Pause Server: " << key.addr << " " << key.devID << " " << key.name << endl;
-	    val->pause();
+		cout << "Pause Server: " << server.first.addr << " " << server.first.devID << " " << server.first.name << endl;
+	    server.second->pause();
 	}
 }
 
@@ -421,10 +435,10 @@ void Node::killWorkerThreads()
 
 void Node::killServers()
 {
-	for(auto const& [key, val] : this->servers)
+	for(auto const& server : this->servers)
 	{
-		cout << "Kill Server: " << key.addr << " " << key.devID << " " << key.name << endl;
-	    val->close();
+		cout << "Kill Server: " << server.first.addr << " " << server.first.devID << " " << server.first.name << endl;
+	    server.second->close();
 	}
 }
 

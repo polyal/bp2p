@@ -10,6 +10,8 @@
 #define DEBUG 0
 
 
+const string zaddr = "00:00:00:00:00:00";
+
 BTChannel::BTChannel()
 {
 	this->addr.rc_family = AF_BLUETOOTH;

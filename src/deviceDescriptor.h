@@ -8,59 +8,16 @@ using namespace std;
 
 struct DeviceDescriptor
 {
-	DeviceDescriptor()
-	{
-	}
+	DeviceDescriptor();
+	DeviceDescriptor(const string& addr, int devID = -1);
+	DeviceDescriptor(const string& addr, const string& name, int devID = -1);
 
-	DeviceDescriptor(const string& addr, int devID = -1)
-	{
-		this->addr = addr;
-		this->name = "";
-		this->devID = devID;
-		this->addr.resize(this->addrLen);
-	}
+	void create(const string& addr, int devID = -1);
+	void create(const string& addr, const string& name, int devID = -1);
 
-	DeviceDescriptor(const string& addr, const string& name, int devID = -1)
-	{
-		this->addr = addr;
-		this->name = name;
-		this->devID = devID;
-		this->addr.resize(this->addrLen);
-	}
-
-	void create(const string& addr, int devID = -1)
-	{
-		this->addr = addr;
-		this->name = "";
-		this->devID = devID;
-		this->addr.resize(this->addrLen);
-	}
-
-	void create(const string& addr, const string& name, int devID = -1)
-	{
-		this->addr = addr;
-		this->name = name;
-		this->devID = devID;
-		this->addr.resize(this->addrLen);
-	}
-
-	DeviceDescriptor& operator=(const DeviceDescriptor& dev)
-	{
-		this->addr = dev.addr;
-		this->name = dev.name;
-		this->devID = dev.devID;
-		return *this;
-	}
-
-	bool operator==(const DeviceDescriptor& dev) const
-	{
-		return this->addr == dev.addr;
-	}
-
-	bool operator<(const DeviceDescriptor& dev) const
-	{
-		return this->addr < dev.addr;
-	}
+	DeviceDescriptor& operator=(const DeviceDescriptor& dev);
+	bool operator==(const DeviceDescriptor& dev) const;
+	bool operator<(const DeviceDescriptor& dev) const;
 
 	string addr;
 	string name;
@@ -69,7 +26,7 @@ struct DeviceDescriptor
 	static const unsigned short addrLen = 17;
 	static const unsigned short addrLenWithNull = 18;
 	static const unsigned short maxNameLen = 256;
-	inline static const string uknownName = "[unknown]";
+	static const string uknownName;
 };
 
 // needed so we can hash DeviceDescriptors

@@ -13,8 +13,8 @@ using namespace std;
 class RRPacket 
 {
 public:
-	inline static const string commString = "bp2p";
-	inline static const string commSeparator = "||";
+	static const string commString;
+	static const string commSeparator;
 
 	enum RequestType
 	{
