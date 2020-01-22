@@ -83,9 +83,9 @@ bool TorrentDB::createFilesTable()
 	bool res = false;
 	vector<string> columns;
 	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("file VARCHAR(255) NOT NULL");
-	columns.push_back("PRIMARY KEY (uid, file)");
-	columns.push_back("INDEX file_ind (uid, file)");
+	columns.push_back("name VARCHAR(255) NOT NULL");
+	columns.push_back("PRIMARY KEY (uid, name)");
+	columns.push_back("INDEX file_ind (uid, name)");
 	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
 	try{
 		res = createTable(TorrentDB::filesTable, columns, true);
@@ -241,13 +241,13 @@ vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles()
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<FileRow> files;
-	string query = "SELECT file FROM " + TorrentDB::filesTable + " WHERE uid=?;";
+	string query = "SELECT name FROM " + TorrentDB::filesTable + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
 		res = executeQuery(stmt);
 		while (res->next()){
-		    string name = res->getString("file");
+		    string name = res->getString("name");
 		    FileRow file{name};
 		    files.push_back(file);
 		}
