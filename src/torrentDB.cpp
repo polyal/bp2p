@@ -86,7 +86,7 @@ bool TorrentDB::createFilesTable()
 	columns.push_back("file VARCHAR(255) NOT NULL");
 	columns.push_back("PRIMARY KEY (uid, file)");
 	columns.push_back("INDEX file_ind (uid, file)");
-	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON ` CASCADE");
+	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
 	try{
 		res = createTable(TorrentDB::filesTable, columns, true);
 	}
@@ -218,10 +218,13 @@ TorrentDB::TorrentInfoRow TorrentDB::getTorrentInfo()
 	string query = "SELECT name, num_pieces, size FROM " + TorrentDB::torrentTable + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
-		res = executeQuery(stmt, query);
-		torInfo.name = res->getString("name");
-		torInfo.numPieces = res->getUInt("num_pieces");
-		torInfo.size = res->getUInt64("size");
+		stmt->setUInt(1, this->uid);
+		res = executeQuery(stmt);
+		if (res->next()){
+			torInfo.name = res->getString("name");
+			torInfo.numPieces = res->getUInt("num_pieces");
+			torInfo.size = res->getUInt64("size");
+		}
 	}
 	catch(...){
 		if (stmt) delete stmt;
@@ -238,12 +241,13 @@ vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles()
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<FileRow> files;
-	string query = "SELECT name FROM " + TorrentDB::filesTable + " WHERE uid=?;";
+	string query = "SELECT file FROM " + TorrentDB::filesTable + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
-		res = executeQuery(stmt, query);
+		stmt->setUInt(1, this->uid);
+		res = executeQuery(stmt);
 		while (res->next()){
-		    string name = res->getString("name");
+		    string name = res->getString("file");
 		    FileRow file{name};
 		    files.push_back(file);
 		}
@@ -266,7 +270,8 @@ vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks()
 	string query = "SELECT chunk_index, chunk_hash, chunk_exists FROM " + TorrentDB::chunksTable + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
-		res = executeQuery(stmt, query);
+		stmt->setUInt(1, this->uid);
+		res = executeQuery(stmt);
 		while (res->next()){
 		    unsigned int index = res->getUInt("chunk_index");
 		    unsigned int hash = res->getUInt("chunk_hash");

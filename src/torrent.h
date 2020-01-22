@@ -229,6 +229,7 @@ private:
 	void updateChunkStatusInDB();
 	vector<TorrentDB::ChunkRow> createChunkRows();
 	void updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows);
+	void getTorrentFromDB();
 };
 
 namespace std

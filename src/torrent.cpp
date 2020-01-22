@@ -86,7 +86,6 @@ bool Torrent::create(const string& name, const vector<string>& files)
 
 bool Torrent::create()
 {
-	this->db.init();  // here for testing purposes
 	bool res = false;
 	package();
 	generateChunks();
@@ -111,6 +110,8 @@ bool Torrent::open()
 		cout << "Error: Torrent UID Invalid" << endl;
 		return false;
 	}
+	this->db.init();  // here for testing purposes
+	getTorrentFromDB();
 	/*string torrentPath = getTorrentsPath() + this->name;
 	if (Utils::doesFileExist(torrentPath)){
 		readTorrentFromFile(torrentPath);
@@ -481,6 +482,11 @@ void Torrent::updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows)
 	this->db.updateChunks(chunkRows);
 }
 
+void Torrent::getTorrentFromDB()
+{
+	TorrentDB::TorrentJoined dbTor = db.getJoinedTorrent();
+}
+
 #if DEBUG == 1
 int main(int argc, char *argv[])
 {
@@ -491,9 +497,12 @@ int main(int argc, char *argv[])
 	string archive { argv[1] };
 	cout << argc << archive << endl;
 	if (argc == 2){
-		Torrent newTorrent(archive);
-		if (newTorrent.open())
-			newTorrent.unpackage();
+		size_t uid = strtol(archive.data(), nullptr, 10);
+		cout << "uid :" << uid << " archive: " << archive << endl;
+		Torrent newTorrent(uid);
+		if (newTorrent.open()){
+			cout << "Torrent Open" << endl;
+		}
 	}
 	else{
 		vector<string> files {argv+2, argv+argc};

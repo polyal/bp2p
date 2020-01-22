@@ -33,6 +33,7 @@ public:
 	void setSchema(const string& schema);
 	sql::Statement* createStatement();
 	sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
+	sql::ResultSet* executeQuery(sql::PreparedStatement* stmt);
 	sql::ResultSet* executeQuery(sql::PreparedStatement* stmt, const string& query);
 	bool execute(sql::Statement* stmt, const string& query);
 	bool execute(sql::PreparedStatement* stmt);

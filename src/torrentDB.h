@@ -25,7 +25,7 @@ public:
 	bool insertIntoFiles(const vector<string>& files);
 	bool insertIntoChunks(unsigned int index, size_t hash, bool exists);
 	bool updateChunks(const vector<ChunkRow>& chunks);
-	TorrentDB::TorrentJoined getJoinedTorrent();
+	TorrentJoined getJoinedTorrent();
 
 protected:
 	static const string dbip;
