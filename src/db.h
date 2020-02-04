@@ -27,6 +27,7 @@ public:
 	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
 	~DatabaseConnector();
 
+	static void initDriver();
 	void connect();
 	void connect(const string& ip, const string& port, const string& user, const string& pwd);
 	void setSchema();
@@ -56,6 +57,4 @@ protected:
 	string user;
 	string pwd;
 	string schema;
-
-	static void initDriver();
 };

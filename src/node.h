@@ -27,6 +27,8 @@ public:
 
 	static void printcli();
 
+	void initDBConnection();
+
 	void findLocalDevs();
 	void scanForDevs();
 

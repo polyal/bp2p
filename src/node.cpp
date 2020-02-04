@@ -864,6 +864,11 @@ void Node::getTorrentList(vector<Torrent>& torrentList)
 	}
 }
 
+void Node::initDBConnection()
+{
+	DatabaseConnector::initDriver();
+}
+
 int main()
 {
 	cout << "hello!" << endl;

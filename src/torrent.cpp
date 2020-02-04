@@ -86,7 +86,6 @@ bool Torrent::create(const string& name, const vector<string>& files)
 
 bool Torrent::create()
 {
-	this->db.init();  // here for testing purposes
 	bool res = false;
 	package();
 	generateChunks();
