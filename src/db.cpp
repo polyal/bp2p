@@ -7,6 +7,12 @@ const string DatabaseConnector::createSchemaStatment = "create schema ";
 const string DatabaseConnector::createTableStatment = "create table ";
 const string DatabaseConnector::ifNotExists = "if not exists ";
 
+string DatabaseConnector::ip = "";
+string DatabaseConnector::port = "";
+string DatabaseConnector::user = "";
+string DatabaseConnector::pwd = "";
+string DatabaseConnector::schema = "";
+
 DatabaseConnector::DatabaseConnector()
 {
 	this->con = nullptr;

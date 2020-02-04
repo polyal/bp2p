@@ -51,10 +51,11 @@ protected:
 	static const string createTableStatment;
 	static const string ifNotExists;
 
+	static string ip;
+	static string port;
+	static string user;
+	static string pwd;
+	static string schema;
+
 	sql::Connection* con;
-	string ip;
-	string port;
-	string user;
-	string pwd;
-	string schema;
 };
