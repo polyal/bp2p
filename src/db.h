@@ -44,17 +44,18 @@ public:
 	bool createTable(const string& table, const vector<string>& columns, bool checkExists);
 
 protected:
+	static sql::Driver* driver;
 	static const string tcp;
 	static const string createSchemaStatment;
 	static const string createTableStatment;
 	static const string ifNotExists;
 
+	sql::Connection* con;
 	string ip;
 	string port;
 	string user;
 	string pwd;
 	string schema;
 
-	sql::Driver* driver;
-	sql::Connection* con;
+	static void initDriver();
 };

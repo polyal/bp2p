@@ -1,5 +1,6 @@
 #include "db.h"
 
+sql::Driver* DatabaseConnector::driver = nullptr;
 
 const string DatabaseConnector::tcp = "tcp://";
 const string DatabaseConnector::createSchemaStatment = "create schema ";
@@ -8,13 +9,11 @@ const string DatabaseConnector::ifNotExists = "if not exists ";
 
 DatabaseConnector::DatabaseConnector()
 {
-	this->driver = nullptr;
 	this->con = nullptr;
 }
 
 DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd)
 {
-	this->driver = nullptr;
 	this->con = nullptr;
 	this->ip = ip;
 	this->port = port;
@@ -25,7 +24,6 @@ DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const
 DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, 
 	const string& schema)
 {
-	this->driver = nullptr;
 	this->con = nullptr;
 	this->ip = ip;
 	this->port = port;
@@ -39,12 +37,26 @@ DatabaseConnector::~DatabaseConnector()
 	if (this->con) delete this->con;
 }
 
+void DatabaseConnector::initDriver()
+{
+	try{
+		driver = get_driver_instance();
+	}
+	catch (sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+	  	throw;
+	}	
+}
+
 void DatabaseConnector::connect()
 {
 	try{
-		this->driver = get_driver_instance();
 		string url = this->tcp + this->ip + ":" + this->port;
-		this->con = this->driver->connect(url, this->user, this->pwd);
+		this->con = driver->connect(url, this->user, this->pwd);
 	}
 	catch (sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
