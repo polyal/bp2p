@@ -27,13 +27,7 @@ public:
 
 	static void printcli();
 
-	void initDBConnection();
-
-	void findLocalDevs();
-	void scanForDevs();
-
-	void createServers();
-	void createJobManager();
+	void init();
 
 	void activateWorkerThreads();
 	void pauseWorkerThreads();
@@ -77,6 +71,13 @@ private:
 	map<DeviceDescriptor, unique_ptr<WorkerThread>> servers;
 	unique_ptr<WorkerThread> jobManager = nullptr;
 	list<shared_ptr<RRPacket>> jobs;
+
+	// initializations
+	void initDBConnection();
+	void findLocalDevs();
+	void scanForDevs();
+	void createServers();
+	void createJobManager();
 
 	// request/response
 	void carryOutRequest(RRPacket& req);

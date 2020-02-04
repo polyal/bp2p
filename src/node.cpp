@@ -869,19 +869,24 @@ void Node::initDBConnection()
 	DatabaseConnector::initDriver();
 }
 
-int main()
+void Node::init()
 {
 	cout << "hello!" << endl;
+	cout << "initializing database connection..." << endl;
+	initDBConnection();
 	cout << "scanning for devices..." << endl;
-	Node myNode;
-	myNode.findLocalDevs();
-	myNode.scanForDevs();
-	cout << "done. " << endl << endl;
+	findLocalDevs();
+	scanForDevs();
+	populateLocalTorrents();
+	cout << "creating server(s)..." << endl;
+	createServers();	
+	createJobManager();
+}
 
-	myNode.populateLocalTorrents();
-	// create server
-	myNode.createServers();	
-	myNode.createJobManager();
+int main()
+{
+	Node myNode;
+	myNode.init();
 
 	string in;
 	vector<string> args;
