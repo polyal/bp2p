@@ -62,11 +62,13 @@ void DatabaseConnector::initDriver()
 	}	
 }
 
-void DatabaseConnector::connect()
+bool DatabaseConnector::connect()
 {
+	bool res = false;
 	try{
 		string url = DatabaseConnector::tcp + DatabaseConnector::ip + ":" + DatabaseConnector::port;
 		DatabaseConnector::con = driver->connect(url, DatabaseConnector::user, DatabaseConnector::pwd);
+		res = true;
 	}
 	catch (sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -75,7 +77,8 @@ void DatabaseConnector::connect()
 	  	cout << " (MySQL error code: " << e.getErrorCode();
 	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 	  	throw;
-	}	
+	}
+	return res;
 }
 
 void DatabaseConnector::reconnectIfNeeded()

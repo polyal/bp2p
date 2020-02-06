@@ -1,16 +1,13 @@
-/* Standard C++ includes */
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
 #include <tuple>
-
 /*
   Include directly the different
   headers from cppconn/ and mysql_driver.h + mysql_util.h
   (and mysql_connection.h). This will reduce your build time!
 */
 #include "mysql_connection.h"
-
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/resultset.h>
@@ -62,7 +59,7 @@ protected:
 
 	static vector<Table> tables;
 
-	static void connect();
+	static bool connect();
 	static void reconnectIfNeeded();
 	static void disconnect();
 	static bool createSchema(bool checkExists);
@@ -79,5 +76,4 @@ private:
 	static string schema;
 
 	static void initDriver();
-
 };
