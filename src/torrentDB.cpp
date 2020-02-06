@@ -2,43 +2,25 @@
 
 #define DEBUG 0
 
-const string TorrentDB::schemaName = "bp2p";
-const string TorrentDB::dbip = "127.0.0.1";
-const string TorrentDB::dbport = "3306";
-const string TorrentDB::dbuser = "bpuser";
-const string TorrentDB::dbpwd = "bppwd";
+const string TorrentDB::schema = "bp2p";
+const string TorrentDB::ip = "127.0.0.1";
+const string TorrentDB::port = "3306";
+const string TorrentDB::user = "bpuser";
+const string TorrentDB::pwd = "bppwd";
 
-const string TorrentDB::torrentTable = "torrents";
-const string TorrentDB::filesTable = "files";
-const string TorrentDB::chunksTable = "chunks";
+const string TorrentDB::torrentTableName = "torrents";
+const string TorrentDB::filesTableName = "files";
+const string TorrentDB::chunksTableName = "chunks";
 
 TorrentDB::TorrentDB()
-{
-	this->ip = dbip;
-	this->port = dbport;
-	this->user = dbuser;
-	this->pwd = dbpwd;
-	this->schema = schemaName;
-}
-
-TorrentDB::TorrentDB(const string& ip, const string& port, const string& user, const string& pwd)
-	: DatabaseConnector(ip, port, user, pwd)
-{
-	this->schema = schemaName;	
-}
-
-TorrentDB::TorrentDB(const string& ip, const string& port, const string& user, const string& pwd, const string& schema)
-	: DatabaseConnector(ip, port, user, pwd, schema)
 {
 }
 
 bool TorrentDB::init()
 {
+	vector<DatabaseConnector::Table> tables = createTableDefs();
 	try{
-		connect();
-		createSchema(TorrentDB::schemaName, true);
-		setSchema();
-		createTables();	
+		DatabaseConnector::init(TorrentDB::ip, TorrentDB::port, TorrentDB::user, TorrentDB::pwd, TorrentDB::schema, tables);
 	}
 	catch(...){
 		throw;
@@ -46,81 +28,87 @@ bool TorrentDB::init()
 	return false;
 }
 
-bool TorrentDB::createTables()
+vector<DatabaseConnector::Table> TorrentDB::createTableDefs()
 {
-	bool res = false;
-	try{
-		createTorrentTable();
-		createFilesTable();
-		createChunksTable();	
-	}
-	catch(...){
-		throw;
-	}
-	return res;  
+	vector<DatabaseConnector::Table> tables;	
+	DatabaseConnector::Table torrentTable = createTorrentTableDef();
+	DatabaseConnector::Table filesTable = createFilesTableDef();
+	DatabaseConnector::Table chunksTable = createChunksTableDef();
+	tables.push_back(torrentTable);
+	tables.push_back(filesTable);
+	tables.push_back(chunksTable);
+	return tables;
 }
 
-bool TorrentDB::createTorrentTable()
+DatabaseConnector::Table TorrentDB::createTorrentTableDef()
 {
-	bool res = false;
-	vector<string> columns;
-	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("name VARCHAR(255) NOT NULL");
-	columns.push_back("num_pieces INT UNSIGNED NOT NULL");
-	columns.push_back("size BIGINT UNSIGNED NOT NULL");
-	columns.push_back("PRIMARY KEY (uid)");
-	try{
-		res = createTable(TorrentDB::torrentTable, columns, true);
-	}
-	catch(...){
-		throw;
-	}
-	return res;
+	DatabaseConnector::Table table;
+	vector<DatabaseConnector::Column> columns;
+	DatabaseConnector::Column column;
+	column.def = "uid INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "name VARCHAR(255) NOT NULL";
+	columns.push_back(column);
+	column.def = "num_pieces INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "size BIGINT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "PRIMARY KEY (uid)";
+	columns.push_back(column);
+	table.name = TorrentDB::torrentTableName;
+	table.columns = columns;
+	return table;
 }
 
-bool TorrentDB::createFilesTable()
+DatabaseConnector::Table TorrentDB::createFilesTableDef()
 {
-	bool res = false;
-	vector<string> columns;
-	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("name VARCHAR(255) NOT NULL");
-	columns.push_back("PRIMARY KEY (uid, name)");
-	columns.push_back("INDEX file_ind (uid, name)");
-	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
-	try{
-		res = createTable(TorrentDB::filesTable, columns, true);
-	}
-	catch(...){
-		throw;
-	}
-	return res;
+	DatabaseConnector::Table table;
+	vector<DatabaseConnector::Column> columns;
+	DatabaseConnector::Column column;
+	column.def = "uid INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "name VARCHAR(255) NOT NULL";
+	columns.push_back(column);
+	column.def = "PRIMARY KEY (uid, name)";
+	columns.push_back(column);
+	column.def = "INDEX file_ind (uid, name)";
+	columns.push_back(column);
+	column.def = "FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE";
+	columns.push_back(column);
+	table.name = TorrentDB::filesTableName;
+	table.columns = columns;
+	return table;
 }
 
-bool TorrentDB::createChunksTable()
+DatabaseConnector::Table TorrentDB::createChunksTableDef()
 {
-	bool res = false;
-	vector<string> columns;
-	columns.push_back("uid INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_index INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_hash INT UNSIGNED NOT NULL");
-	columns.push_back("chunk_exists TINYINT UNSIGNED NOT NULL");
-	columns.push_back("PRIMARY KEY (uid, chunk_index)");
-	columns.push_back("INDEX chunk_ind (uid, chunk_index)");
-	columns.push_back("FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE");
-	try{
-		res = createTable(TorrentDB::chunksTable, columns, true);
-	}
-	catch(...){
-		throw;
-	}
-	return res;
+	DatabaseConnector::Table table;
+	vector<DatabaseConnector::Column> columns;
+	DatabaseConnector::Column column;
+	column.def = "uid INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "chunk_index INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "chunk_hash INT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "chunk_exists TINYINT UNSIGNED NOT NULL";
+	columns.push_back(column);
+	column.def = "PRIMARY KEY (uid, chunk_index)";
+	columns.push_back(column);
+	column.def = "INDEX chunk_ind (uid, chunk_index)";
+	columns.push_back(column);
+	column.def = "FOREIGN KEY (uid) REFERENCES torrents (uid) ON UPDATE CASCADE ON DELETE CASCADE";
+	columns.push_back(column);
+	table.name = TorrentDB::chunksTableName;
+	table.columns = columns;
+	return table;
 }
 
 bool TorrentDB::insertIntoTorrents(const string& name, unsigned int numPieces, unsigned long long size)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
-	string query = "INSERT INTO " + TorrentDB::torrentTable + " VALUES (?, ?, ?, ?);";
+	string query = "INSERT INTO " + TorrentDB::torrentTableName + " VALUES (?, ?, ?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
@@ -141,7 +129,7 @@ bool TorrentDB::insertIntoFiles(const vector<string>& files)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
-	string query = "INSERT INTO " + TorrentDB::filesTable + " VALUES (?, ?);";
+	string query = "INSERT INTO " + TorrentDB::filesTableName + " VALUES (?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
 		for (const auto& file : files){
@@ -162,7 +150,7 @@ bool TorrentDB::insertIntoChunks(unsigned int index, size_t hash, bool exists)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
-	string query = "INSERT INTO " + TorrentDB::chunksTable + " VALUES (?, ?, ?, ?);";
+	string query = "INSERT INTO " + TorrentDB::chunksTableName + " VALUES (?, ?, ?, ?);";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
@@ -183,7 +171,7 @@ bool TorrentDB::updateChunks(const vector<ChunkRow>& chunks)
 {
 	bool res = false;
 	sql::PreparedStatement* stmt = nullptr;
-	string query = "UPDATE " + TorrentDB::chunksTable + " SET chunk_exists=? WHERE uid=? AND chunk_index=?;";
+	string query = "UPDATE " + TorrentDB::chunksTableName + " SET chunk_exists=? WHERE uid=? AND chunk_index=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
 		for (const auto& chunk : chunks){
@@ -215,7 +203,7 @@ TorrentDB::TorrentInfoRow TorrentDB::getTorrentInfo()
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	TorrentInfoRow torInfo;
-	string query = "SELECT name, num_pieces, size FROM " + TorrentDB::torrentTable + " WHERE uid=?;";
+	string query = "SELECT name, num_pieces, size FROM " + TorrentDB::torrentTableName + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
@@ -241,7 +229,7 @@ vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles()
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<FileRow> files;
-	string query = "SELECT name FROM " + TorrentDB::filesTable + " WHERE uid=?;";
+	string query = "SELECT name FROM " + TorrentDB::filesTableName + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
@@ -267,7 +255,7 @@ vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks()
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<ChunkRow> chunks;
-	string query = "SELECT chunk_index, chunk_hash, chunk_exists FROM " + TorrentDB::chunksTable + " WHERE uid=?;";
+	string query = "SELECT chunk_index, chunk_hash, chunk_exists FROM " + TorrentDB::chunksTableName + " WHERE uid=?;";
 	try{
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);

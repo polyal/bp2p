@@ -17,46 +17,50 @@ protected:
 
 public:
 	TorrentDB();
-	TorrentDB(const string& ip, const string& port, const string& user, const string& pwd);
-	TorrentDB(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
 
-	bool init();
+	static bool init();
 	bool insertIntoTorrents(const string& name, unsigned int numPieces, unsigned long long size);
 	bool insertIntoFiles(const vector<string>& files);
 	bool insertIntoChunks(unsigned int index, size_t hash, bool exists);
 	bool updateChunks(const vector<ChunkRow>& chunks);
 	TorrentJoined getJoinedTorrent();
 
+	static vector<TorrentJoined> getAllJoinedTorrents();
+
 protected:
-	static const string dbip;
-	static const string dbport;
-	static const string dbuser;
-	static const string dbpwd;
-	static const string schemaName;
+	static const string torrentTableName;
+	static const string filesTableName;
+	static const string chunksTableName;
 
-	static const string torrentTable;
-	static const string filesTable;
-	static const string chunksTable;
+	static const string ip;
+	static const string port;
+	static const string user;
+	static const string pwd;
+	static const string schema;
 
-	bool createTables();
-	bool createTorrentTable();
-	bool createFilesTable();
-	bool createChunksTable();
+	static vector<DatabaseConnector::Table> createTableDefs();
+	static DatabaseConnector::Table createTorrentTableDef();
+	static DatabaseConnector::Table createFilesTableDef();
+	static DatabaseConnector::Table createChunksTableDef();
+
 	TorrentInfoRow getTorrentInfo();
 	vector<FileRow> getTorrentFiles();
 	vector<ChunkRow> getTorrentChunks();
+
+	static vector<TorrentInfoRow> getAllTorrentInfoRows();
 
 	size_t uid = 0;
 
 	struct TorrentInfoRow
 	{
+		size_t uid;
 		string name;
 		unsigned int numPieces;
 		unsigned long long size;
 		TorrentInfoRow()
-		: numPieces{0}, size{0} {}
+		: uid{0}, numPieces{0}, size{0} {}
 		TorrentInfoRow(string name, unsigned int numPieces, unsigned long long size)
-		: name{name}, numPieces{numPieces}, size{size} {}
+		: uid{0}, name{name}, numPieces{numPieces}, size{size} {}
 	};
 
 	struct FileRow
