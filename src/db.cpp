@@ -9,34 +9,27 @@ const string DatabaseConnector::createSchemaStatment = "create schema ";
 const string DatabaseConnector::createTableStatment = "create table ";
 const string DatabaseConnector::ifNotExists = "if not exists ";
 
-string DatabaseConnector::ip = "";
-string DatabaseConnector::port = "";
-string DatabaseConnector::user = "";
-string DatabaseConnector::pwd = "";
-string DatabaseConnector::schema = "";
+DatabaseConnector::Address DatabaseConnector::addr;
+DatabaseConnector::Credentials DatabaseConnector::cred;
+string DatabaseConnector::schema;
 
 DatabaseConnector::DatabaseConnector()
 {
 }
 
-DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd,
-	const string& schema)
+DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema)
 {
 	this->con = nullptr;
-	this->ip = ip;
-	this->port = port;
-	this->user = user;
-	this->pwd = pwd;
+	this->addr = addr;
+	this->cred = cred;
 	this->schema = schema;
 }
 
-void DatabaseConnector::init(const string& ip, const string& port, const string& user, const string& pwd,
-	const string& schema, const vector<DatabaseConnector::Table> tables)
+void DatabaseConnector::init(const Address& addr, const Credentials& cred, const string& schema,
+	const vector<DatabaseConnector::Table>& tables)
 {
-	DatabaseConnector::ip = ip;
-	DatabaseConnector::port = port;
-	DatabaseConnector::user = user;
-	DatabaseConnector::pwd = pwd;
+	DatabaseConnector::addr = addr;
+	DatabaseConnector::cred = cred;
 	DatabaseConnector::schema = schema;
 	DatabaseConnector::tables = tables;
 	initDriver();
@@ -66,8 +59,8 @@ bool DatabaseConnector::connect()
 {
 	bool res = false;
 	try{
-		string url = DatabaseConnector::tcp + DatabaseConnector::ip + ":" + DatabaseConnector::port;
-		DatabaseConnector::con = driver->connect(url, DatabaseConnector::user, DatabaseConnector::pwd);
+		string url = DatabaseConnector::tcp + DatabaseConnector::addr.ip + ":" + DatabaseConnector::addr.port;
+		DatabaseConnector::con = driver->connect(url, DatabaseConnector::cred.user, DatabaseConnector::cred.pwd);
 		res = true;
 	}
 	catch (sql::SQLException& e){

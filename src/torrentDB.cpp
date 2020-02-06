@@ -8,6 +8,9 @@ const string TorrentDB::port = "3306";
 const string TorrentDB::user = "bpuser";
 const string TorrentDB::pwd = "bppwd";
 
+DatabaseConnector::Address TorrentDB::addr{ip, port};
+DatabaseConnector::Credentials TorrentDB::cred{user, pwd};
+
 const string TorrentDB::torrentTableName = "torrents";
 const string TorrentDB::filesTableName = "files";
 const string TorrentDB::chunksTableName = "chunks";
@@ -20,7 +23,7 @@ bool TorrentDB::init()
 {
 	vector<DatabaseConnector::Table> tables = createTableDefs();
 	try{
-		DatabaseConnector::init(TorrentDB::ip, TorrentDB::port, TorrentDB::user, TorrentDB::pwd, TorrentDB::schema, tables);
+		DatabaseConnector::init(TorrentDB::addr, TorrentDB::cred, TorrentDB::schema, tables);
 	}
 	catch(...){
 		throw;

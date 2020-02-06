@@ -38,6 +38,9 @@ protected:
 	static const string pwd;
 	static const string schema;
 
+	static DatabaseConnector::Address addr;
+	static DatabaseConnector::Credentials cred;
+
 	static vector<DatabaseConnector::Table> createTableDefs();
 	static DatabaseConnector::Table createTorrentTableDef();
 	static DatabaseConnector::Table createFilesTableDef();

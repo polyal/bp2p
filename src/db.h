@@ -19,15 +19,17 @@ using namespace std;
 class DatabaseConnector
 {
 protected:
+	struct Address;
+	struct Credentials;
 	struct Column;
 	struct Table;
 
 public:
 	DatabaseConnector();
-	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
+	DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema);
 
-	static void init(const string& ip, const string& port, const string& user, const string& pwd, 
-		const string& schema, const vector<DatabaseConnector::Table> tables);
+	static void init(const Address& addr, const Credentials& cred, const string& schema, 
+		const vector<DatabaseConnector::Table>& tables);
 	static sql::ResultSet* createStatementAndExecuteQuery(const string& query);
 	static bool createStatementAndExecute(const string& query);
 	static sql::Statement* createStatement();
@@ -38,6 +40,30 @@ public:
 	static bool execute(sql::PreparedStatement* stmt);
 
 protected:
+	struct Address
+	{
+		Address()
+		{
+		}
+
+		Address(string ip, string port)
+		: ip{ip}, port{port} {}
+		string ip;
+		string port;
+	};
+
+	struct Credentials
+	{
+		Credentials()
+		{
+		}
+		
+		Credentials(string user, string pwd)
+		: user{user}, pwd{pwd} {}
+		string user;
+		string pwd;
+	};
+
 	struct Column
 	{
 		string def;
@@ -69,10 +95,8 @@ protected:
 	static bool createTable(const DatabaseConnector::Table& table, bool checkExists);
 
 private:
-	static string ip;
-	static string port;
-	static string user;
-	static string pwd;
+	static Address addr;
+	static Credentials cred;
 	static string schema;
 
 	static void initDriver();
