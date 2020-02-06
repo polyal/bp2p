@@ -1,6 +1,8 @@
 #include "db.h"
 
 sql::Driver* DatabaseConnector::driver = nullptr;
+sql::Connection* DatabaseConnector::con = nullptr;
+vector<DatabaseConnector::Table> DatabaseConnector::tables;
 
 const string DatabaseConnector::tcp = "tcp://";
 const string DatabaseConnector::createSchemaStatment = "create schema ";
@@ -15,19 +17,9 @@ string DatabaseConnector::schema = "";
 
 DatabaseConnector::DatabaseConnector()
 {
-	this->con = nullptr;
 }
 
-DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd)
-{
-	this->con = nullptr;
-	this->ip = ip;
-	this->port = port;
-	this->user = user;
-	this->pwd = pwd;
-}
-
-DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, 
+DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd,
 	const string& schema)
 {
 	this->con = nullptr;
@@ -38,9 +30,21 @@ DatabaseConnector::DatabaseConnector(const string& ip, const string& port, const
 	this->schema = schema;
 }
 
-DatabaseConnector::~DatabaseConnector()
+void DatabaseConnector::init(const string& ip, const string& port, const string& user, const string& pwd,
+	const string& schema, const vector<DatabaseConnector::Table> tables)
 {
-	if (this->con) delete this->con;
+	DatabaseConnector::ip = ip;
+	DatabaseConnector::port = port;
+	DatabaseConnector::user = user;
+	DatabaseConnector::pwd = pwd;
+	DatabaseConnector::schema = schema;
+	DatabaseConnector::tables = tables;
+	initDriver();
+	connect();
+	createSchema(true);
+	setSchema();
+	createTables();
+	disconnect();
 }
 
 void DatabaseConnector::initDriver()
@@ -61,8 +65,8 @@ void DatabaseConnector::initDriver()
 void DatabaseConnector::connect()
 {
 	try{
-		string url = this->tcp + this->ip + ":" + this->port;
-		this->con = driver->connect(url, this->user, this->pwd);
+		string url = DatabaseConnector::tcp + DatabaseConnector::ip + ":" + DatabaseConnector::port;
+		DatabaseConnector::con = driver->connect(url, DatabaseConnector::user, DatabaseConnector::pwd);
 	}
 	catch (sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -74,25 +78,12 @@ void DatabaseConnector::connect()
 	}	
 }
 
-void DatabaseConnector::connect(const string& ip, const string& port, const string& user, const string& pwd)
-{
-	this->ip = ip;
-	this->port = port;
-	this->user = user;
-	this->pwd = pwd;
-	this->schema = schema;
-	try{
-		connect();
-	}
-	catch(...){
-		throw;
-	}
-}
-
-void DatabaseConnector::setSchema()
+void DatabaseConnector::reconnectIfNeeded()
 {
 	try{
-		this->con->setSchema(this->schema);
+		if (DatabaseConnector::con)
+			if (!DatabaseConnector::con->isValid())
+				DatabaseConnector::con->reconnect();
 	}
 	catch(sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -104,13 +95,24 @@ void DatabaseConnector::setSchema()
 	}
 }
 
-void DatabaseConnector::setSchema(const string& schema)
+void DatabaseConnector::disconnect()
 {
-	this->schema = schema;
+	if (DatabaseConnector::con)
+		delete DatabaseConnector::con;
+	DatabaseConnector::con = nullptr;
+}
+
+void DatabaseConnector::setSchema()
+{
 	try{
-		setSchema();
+		DatabaseConnector::con->setSchema(DatabaseConnector::schema);
 	}
-	catch(...){
+	catch(sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 		throw;
 	}
 }
@@ -119,7 +121,7 @@ sql::Statement* DatabaseConnector::createStatement()
 {
 	sql::Statement* stmt = nullptr;
 	try{
-		stmt = this->con->createStatement();
+		stmt = DatabaseConnector::con->createStatement();
 	}
 	catch(sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -253,7 +255,7 @@ bool DatabaseConnector::createSchema(bool checkExists)
 	string query = DatabaseConnector::createSchemaStatment;
 	if (checkExists)
 		query += DatabaseConnector::ifNotExists;
-	query += this->schema;
+	query += DatabaseConnector::schema;
 	try{
 		res = createStatementAndExecute(query);
 	}
@@ -279,16 +281,29 @@ bool DatabaseConnector::createSchema(const string& schema, bool checkExists)
 	return res;
 }
 
-bool DatabaseConnector::createTable(const string& table, const vector<string>& columns, bool checkExists)
+bool DatabaseConnector::createTables()
+{
+	bool res = true;
+	try{
+		for (const auto& table : DatabaseConnector::tables)
+			res = (createTable(table, true) && res);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+bool DatabaseConnector::createTable(const DatabaseConnector::Table& table, bool checkExists)
 {
 	bool res = false;
 	string query = DatabaseConnector::createTableStatment;
 	if (checkExists)
 		query += DatabaseConnector::ifNotExists;
-	query += table;
+	query += table.name;
 	query += " (";
-	for (auto column : columns){
-		query += column + ",";
+	for (const auto& column : table.columns){
+		query += column.def + ",";
 	}
 	query.pop_back(); // remove last comma
 	query += " );";

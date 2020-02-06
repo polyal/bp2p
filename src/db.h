@@ -21,41 +21,63 @@ using namespace std;
 
 class DatabaseConnector
 {
+protected:
+	struct Column;
+	struct Table;
+
 public:
 	DatabaseConnector();
-	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd);
 	DatabaseConnector(const string& ip, const string& port, const string& user, const string& pwd, const string& schema);
-	~DatabaseConnector();
 
-	static void initDriver();
-	void connect();
-	void connect(const string& ip, const string& port, const string& user, const string& pwd);
-	void setSchema();
-	void setSchema(const string& schema);
-	sql::Statement* createStatement();
-	sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
-	sql::ResultSet* executeQuery(sql::PreparedStatement* stmt);
-	sql::ResultSet* executeQuery(sql::PreparedStatement* stmt, const string& query);
-	bool execute(sql::Statement* stmt, const string& query);
-	bool execute(sql::PreparedStatement* stmt);
-	sql::ResultSet* createStatementAndExecuteQuery(const string& query);
-	bool createStatementAndExecute(const string& query);
-	bool createSchema(bool checkExists);
-	bool createSchema(const string& schema, bool checkExists);
-	bool createTable(const string& table, const vector<string>& columns, bool checkExists);
+	static void init(const string& ip, const string& port, const string& user, const string& pwd, 
+		const string& schema, const vector<DatabaseConnector::Table> tables);
+	static sql::ResultSet* createStatementAndExecuteQuery(const string& query);
+	static bool createStatementAndExecute(const string& query);
+	static sql::Statement* createStatement();
+	static sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
+	static sql::ResultSet* executeQuery(sql::PreparedStatement* stmt);
+	static sql::ResultSet* executeQuery(sql::PreparedStatement* stmt, const string& query);
+	static bool execute(sql::Statement* stmt, const string& query);
+	static bool execute(sql::PreparedStatement* stmt);
 
 protected:
+	struct Column
+	{
+		string def;
+	};
+
+	struct Table
+	{
+		string name;
+		vector<Column> columns;
+	};
+
 	static sql::Driver* driver;
+	static sql::Connection* con;
+
 	static const string tcp;
 	static const string createSchemaStatment;
 	static const string createTableStatment;
 	static const string ifNotExists;
 
+	static vector<Table> tables;
+
+	static void connect();
+	static void reconnectIfNeeded();
+	static void disconnect();
+	static bool createSchema(bool checkExists);
+	static bool createSchema(const string& schema, bool checkExists);
+	static void setSchema();
+	static bool createTables();
+	static bool createTable(const DatabaseConnector::Table& table, bool checkExists);
+
+private:
 	static string ip;
 	static string port;
 	static string user;
 	static string pwd;
 	static string schema;
 
-	sql::Connection* con;
+	static void initDriver();
+
 };
