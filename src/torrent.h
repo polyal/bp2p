@@ -139,6 +139,7 @@ public:
 	vector<int> getChunkAvail() const;
 	int getMissingChunkIndex() const;
 
+	static vector<Torrent> getAllTorrents();
 	static string getTorrentsPath();
 	static string getTorrentDataPath();
 	static vector<string> getTorrentNames();

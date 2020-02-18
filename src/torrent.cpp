@@ -69,7 +69,6 @@ Torrent::Torrent(const Torrent& torrent)
 Torrent::Torrent(size_t uid)
 {
 	this->uid = uid;
-	setDBuid();
 }
 
 Torrent::~Torrent()
@@ -437,6 +436,11 @@ vector<string> Torrent::getTorrentNames()
 	if (ret > 0)
 		cout << "getTorrentNames error: " << ret << endl;
     return torrentNames;
+}
+
+vector<Torrent> Torrent::getAllTorrents()
+{
+	
 }
 
 void Torrent::setDBuid()
