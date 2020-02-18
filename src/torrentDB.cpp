@@ -15,8 +15,9 @@ const string TorrentDB::torrentTableName = "torrents";
 const string TorrentDB::filesTableName = "files";
 const string TorrentDB::chunksTableName = "chunks";
 
-TorrentDB::TorrentDB()
+TorrentDB::TorrentDB() : DatabaseConnector(addr, cred, schema)
 {
+	this->setSchema();
 }
 
 bool TorrentDB::init()

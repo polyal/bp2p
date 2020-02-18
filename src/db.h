@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <mutex>
 /*
   Include directly the different
   headers from cppconn/ and mysql_driver.h + mysql_util.h
@@ -27,6 +28,7 @@ protected:
 public:
 	DatabaseConnector();
 	DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema);
+	~DatabaseConnector();
 
 	static void init(const Address& addr, const Credentials& cred, const string& schema, 
 		const vector<DatabaseConnector::Table>& tables);
@@ -83,9 +85,7 @@ protected:
 	static const string createTableStatment;
 	static const string ifNotExists;
 
-	static vector<Table> tables;
-
-	static bool connect();
+	static void connect();
 	static void reconnectIfNeeded();
 	static void disconnect();
 	static bool createSchema(bool checkExists);
@@ -98,6 +98,12 @@ private:
 	static Address addr;
 	static Credentials cred;
 	static string schema;
+	static vector<Table> tables;
+
+	static recursive_mutex mutex;
+	static unique_lock<recursive_mutex> lock;
+	static unsigned int connectionCounter;
+
 
 	static void initDriver();
 };

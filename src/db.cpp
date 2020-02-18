@@ -13,16 +13,39 @@ DatabaseConnector::Address DatabaseConnector::addr;
 DatabaseConnector::Credentials DatabaseConnector::cred;
 string DatabaseConnector::schema;
 
+recursive_mutex DatabaseConnector::mutex;
+unique_lock<recursive_mutex> DatabaseConnector::lock{mutex, defer_lock};
+unsigned int DatabaseConnector::connectionCounter = 0;
+
 DatabaseConnector::DatabaseConnector()
 {
+	lock.lock();
+	if (connectionCounter == 0)
+		connect();
+	connectionCounter++;
+	lock.unlock();
 }
 
 DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema)
 {
-	this->con = nullptr;
 	this->addr = addr;
 	this->cred = cred;
 	this->schema = schema;
+
+	lock.lock();
+	if (connectionCounter == 0)
+		connect();
+	connectionCounter++;
+	lock.unlock();
+}
+
+DatabaseConnector::~DatabaseConnector()
+{
+	lock.lock();
+	connectionCounter--;
+	if (connectionCounter == 0)
+		disconnect();
+	lock.unlock();
 }
 
 void DatabaseConnector::init(const Address& addr, const Credentials& cred, const string& schema,
@@ -55,13 +78,11 @@ void DatabaseConnector::initDriver()
 	}	
 }
 
-bool DatabaseConnector::connect()
+void DatabaseConnector::connect()
 {
-	bool res = false;
 	try{
 		string url = DatabaseConnector::tcp + DatabaseConnector::addr.ip + ":" + DatabaseConnector::addr.port;
 		DatabaseConnector::con = driver->connect(url, DatabaseConnector::cred.user, DatabaseConnector::cred.pwd);
-		res = true;
 	}
 	catch (sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -71,7 +92,6 @@ bool DatabaseConnector::connect()
 	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 	  	throw;
 	}
-	return res;
 }
 
 void DatabaseConnector::reconnectIfNeeded()
