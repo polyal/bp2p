@@ -40,8 +40,8 @@ void BTDevice::connect2Device(const DeviceDescriptor& dev)
 void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 {
 	try{
-		channel.writeToServer(req);
-		channel.readFromServer(resp);
+		channel.write(req);
+		channel.read(resp);
 	}
 	catch(...){
 		throw;
@@ -74,7 +74,7 @@ void BTDevice::listen4Req(DeviceDescriptor& client)
 void BTDevice::fetchRequestData(Message& req)
 {
 	try{
-		channel.readFromClient(req);
+		channel.read(req);
 	}
 	catch(...){
 		throw;
@@ -84,27 +84,7 @@ void BTDevice::fetchRequestData(Message& req)
 void BTDevice::sendResponse(const Message& resp)
 {
 	try{
-		channel.writeToClient(resp);
-	}
-	catch(...){
-		throw;
-	}
-}
-
-void BTDevice::endClientComm()
-{
-	try{
-		channel.closeRemote();
-	}
-	catch(...){
-		throw;
-	}
-}
-
-void BTDevice::endServerComm()
-{
-	try{
-		channel.close();
+		channel.write(resp);
 	}
 	catch(...){
 		throw;
@@ -114,16 +94,10 @@ void BTDevice::endServerComm()
 void BTDevice::endComm()
 {
 	try{
-		endClientComm();
+		channel.close();
     }
     catch(int e){
-    	cout << "Close client sock Error: " << e << endl;
-    }
-    try{
-    	endServerComm();
-    }
-    catch(int e){
-    	cout << "Close server sock Error: " << e << endl;
+    	cout << "Close channel Error: " << e << endl;
     }
 }
 

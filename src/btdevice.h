@@ -18,8 +18,6 @@ public:
 	void fetchRequestData(Message& req);
 	void sendResponse(const Message& resp);
 	void endComm();
-	void endClientComm();
-	void endServerComm();
 
 	int findNearbyDevs(vector<DeviceDescriptor>& devs);
 	static int findLocalDevs(vector<DeviceDescriptor>& devs);
