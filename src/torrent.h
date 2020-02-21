@@ -225,13 +225,15 @@ private:
 	//  torrentPath:  full path to the torrent file to be read in
 	void readTorrentFromFile(const string& torrentPath);
 
+	string getPackagePath();
+
 	void setDBuid();
 	bool insertTorrentToDB();
 	void updateChunkStatusInDB();
 	vector<TorrentDB::ChunkRow> createChunkRows();
 	void updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows);
 	void getTorrentFromDB();
-	static void createTorrentFromRow(Torrent tor, TorrentDB::TorrentJoined row);
+	static void createTorrentFromRow(Torrent& tor, const TorrentDB::TorrentJoined& row);
 };
 
 namespace std

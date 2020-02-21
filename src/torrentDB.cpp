@@ -213,6 +213,7 @@ TorrentDB::TorrentInfoRow TorrentDB::getTorrentInfo()
 		stmt->setUInt(1, this->uid);
 		res = executeQuery(stmt);
 		if (res->next()){
+			torInfo.uid = this->uid;
 			torInfo.name = res->getString("name");
 			torInfo.numPieces = res->getUInt("num_pieces");
 			torInfo.size = res->getUInt64("size");

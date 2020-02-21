@@ -89,7 +89,6 @@ bool Torrent::create()
 	package();
 	generateChunks();
 	serialize();
-	//dumpToTorrentFile();
 	if (isValid()){
 		res = insertTorrentToDB();
 	}
@@ -99,7 +98,6 @@ bool Torrent::create()
 bool Torrent::open(size_t uid)
 {
 	this->uid = uid;
-	setDBuid();
 	return open();
 }
 
@@ -109,13 +107,10 @@ bool Torrent::open()
 		cout << "Error: Torrent UID Invalid" << endl;
 		return false;
 	}
-	this->db.init();  // here for testing purposes
+	setDBuid();
 	getTorrentFromDB();
-	/*string torrentPath = getTorrentsPath() + this->name;
-	if (Utils::doesFileExist(torrentPath)){
-		readTorrentFromFile(torrentPath);
-		deserialize(false);
-	}*/
+	this->packagePath = getPackagePath();
+	serialize();
 	return isValid();
 }
 
@@ -140,7 +135,7 @@ int Torrent::package()
     if (this->name.empty() || this->files.empty())
     	return -1;
     // prepare package location
-	packagePath = getTorrentDataPath() + this->name;
+	packagePath = getPackagePath();
 	Package package{packagePath, this->files};
 	ret = package.package();
 	if (ret != 0){
@@ -154,7 +149,7 @@ int Torrent::package()
 
 int Torrent::unpackage()
 {
-	string packagePath = getTorrentDataPath() + this->name;
+	string packagePath = getPackagePath();
 	Package package{packagePath, this->files};
 	int ret = package.unpackage();
 	if (ret != 0){
@@ -217,7 +212,7 @@ void Torrent::deserialize(const bool create)
 		this->numPieces = this->jobj["numPieces"];
 		this->uid = this->jobj["uid"];
 		this->size = this->jobj["size"];
-		this->packagePath = Torrent::getTorrentDataPath() + this->name;
+		this->packagePath = getPackagePath();
 		for (unsigned int i = 0; i < this->numPieces; i++){
 			unsigned int index = i;
 			auto hashpair = this->jobj[to_string(i)];
@@ -283,7 +278,7 @@ bool Torrent::putChunk(const vector<char>& chunk, const unsigned int index)
 {
 	bool status = false;
 	if (validateChunk(chunk, index)){
-		string fullpath = getTorrentDataPath() + this->name;
+		string fullpath = getPackagePath();
 		std::fstream ofs(fullpath, std::ios::binary | std::ios_base::out | std::ios_base::in);
 		if (ofs.is_open()){
 	    	ofs.seekp(this->chunkSize * index, std::ios_base::beg);
@@ -310,10 +305,15 @@ bool Torrent::validateChunk(const vector<char>& chunk, const unsigned int index)
 
 void Torrent::createTorrentDataFile()
 {
-	string packagePath = getTorrentDataPath() + this->name;
+	string packagePath = getPackagePath();
 	std::ofstream ofs(packagePath, std::ios::binary | std::ios::out);
     ofs.seekp(this->size-1);
     ofs.write("", 1);
+}
+
+string Torrent::getPackagePath()
+{
+	return getTorrentDataPath() + this->name;
 }
 
 bool Torrent::isComplete() const
@@ -343,7 +343,7 @@ bool Torrent::isValid()
 
 bool Torrent::torrentDataExists()
 {
-	string packagePath = getTorrentDataPath() + this->name;
+	string packagePath = getPackagePath();
 	return Utils::doesFileExist(packagePath);
 }
 
@@ -450,7 +450,7 @@ vector<Torrent> Torrent::getAllTorrents()
 	return tors;
 }
 
-void Torrent::createTorrentFromRow(Torrent tor, TorrentDB::TorrentJoined row)
+void Torrent::createTorrentFromRow(Torrent& tor, const TorrentDB::TorrentJoined& row)
 {
 	tor.uid = row.torrentInfo.uid;
 	tor.name = row.torrentInfo.name;
