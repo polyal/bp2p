@@ -1,3 +1,6 @@
+#ifndef SOCKETCHANNEL_H
+#define SOCKETCHANNEL_H
+
 #include "channel.h"
 
 class SocketChannel : public Channel 
@@ -20,3 +23,5 @@ protected:
 	int remoteSocket;
 	int activeSocket;
 };
+
+#endif

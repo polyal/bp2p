@@ -1,3 +1,6 @@
+#ifndef CHANNEL_H
+#define CHANNEL_H
+
 #include "message.h"
 
 class Channel
@@ -12,3 +15,5 @@ public:
 	virtual void accept() = 0;
 	virtual void close() = 0;
 };
+
+#endif
