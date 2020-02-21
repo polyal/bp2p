@@ -3,13 +3,12 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/rfcomm.h>
-#include "message.h"
 #include "deviceDescriptor.h"
-#include "channel.h"
+#include "socketChannel.h"
 
 using namespace std;
 
-class BTChannel : public Channel
+class BTChannel : public SocketChannel
 {
 public:
 	BTChannel();
@@ -28,28 +27,27 @@ public:
 	void salloc();
 	void connect();
 	
-	void writeToClient(const Message& msg);
-	void writeToServer(const Message& msg);
-	void readFromClient(Message& msg);
-	void readFromServer(Message& msg);
+	void write(const Message& msg);
+	void read(Message& msg);
 
 	void bind();
 	void listen();
 	void accept(DeviceDescriptor& dev);
 
-	void closeRemote();
 	void close();
 
 	static int getTimeout();
 
 protected:
-	void write(int sock);
-	void read(int sock);
-	void write(int sock, const Message& msg);
-	void read(int sock, Message& msg);
+	void write(int socket, const Message& msg);
+	void read(int socket, Message& msg);
+	void write(int socket);
+	void read(int socket);
 
 	void accept();
 
+	void closeRemote();
+	void closeLocal();
 	void close(int& sock);
 
 private:
@@ -60,8 +58,6 @@ private:
 
 	Message omsg;  // output
 	Message imsg;  // input
-	int sock = -1;
-	int remoteSock = -1;
 	struct sockaddr_rc addr;
 	struct sockaddr_rc remoteAddr;
 

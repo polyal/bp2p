@@ -88,8 +88,8 @@ void BTChannel::setRemoteCh(unsigned int ch)
 
 void BTChannel::salloc()
 {
-    this->sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-    if (this->sock == -1){
+    this->localSocket = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    if (this->localSocket == -1){
         cout << "Channel Error: Cannot allocate socket. " << errno << endl;
         throw errno;
     }
@@ -97,27 +97,18 @@ void BTChannel::salloc()
 
 void BTChannel::connect()
 {
-	int status = ::connect(this->sock, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), sizeof(this->remoteAddr));
+	int status = ::connect(this->localSocket, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), sizeof(this->remoteAddr));
     if (status == -1){
         cout << "Channel Error: Cannot connect to socket. " << errno << endl;
         throw errno;
     }
+    this->activeSocket = this->localSocket;
 }
 
-void BTChannel::writeToClient(const Message& msg)
+void BTChannel::write(const Message& msg)
 {
     try{
-        write(this->remoteSock, msg);
-    }
-    catch(...){
-        throw;
-    }
-}
-
-void BTChannel::writeToServer(const Message& msg)
-{
-    try{
-        write(this->sock, msg);
+        write(this->activeSocket, msg);
     }
     catch(...){
         throw;
@@ -144,20 +135,10 @@ void BTChannel::write(int sock)
     }
 }
 
-void BTChannel::readFromClient(Message& msg)
+void BTChannel::read(Message& msg)
 {
     try{
-        read(this->remoteSock, msg);
-    }
-    catch(...){
-        throw;
-    }
-}
-
-void BTChannel::readFromServer(Message& msg)
-{
-    try{
-        read(this->sock, msg);
+        read(this->activeSocket, msg);
     }
     catch(...){
         throw;
@@ -199,7 +180,7 @@ void BTChannel::read(int sock)
 void BTChannel::setReusePort()
 {
     int enable = 1;
-    if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0){
+    if (setsockopt(this->localSocket, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0){
         cout << "Channel Error: Couldn't set reuse ort" << endl;
     }
 }
@@ -207,7 +188,7 @@ void BTChannel::setReusePort()
 void BTChannel::bind()
 {
     setReusePort();
-	int status = ::bind(this->sock, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
+	int status = ::bind(this->localSocket, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
     if (status == -1){
         cout << "Channel Error: Cannot bind name to socket. " << errno << endl;
         throw errno;
@@ -219,7 +200,7 @@ void BTChannel::setTimeout()
     struct timeval timeout;      
     timeout.tv_sec = BTChannel::timeout;
     timeout.tv_usec = 0;
-    if (setsockopt (this->sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0){
+    if (setsockopt (this->localSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0){
         cout << "Channel Error: Couldn't set timeout" << endl;
     }
 }
@@ -227,7 +208,7 @@ void BTChannel::setTimeout()
 void BTChannel::listen()
 {
     setTimeout();
-	int status = ::listen(this->sock, 1);
+	int status = ::listen(this->localSocket, 1);
     if (status == -1){
         cout << "Channel Error: Cannot listen for connections on socket. " << errno << endl;
         throw errno;
@@ -254,38 +235,61 @@ void BTChannel::accept(DeviceDescriptor& dev)
 void BTChannel::accept()
 {
 	socklen_t size = sizeof(this->remoteAddr);
-	this->remoteSock = ::accept(this->sock, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), &size);
-    if (this->remoteSock == -1){
+	this->remoteSocket = ::accept(this->localSocket, reinterpret_cast<struct sockaddr*>(&this->remoteAddr), &size);
+    if (this->remoteSocket == -1){
         if (errno != EAGAIN)
             cout << "Channel Error: Failed to accept message. " << errno << endl;
         throw errno;
     }
+    this->activeSocket = this->remoteSocket;
+}
+
+void BTChannel::close()
+{
+    int err = 0;
+    try{
+        closeRemote();
+    }
+    catch(int e){
+        err = e;
+        cout << "error closing remote socket" << endl;
+    }
+    try{
+        closeLocal();
+    }
+    catch(int e){
+        if (err == 0)
+            err = e;
+        cout << "error closing local socket" << endl;
+    }
+    if (err > 0)
+        throw;
 }
 
 void BTChannel::closeRemote()
 {
     try{
-        close(this->remoteSock);
+        close(this->remoteSocket);
     }
     catch(...){
         throw;
     }
 }
 
-void BTChannel::close()
+void BTChannel::closeLocal()
 {
     try{
-        close(this->sock);
+        close(this->localSocket);
     }
     catch(...){
         throw;
     }
 }
 
-void BTChannel::close(int& sock)
+void BTChannel::close(int& socket)
 {
-    int status = sock >= 0 ? ::close(sock) : 0;
-    sock = -1;
+    int status = socket >= 0 ? ::close(socket) : 0;
+    socket = -1;
     if (status == -1){
         cout << "Channel Error: Something went wring closing the socket. " << errno << endl;
         throw errno;
