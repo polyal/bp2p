@@ -234,18 +234,6 @@ void Torrent::deserialize(const bool create)
 		});
 }
 
-void Torrent::dumpToTorrentFile()
-{
-	if (this->serializedObj.empty()){
-		cout << "Dump Error: input error" << endl;
-		return;
-	}
-	string packagePath = Torrent::getTorrentsPath() + this->name;
-	ofstream fTorrent {packagePath};
-	if (fTorrent.is_open())
-		fTorrent << serializedObj;	
-}
-
 void Torrent::readTorrentFromFile(const string& torrentPath)
 {
 	if (torrentPath.empty()){

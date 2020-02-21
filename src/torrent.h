@@ -214,11 +214,6 @@ private:
 	void deserialize(const bool create);
 
 	////////////////////////////////////////////////////////////
-	//  Writes the serialized torrent into a file, therefore,
-	//  creating a torrent file
-	void dumpToTorrentFile();
-
-	////////////////////////////////////////////////////////////
 	//  Reads a torrent from a torrent file and populates the
 	//  serialzied torrent object
 	//
