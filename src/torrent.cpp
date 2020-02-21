@@ -116,6 +116,7 @@ bool Torrent::open()
 
 bool Torrent::createTorrentFromSerializedObj(const string& serializedObj)
 {
+	bool res = false;
 	if (serializedObj.empty()){
 		cout << "Create Torrent From Serialized Obj Error: invalid input" << endl;
 		return false;
@@ -123,9 +124,9 @@ bool Torrent::createTorrentFromSerializedObj(const string& serializedObj)
 	this->serializedObj = serializedObj;
 	deserialize(true);
 	serialize();
-	//dumpToTorrentFile();
-	// check if torrent exists in db and if it does do not save it again
-	return isValid();
+	if (isValid())
+		res = insertTorrentToDB();
+	return res;
 }
 
 int Torrent::package()
