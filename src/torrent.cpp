@@ -440,7 +440,28 @@ vector<string> Torrent::getTorrentNames()
 
 vector<Torrent> Torrent::getAllTorrents()
 {
-	
+	vector<Torrent> tors;
+	vector<TorrentDB::TorrentJoined> rows = TorrentDB::getAllTorrentRows();
+	for (const auto& row : rows){
+		Torrent tor;
+		createTorrentFromRow(tor, row);
+		tors.push_back(tor);
+	}
+	return tors;
+}
+
+void Torrent::createTorrentFromRow(Torrent tor, TorrentDB::TorrentJoined row)
+{
+	tor.uid = row.torrentInfo.uid;
+	tor.name = row.torrentInfo.name;
+	tor.numPieces = row.torrentInfo.numPieces;
+	tor.size = row.torrentInfo.size;
+	for (const auto& file : row.files)
+		tor.files.push_back(file.name);
+	for (const auto& chunk : row.chunks){
+		Chunk tmpChunk{chunk.index, chunk.hash, chunk.exists};
+		tor.chunks.push_back(tmpChunk);
+	}
 }
 
 void Torrent::setDBuid()
@@ -488,7 +509,8 @@ void Torrent::updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows)
 
 void Torrent::getTorrentFromDB()
 {
-	TorrentDB::TorrentJoined dbTor = db.getJoinedTorrent();
+	TorrentDB::TorrentJoined row = db.getJoinedTorrent();
+	createTorrentFromRow(*this, row);
 }
 
 #if DEBUG == 1

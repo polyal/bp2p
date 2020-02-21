@@ -73,7 +73,7 @@ private:
 	list<shared_ptr<RRPacket>> jobs;
 
 	// initializations
-	void initDBConnection();
+	void initDB();
 	void findLocalDevs();
 	void scanForDevs();
 	void createServers();

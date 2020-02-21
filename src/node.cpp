@@ -854,30 +854,24 @@ void Node::populateLocalTorrents()
 
 void Node::getTorrentList(vector<Torrent>& torrentList)
 {
-	vector<string> torrentFiles;
-	torrentFiles = Torrent::getTorrentNames();
-
-	for(auto const& filename: torrentFiles) {
-		Torrent tor {filename};
-		if (tor.open())
-			torrentList.push_back(filename);
-	}
+	torrentList = Torrent::getAllTorrents();
 }
 
-void Node::initDBConnection()
+void Node::initDB()
 {
-	DatabaseConnector::initDriver();
+	TorrentDB::init();
 }
 
 void Node::init()
 {
 	cout << "hello!" << endl;
 	cout << "initializing database connection..." << endl;
-	initDBConnection();
+	initDB();
+	cout << "reading existing torrents..." << endl;
+	populateLocalTorrents();
 	cout << "scanning for devices..." << endl;
 	findLocalDevs();
 	scanForDevs();
-	populateLocalTorrents();
 	cout << "creating server(s)..." << endl;
 	createServers();	
 	createJobManager();

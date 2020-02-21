@@ -231,6 +231,7 @@ private:
 	vector<TorrentDB::ChunkRow> createChunkRows();
 	void updateChunkStatusDB(const vector<TorrentDB::ChunkRow>& chunkRows);
 	void getTorrentFromDB();
+	static void createTorrentFromRow(Torrent tor, TorrentDB::TorrentJoined row);
 };
 
 namespace std

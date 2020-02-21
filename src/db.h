@@ -86,11 +86,14 @@ protected:
 	static const string ifNotExists;
 
 	static void connect();
+	static void connectIfNeeded();
 	static void reconnectIfNeeded();
 	static void disconnect();
+	static void disconnectIfNeeded();
 	static bool createSchema(bool checkExists);
 	static bool createSchema(const string& schema, bool checkExists);
 	static void setSchema();
+	static void setSchema(const string& schema);
 	static bool createTables();
 	static bool createTable(const DatabaseConnector::Table& table, bool checkExists);
 

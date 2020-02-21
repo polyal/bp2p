@@ -19,11 +19,7 @@ unsigned int DatabaseConnector::connectionCounter = 0;
 
 DatabaseConnector::DatabaseConnector()
 {
-	lock.lock();
-	if (connectionCounter == 0)
-		connect();
-	connectionCounter++;
-	lock.unlock();
+	connectIfNeeded();
 }
 
 DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema)
@@ -31,21 +27,12 @@ DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cre
 	this->addr = addr;
 	this->cred = cred;
 	this->schema = schema;
-
-	lock.lock();
-	if (connectionCounter == 0)
-		connect();
-	connectionCounter++;
-	lock.unlock();
+	connectIfNeeded();
 }
 
 DatabaseConnector::~DatabaseConnector()
 {
-	lock.lock();
-	connectionCounter--;
-	if (connectionCounter == 0)
-		disconnect();
-	lock.unlock();
+	disconnectIfNeeded();	
 }
 
 void DatabaseConnector::init(const Address& addr, const Credentials& cred, const string& schema,
@@ -94,6 +81,17 @@ void DatabaseConnector::connect()
 	}
 }
 
+void DatabaseConnector::connectIfNeeded()
+{
+	lock.lock();
+	if (connectionCounter == 0)
+		connect();
+	else
+		reconnectIfNeeded();
+	connectionCounter++;
+	lock.unlock();
+}
+
 void DatabaseConnector::reconnectIfNeeded()
 {
 	try{
@@ -118,10 +116,34 @@ void DatabaseConnector::disconnect()
 	DatabaseConnector::con = nullptr;
 }
 
+void DatabaseConnector::disconnectIfNeeded()
+{
+	lock.lock();
+	connectionCounter--;
+	if (connectionCounter == 0)
+		disconnect();
+	lock.unlock();
+}
+
 void DatabaseConnector::setSchema()
 {
 	try{
 		DatabaseConnector::con->setSchema(DatabaseConnector::schema);
+	}
+	catch(sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		throw;
+	}
+}
+
+void DatabaseConnector::setSchema(const string& schema)
+{
+	try{
+		DatabaseConnector::con->setSchema(schema);
 	}
 	catch(sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;

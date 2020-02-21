@@ -25,7 +25,8 @@ public:
 	bool updateChunks(const vector<ChunkRow>& chunks);
 	TorrentJoined getJoinedTorrent();
 
-	static vector<TorrentJoined> getAllJoinedTorrents();
+	static vector<TorrentDB::TorrentJoined> getAllTorrentRows();
+
 
 protected:
 	static const string torrentTableName;
@@ -51,6 +52,8 @@ protected:
 	vector<ChunkRow> getTorrentChunks();
 
 	static vector<TorrentInfoRow> getAllTorrentInfoRows();
+	static vector<FileRow> getTorrentFiles(sql::Connection* const con, size_t uid);
+	static vector<ChunkRow> getTorrentChunks(sql::Connection* const con, size_t uid);
 
 	size_t uid = 0;
 

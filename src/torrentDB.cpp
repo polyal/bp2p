@@ -225,18 +225,23 @@ TorrentDB::TorrentInfoRow TorrentDB::getTorrentInfo()
 	}
 	if (stmt) delete stmt;
 	if (res) delete res;
-	return torInfo;	
+	return torInfo;
 }
 
 vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles()
+{
+	return getTorrentFiles(this->con, this->uid);	
+}
+
+vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles(sql::Connection* const con, size_t uid)
 {
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<FileRow> files;
 	string query = "SELECT name FROM " + TorrentDB::filesTableName + " WHERE uid=?;";
 	try{
-		stmt = this->con->prepareStatement(query);
-		stmt->setUInt(1, this->uid);
+		stmt = con->prepareStatement(query);
+		stmt->setUInt(1, uid);
 		res = executeQuery(stmt);
 		while (res->next()){
 		    string name = res->getString("name");
@@ -256,13 +261,18 @@ vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles()
 
 vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks()
 {
+	return getTorrentChunks(this->con, this->uid);
+}
+
+vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks(sql::Connection* const con, size_t uid)
+{
 	sql::PreparedStatement* stmt = nullptr;
 	sql::ResultSet* res = nullptr;
 	vector<ChunkRow> chunks;
 	string query = "SELECT chunk_index, chunk_hash, chunk_exists FROM " + TorrentDB::chunksTableName + " WHERE uid=?;";
 	try{
-		stmt = this->con->prepareStatement(query);
-		stmt->setUInt(1, this->uid);
+		stmt = con->prepareStatement(query);
+		stmt->setUInt(1, uid);
 		res = executeQuery(stmt);
 		while (res->next()){
 		    unsigned int index = res->getUInt("chunk_index");
@@ -282,6 +292,59 @@ vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks()
 	if (res) delete res;
 	return chunks;
 }
+
+vector<TorrentDB::TorrentJoined> TorrentDB::getAllTorrentRows()
+{
+	vector<TorrentDB::TorrentJoined> joinedTorRows;
+	try{
+		connectIfNeeded();
+		setSchema(TorrentDB::schema);
+		vector<TorrentInfoRow> torInfoRows;
+		torInfoRows = getAllTorrentInfoRows();
+		for (const auto& torInfo : torInfoRows){
+			vector<TorrentDB::FileRow> fileRows = getTorrentFiles(con, torInfo.uid);
+			vector<TorrentDB::ChunkRow> chunkRows = getTorrentChunks(con, torInfo.uid);
+			TorrentJoined joinedTor{torInfo, fileRows, chunkRows};
+			joinedTorRows.push_back(joinedTor);
+		}
+		disconnectIfNeeded();
+	}
+	catch(...){
+		disconnectIfNeeded();
+		throw;
+	}
+	return joinedTorRows;
+}
+
+vector<TorrentDB::TorrentInfoRow> TorrentDB::getAllTorrentInfoRows()
+{
+	sql::Statement* stmt = nullptr;
+	sql::ResultSet* res = nullptr;
+	vector<TorrentInfoRow> torInfoRows;
+	string query = "SELECT uid, name, num_pieces, size FROM " + TorrentDB::torrentTableName;
+	try{
+		stmt = con->createStatement();
+		res = executeQuery(stmt, query);
+		TorrentInfoRow torInfo;
+		while (res->next()){
+			torInfo.uid = res->getUInt("uid");
+			torInfo.name = res->getString("name");
+			torInfo.numPieces = res->getUInt("num_pieces");
+			torInfo.size = res->getUInt64("size");
+			torInfoRows.push_back(torInfo);
+		}
+	}
+	catch(...){
+		if (stmt) delete stmt;
+		if (res) delete res;
+		throw;
+	}
+	if (stmt) delete stmt;
+	if (res) delete res;
+	return torInfoRows;
+}
+
+
 
 #if DEBUG == 1
 int main(void)
