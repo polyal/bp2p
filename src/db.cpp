@@ -14,7 +14,6 @@ DatabaseConnector::Credentials DatabaseConnector::cred;
 string DatabaseConnector::schema;
 
 recursive_mutex DatabaseConnector::mutex;
-unique_lock<recursive_mutex> DatabaseConnector::lock{mutex, defer_lock};
 unsigned int DatabaseConnector::connectionCounter = 0;
 
 DatabaseConnector::DatabaseConnector()
@@ -67,8 +66,9 @@ void DatabaseConnector::initDriver()
 
 void DatabaseConnector::connect()
 {
+	string url = DatabaseConnector::tcp + DatabaseConnector::addr.ip + ":" + DatabaseConnector::addr.port;
 	try{
-		string url = DatabaseConnector::tcp + DatabaseConnector::addr.ip + ":" + DatabaseConnector::addr.port;
+		unique_lock<recursive_mutex> lock{mutex};
 		DatabaseConnector::con = driver->connect(url, DatabaseConnector::cred.user, DatabaseConnector::cred.pwd);
 	}
 	catch (sql::SQLException& e){
@@ -83,18 +83,18 @@ void DatabaseConnector::connect()
 
 void DatabaseConnector::connectIfNeeded()
 {
-	lock.lock();
+	unique_lock<recursive_mutex> lock{mutex};
 	if (connectionCounter == 0)
 		connect();
 	else
 		reconnectIfNeeded();
 	connectionCounter++;
-	lock.unlock();
 }
 
 void DatabaseConnector::reconnectIfNeeded()
 {
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		if (DatabaseConnector::con)
 			if (!DatabaseConnector::con->isValid())
 				DatabaseConnector::con->reconnect();
@@ -111,6 +111,7 @@ void DatabaseConnector::reconnectIfNeeded()
 
 void DatabaseConnector::disconnect()
 {
+	unique_lock<recursive_mutex> lock{mutex};
 	if (DatabaseConnector::con)
 		delete DatabaseConnector::con;
 	DatabaseConnector::con = nullptr;
@@ -118,16 +119,16 @@ void DatabaseConnector::disconnect()
 
 void DatabaseConnector::disconnectIfNeeded()
 {
-	lock.lock();
+	unique_lock<recursive_mutex> lock{mutex};
 	connectionCounter--;
 	if (connectionCounter == 0)
 		disconnect();
-	lock.unlock();
 }
 
 void DatabaseConnector::setSchema()
 {
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		DatabaseConnector::con->setSchema(DatabaseConnector::schema);
 	}
 	catch(sql::SQLException& e){
@@ -143,6 +144,7 @@ void DatabaseConnector::setSchema()
 void DatabaseConnector::setSchema(const string& schema)
 {
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		DatabaseConnector::con->setSchema(schema);
 	}
 	catch(sql::SQLException& e){
@@ -159,6 +161,7 @@ sql::Statement* DatabaseConnector::createStatement()
 {
 	sql::Statement* stmt = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = DatabaseConnector::con->createStatement();
 	}
 	catch(sql::SQLException& e){
@@ -176,6 +179,7 @@ sql::ResultSet* DatabaseConnector::executeQuery(sql::Statement* stmt, const stri
 {
 	sql::ResultSet* res = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		res = stmt->executeQuery(query);
 	}
 	catch(sql::SQLException& e){
@@ -193,6 +197,7 @@ sql::ResultSet* DatabaseConnector::executeQuery(sql::PreparedStatement* stmt)
 {
 	sql::ResultSet* res = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		res = stmt->executeQuery();
 	}
 	catch(sql::SQLException& e){
@@ -210,6 +215,7 @@ sql::ResultSet* DatabaseConnector::executeQuery(sql::PreparedStatement* stmt, co
 {
 	sql::ResultSet* res = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		res = stmt->executeQuery(query);
 	}
 	catch(sql::SQLException& e){
@@ -227,6 +233,7 @@ bool DatabaseConnector::execute(sql::Statement* stmt, const string& query)
 {
 	bool res = false;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		res = stmt->execute(query);
 	}
 	catch(sql::SQLException& e){
@@ -244,6 +251,7 @@ bool DatabaseConnector::execute(sql::PreparedStatement* stmt)
 {
 	bool res = false;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		res = stmt->execute();
 	}
 	catch(sql::SQLException& e){
@@ -262,6 +270,7 @@ sql::ResultSet* DatabaseConnector::createStatementAndExecuteQuery(const string& 
 	sql::ResultSet* res = nullptr;
 	sql::Statement* stmt = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = createStatement();
 		res = executeQuery(stmt, query);
 	}
@@ -277,6 +286,7 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	bool res = false;
 	sql::Statement* stmt = nullptr;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = createStatement();
 		res = execute(stmt, query);
 	}

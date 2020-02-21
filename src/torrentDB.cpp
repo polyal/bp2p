@@ -114,6 +114,7 @@ bool TorrentDB::insertIntoTorrents(const string& name, unsigned int numPieces, u
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "INSERT INTO " + TorrentDB::torrentTableName + " VALUES (?, ?, ?, ?);";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
 		stmt->setString(2, name);
@@ -135,6 +136,7 @@ bool TorrentDB::insertIntoFiles(const vector<string>& files)
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "INSERT INTO " + TorrentDB::filesTableName + " VALUES (?, ?);";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = this->con->prepareStatement(query);
 		for (const auto& file : files){
 			stmt->setUInt(1, this->uid);
@@ -156,6 +158,7 @@ bool TorrentDB::insertIntoChunks(unsigned int index, size_t hash, bool exists)
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "INSERT INTO " + TorrentDB::chunksTableName + " VALUES (?, ?, ?, ?);";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
 		stmt->setUInt(2, index);
@@ -177,6 +180,7 @@ bool TorrentDB::updateChunks(const vector<ChunkRow>& chunks)
 	sql::PreparedStatement* stmt = nullptr;
 	string query = "UPDATE " + TorrentDB::chunksTableName + " SET chunk_exists=? WHERE uid=? AND chunk_index=?;";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = this->con->prepareStatement(query);
 		for (const auto& chunk : chunks){
 			chunk.exists ? stmt->setUInt(1, 1) : stmt->setUInt(1, 0);
@@ -209,6 +213,7 @@ TorrentDB::TorrentInfoRow TorrentDB::getTorrentInfo()
 	TorrentInfoRow torInfo;
 	string query = "SELECT name, num_pieces, size FROM " + TorrentDB::torrentTableName + " WHERE uid=?;";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = this->con->prepareStatement(query);
 		stmt->setUInt(1, this->uid);
 		res = executeQuery(stmt);
@@ -241,6 +246,7 @@ vector<TorrentDB::FileRow> TorrentDB::getTorrentFiles(sql::Connection* const con
 	vector<FileRow> files;
 	string query = "SELECT name FROM " + TorrentDB::filesTableName + " WHERE uid=?;";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = con->prepareStatement(query);
 		stmt->setUInt(1, uid);
 		res = executeQuery(stmt);
@@ -272,6 +278,7 @@ vector<TorrentDB::ChunkRow> TorrentDB::getTorrentChunks(sql::Connection* const c
 	vector<ChunkRow> chunks;
 	string query = "SELECT chunk_index, chunk_hash, chunk_exists FROM " + TorrentDB::chunksTableName + " WHERE uid=?;";
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = con->prepareStatement(query);
 		stmt->setUInt(1, uid);
 		res = executeQuery(stmt);
@@ -324,6 +331,7 @@ vector<TorrentDB::TorrentInfoRow> TorrentDB::getAllTorrentInfoRows()
 	vector<TorrentInfoRow> torInfoRows;
 	string query = "SELECT uid, name, num_pieces, size FROM " + TorrentDB::torrentTableName;
 	try{
+		unique_lock<recursive_mutex> lock{mutex};
 		stmt = con->createStatement();
 		res = executeQuery(stmt, query);
 		TorrentInfoRow torInfo;

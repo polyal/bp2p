@@ -80,6 +80,8 @@ protected:
 	static sql::Driver* driver;
 	static sql::Connection* con;
 
+	static recursive_mutex mutex;
+
 	static const string tcp;
 	static const string createSchemaStatment;
 	static const string createTableStatment;
@@ -103,8 +105,6 @@ private:
 	static string schema;
 	static vector<Table> tables;
 
-	static recursive_mutex mutex;
-	static unique_lock<recursive_mutex> lock;
 	static unsigned int connectionCounter;
 
 
