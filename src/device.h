@@ -12,10 +12,10 @@ public:
 	virtual void sendResponse(const Message& resp) = 0;
 	virtual void endComm() = 0;
 
-	string getDevAddr() { return this->des.addr; }
-	int getDevID() { return this->des.devID; }
-	string getDevName() { return this->des.name; }
+	string getDevAddr() { return this->devDes.addr; }
+	int getDevID() { return this->devDes.devID; }
+	string getDevName() { return this->devDes.name; }
 
 protected:
-	DeviceDescriptor des;
+	DeviceDescriptor devDes;
 };

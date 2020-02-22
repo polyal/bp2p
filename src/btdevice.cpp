@@ -12,22 +12,22 @@ BTDevice::BTDevice()
 
 BTDevice::BTDevice(const DeviceDescriptor& dev)
 {
-	this->des = dev;
+	this->devDes = dev;
 }
 
 BTDevice::BTDevice(const string& devAddr)
 {
-	this->des.addr = devAddr;
-	this->des.devID = hci_devid(devAddr.c_str());
-	readLocalName(this->des.name, this->des.devID);
-    cout << "New Device " << this->des.addr << " " << this->des.devID << " " << this->des.name << endl;
+	this->devDes.addr = devAddr;
+	this->devDes.devID = hci_devid(devAddr.c_str());
+	readLocalName(this->devDes.name, this->devDes.devID);
+    cout << "New Device " << this->devDes.addr << " " << this->devDes.devID << " " << this->devDes.name << endl;
 }
 
 void BTDevice::connect2Device(const DeviceDescriptor& dev)
 {
 	try{
 		channel.salloc();
-		channel.setCh(this->des.addr, 0);
+		channel.setCh(this->devDes.addr, 0);
 		channel.bind();
 		channel.setRemoteCh(dev.addr, 15);
 		channel.connect();
@@ -50,7 +50,7 @@ void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 
 void BTDevice::initServer()
 {
-	channel.setCh(this->des.addr ,serverCh);
+	channel.setCh(this->devDes.addr ,serverCh);
 	try{
 		channel.salloc();
 		channel.bind();
@@ -185,11 +185,11 @@ int BTDevice::findNearbyDevs(vector<DeviceDescriptor>& devs)
 int BTDevice::getInqInfo(inquiry_info*& inqInf, int& numDevs)
 {
 	int status = -1;
-    if (this->des.devID >= 0){
+    if (this->devDes.devID >= 0){
         inqInf = reinterpret_cast<inquiry_info*>(malloc(sizeof(inquiry_info)* BTDevice::maxDevs));
 	    if (inqInf){
 	    	// perform bluetooth discovery, clear previously discovered devices from cache
-		    numDevs = hci_inquiry(this->des.devID, discUnit, BTDevice::maxDevs, NULL, &inqInf, IREQ_CACHE_FLUSH);
+		    numDevs = hci_inquiry(this->devDes.devID, discUnit, BTDevice::maxDevs, NULL, &inqInf, IREQ_CACHE_FLUSH);
 		    status = 0;
 	    }
     }
@@ -235,7 +235,7 @@ void BTDevice::readLocalName(string& name, int devID)
 void BTDevice::readRemoteName(string& name, bdaddr_t bdaddr)
 {
 	vector<char> cName(DeviceDescriptor::maxNameLen, 0);
-	int sock = hci_open_dev(this->des.devID);
+	int sock = hci_open_dev(this->devDes.devID);
     if (hci_read_remote_name(sock, &bdaddr, cName.size(), cName.data(), 0) < 0)
         copy(DeviceDescriptor::uknownName.begin(), DeviceDescriptor::uknownName.end(),
          back_inserter(cName));
@@ -254,14 +254,14 @@ int BTDevice::enableScan()
 
     int sock = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
     if (sock >= 0){
-		dr.dev_id = this->des.devID;
+		dr.dev_id = this->devDes.devID;
 		dr.dev_opt = SCAN_PAGE | SCAN_INQUIRY;
 		if (ioctl(sock, HCISETSCAN, (unsigned long) &dr) >= 0)
 			status = 0;
 	}
 
 	if (status == -1) status = errno;
-	cout << "enable scan err: " << status << " dev: " << this->des.devID << endl;
+	cout << "enable scan err: " << status << " dev: " << this->devDes.devID << endl;
 	if (sock >= 0) ::close(sock);
 	return status;
 }
