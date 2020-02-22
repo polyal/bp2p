@@ -6,21 +6,18 @@
 
 #define DEBUG 0
 
-BTDevice::BTDevice()
+
+BTDevice::BTDevice(const DeviceDescriptor& devDes) : Device(devDes)
 {
 }
 
-BTDevice::BTDevice(const DeviceDescriptor& dev)
+BTDevice::BTDevice(const string& devAddr) : Device(devDes)
 {
-	this->devDes = dev;
-}
-
-BTDevice::BTDevice(const string& devAddr)
-{
-	this->devDes.addr = devAddr;
-	this->devDes.devID = hci_devid(devAddr.c_str());
-	readLocalName(this->devDes.name, this->devDes.devID);
-    cout << "New Device " << this->devDes.addr << " " << this->devDes.devID << " " << this->devDes.name << endl;
+	DeviceDescriptor devDes;
+	devDes.addr = devAddr;
+	devDes.devID = hci_devid(devAddr.c_str());
+	readLocalName(devDes.name, devDes.devID);
+    cout << "New Device " << devDes.addr << " " << devDes.devID << " " << devDes.name << endl;
 }
 
 void BTDevice::connect2Device(const DeviceDescriptor& dev)

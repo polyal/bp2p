@@ -7,7 +7,6 @@ using namespace std;
 class BTDevice : public Device
 {
 public:
-	BTDevice();
 	BTDevice(const DeviceDescriptor& dev);
 	BTDevice(const string& devAddr);
 
