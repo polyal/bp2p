@@ -52,12 +52,12 @@ void Node::scanForDevs()
 	for (auto const& local : this->localDevs){
 		BTDevice dev{local};
 		dev.findNearbyDevs(remoteDevs);
-		this->local2remote[local] = remoteDevs;
 		// remove local devs from scan
 		for (auto const& locDev : this->localDevs){
 			if (find(remoteDevs.begin(), remoteDevs.end(), locDev) != remoteDevs.end())
 		   		remoteDevs.erase(remove(remoteDevs.begin(), remoteDevs.end(), locDev), remoteDevs.end());
 		}
+		this->local2remote[local] = remoteDevs;
 		for (auto const& remote : remoteDevs){
 			if (this->remote2local.find(remote) == this->remote2local.end()){
 				vector<DeviceDescriptor> locals{local};
