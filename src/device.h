@@ -1,10 +1,13 @@
+#include <memory>
 #include "message.h"
 #include "deviceDescriptor.h"
+#include "channel.h"
+
 
 class Device
 {
 public:
-	Device(const DeviceDescriptor& devDes) {this->devDes = devDes;}
+	Device(const DeviceDescriptor& devDes){this->devDes = devDes;}
 
 	virtual void connect2Device(const DeviceDescriptor& dev) = 0;
 	virtual void sendReqWait4Resp(const Message& msg, Message& resp) = 0;
@@ -20,4 +23,5 @@ public:
 
 protected:
 	DeviceDescriptor devDes;
+	unique_ptr<Channel> channel;
 };

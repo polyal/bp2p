@@ -29,8 +29,6 @@ protected:
 	unsigned int serverCh = 15;  // server channel
 	unsigned int clientCh = 0;   // client connects to first available channel
 
-	BTChannel channel;
-
 private:
 	int getInqInfo(inquiry_info*& inqInf, int& numDevs);
 	int inqInfList2DevDesList(vector<DeviceDescriptor>& devs, const inquiry_info* const inqInf, int numDevs);

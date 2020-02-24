@@ -3,12 +3,14 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include "btdevice.h"
+#include "btaddress.h"
 
 #define DEBUG 0
 
 
 BTDevice::BTDevice(const DeviceDescriptor& devDes) : Device(devDes)
 {
+	this->channel = make_unique<BTChannel>();
 }
 
 BTDevice::BTDevice(const string& devAddr) : Device(devDes)
@@ -22,12 +24,14 @@ BTDevice::BTDevice(const string& devAddr) : Device(devDes)
 
 void BTDevice::connect2Device(const DeviceDescriptor& dev)
 {
+	auto localAddr = make_unique<BTAddress>(this->devDes.addr, this->clientCh);
+	auto remoteAddr = make_unique<BTAddress>(dev.addr, this->serverCh);
 	try{
-		channel.salloc();
-		channel.setCh(this->devDes.addr, 0);
-		channel.bind();
-		channel.setRemoteCh(dev.addr, 15);
-		channel.connect();
+		this->channel->salloc();
+		this->channel->setLocalAddress(move(localAddr));
+		this->channel->bind();
+		this->channel->setRemoteAddress(move(remoteAddr));
+		this->channel->connect();
 	}
 	catch(...){
 		throw;
@@ -37,8 +41,8 @@ void BTDevice::connect2Device(const DeviceDescriptor& dev)
 void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 {
 	try{
-		channel.write(req);
-		channel.read(resp);
+		this->channel->write(req);
+		this->channel->read(resp);
 	}
 	catch(...){
 		throw;
@@ -47,10 +51,11 @@ void BTDevice::sendReqWait4Resp(const Message& req, Message& resp)
 
 void BTDevice::initServer()
 {
-	channel.setCh(this->devDes.addr ,serverCh);
+	auto localAddr = make_unique<BTAddress>(this->devDes.addr, this->clientCh);
+	this->channel->setLocalAddress(move(localAddr));
 	try{
-		channel.salloc();
-		channel.bind();
+		this->channel->salloc();
+		this->channel->bind();
 	}
 	catch(...){
 		throw;
@@ -60,8 +65,8 @@ void BTDevice::initServer()
 void BTDevice::listen4Req(DeviceDescriptor& client)
 {
 	try{
-		channel.listen();
-		channel.accept(client);
+		this->channel->listen();
+		this->channel->accept(client);
 	}
 	catch(...){
 		throw;
@@ -71,7 +76,7 @@ void BTDevice::listen4Req(DeviceDescriptor& client)
 void BTDevice::fetchRequestData(Message& req)
 {
 	try{
-		channel.read(req);
+		this->channel->read(req);
 	}
 	catch(...){
 		throw;
@@ -81,7 +86,7 @@ void BTDevice::fetchRequestData(Message& req)
 void BTDevice::sendResponse(const Message& resp)
 {
 	try{
-		channel.write(resp);
+		this->channel->write(resp);
 	}
 	catch(...){
 		throw;
@@ -91,7 +96,7 @@ void BTDevice::sendResponse(const Message& resp)
 void BTDevice::endComm()
 {
 	try{
-		channel.close();
+		this->channel->close();
     }
     catch(int e){
     	cout << "Close channel Error: " << e << endl;
