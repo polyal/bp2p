@@ -4,86 +4,49 @@
 #include <string.h>
 #include <algorithm>
 #include <iostream>
-
 #include "btchannel.h"
 
 #define DEBUG 0
 
 
-const string zaddr = "00:00:00:00:00:00";
+const string BTChannel::zaddr = "00:00:00:00:00:00";
 
 BTChannel::BTChannel()
 {
-	this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = 1;
-    bacpy(&this->addr.rc_bdaddr, &bdAddrAny);
-    this->remoteAddr.rc_family = AF_BLUETOOTH;
-    this->remoteAddr.rc_channel = 1;
-    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
-}
-
-BTChannel::BTChannel(const struct sockaddr_rc& addr)
-{
-    this->addr.rc_family = addr.rc_family;
-    this->addr.rc_channel = addr.rc_channel;
-    bacpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr);
-    this->remoteAddr.rc_family = AF_BLUETOOTH;
-    this->remoteAddr.rc_channel = 1;
-    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
+    this->localAddr = make_unique<BTAddress>(zaddr, 0);
+    this->remoteAddr = make_unique<BTAddress>(zaddr, 0);
 }
 
 BTChannel::BTChannel(const string& addr, unsigned int ch)
 {
-    this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = ch;
-    str2ba(&addr[0], &this->addr.rc_bdaddr);
-    this->remoteAddr.rc_family = AF_BLUETOOTH;
-    this->remoteAddr.rc_channel = 0;
-    bacpy(&this->remoteAddr.rc_bdaddr, &bdAddrAny);
+    this->localAddr = make_unique<BTAddress>(addr, ch);
+    this->remoteAddr = make_unique<BTAddress>(zaddr, 0);
 }
 
 BTChannel::~BTChannel()
 {
-    //closeClient();
-    //closeServer();
 }
 
-void BTChannel::setCh(const struct sockaddr_rc& addr)
+void BTChannel::setLocalAddress(unique_ptr<BTAddress> localAddr)
 {
-    this->addr.rc_family = addr.rc_family;
-    this->addr.rc_channel = addr.rc_channel;
-    bacpy(&this->addr.rc_bdaddr, &addr.rc_bdaddr);
+
+    setLocalAddress(move(localAddr));
 }
 
-void BTChannel::setCh(const string& addr, unsigned int ch)
+void BTChannel::setRemoteAddress(unique_ptr<BTAddress> remoteAddr)
 {
-    this->addr.rc_family = AF_BLUETOOTH;
-    this->addr.rc_channel = ch;
-    str2ba(&addr[0], &this->addr.rc_bdaddr);
+    setRemoteAddress(move(remoteAddr));
 }
 
-void BTChannel::setCh(unsigned int ch)
+void BTChannel::setLocalAddress(unique_ptr<Address> localAddr)
 {
-    this->addr.rc_channel = ch;
+
+    this->localAddr = move(localAddr);
 }
 
-void BTChannel::setRemoteCh(const struct sockaddr_rc& addr)
+void BTChannel::setRemoteAddress(unique_ptr<Address> remoteAddr)
 {
-    this->remoteAddr.rc_family = addr.rc_family;
-    this->remoteAddr.rc_channel = addr.rc_channel;
-    bacpy(&this->remoteAddr.rc_bdaddr, &addr.rc_bdaddr);
-}
-
-void BTChannel::setRemoteCh(const string& addr, unsigned int ch)
-{
-    this->remoteAddr.rc_family = AF_BLUETOOTH;
-    this->remoteAddr.rc_channel = ch;
-    str2ba(&addr[0], &this->remoteAddr.rc_bdaddr);
-}
-
-void BTChannel::setRemoteCh(unsigned int ch)
-{
-    this->remoteAddr.rc_channel = ch;
+    this->remoteAddr = move(remoteAddr);
 }
 
 void BTChannel::salloc()
@@ -188,7 +151,8 @@ void BTChannel::setReusePort()
 void BTChannel::bind()
 {
     setReusePort();
-	int status = ::bind(this->localSocket, reinterpret_cast<struct sockaddr*>(&this->addr), sizeof(this->addr));
+	int status = ::bind(this->localSocket, 
+        reinterpret_cast<struct sockaddr*>(this->localAddr->get()), sizeof(this->localAddr->getSize()));
     if (status == -1){
         cout << "Channel Error: Cannot bind name to socket. " << errno << endl;
         throw errno;
@@ -223,13 +187,7 @@ void BTChannel::accept(DeviceDescriptor& dev)
     catch(...){
         throw;
     }
-    vector<char> cAddr(18, 0);
-    ba2str(&this->remoteAddr.rc_bdaddr, &cAddr[0]);
-    transform(cAddr.begin(), cAddr.end(), std::back_inserter(dev.addr),
-        [](char c)
-        {
-            return c;
-        });
+    dev.addr = this->remoteAddr->getStrAddr();
 }
 
 void BTChannel::accept()
