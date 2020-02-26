@@ -29,18 +29,16 @@ BTChannel::~BTChannel()
 
 void BTChannel::setLocalAddress(unique_ptr<BTAddress> localAddr)
 {
-
-    setLocalAddress(move(localAddr));
+    this->localAddr = move(localAddr);
 }
 
 void BTChannel::setRemoteAddress(unique_ptr<BTAddress> remoteAddr)
 {
-    setRemoteAddress(move(remoteAddr));
+    this->remoteAddr = move(remoteAddr);
 }
 
 void BTChannel::setLocalAddress(unique_ptr<Address> localAddr)
 {
-
     this->localAddr = move(localAddr);
 }
 
