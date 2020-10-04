@@ -5,6 +5,8 @@ sql::Connection* DatabaseConnector::con = nullptr;
 vector<DatabaseConnector::Table> DatabaseConnector::tables;
 
 const string DatabaseConnector::tcp = "tcp://";
+const string DatabaseConnector::createUserStatment = "create user ";
+const string DatabaseConnector::grantAllStatment = "grant all on ";
 const string DatabaseConnector::createSchemaStatment = "create schema ";
 const string DatabaseConnector::createTableStatment = "create table ";
 const string DatabaseConnector::ifNotExists = "if not exists ";
@@ -32,6 +34,23 @@ DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cre
 DatabaseConnector::~DatabaseConnector()
 {
 	disconnectIfNeeded();	
+}
+
+void DatabaseConnector::firstTimeInit(const Address& addr, const Credentials& privUser, const Credentials& newUser, 
+	const string& schema, const vector<DatabaseConnector::Table>& tables)
+{
+	DatabaseConnector::addr = addr;
+	DatabaseConnector::cred = privUser;
+	DatabaseConnector::schema = schema;
+	DatabaseConnector::tables = tables;
+	initDriver();
+	connect();
+	createSchema(true);
+	setSchema();
+	createTables();
+	createUser(true, newUser);
+	grantAllUser(newUser);
+	disconnect();
 }
 
 void DatabaseConnector::init(const Address& addr, const Credentials& cred, const string& schema,
@@ -297,6 +316,22 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	return res;
 }
 
+bool DatabaseConnector::createUser(bool checkExists, const Credentials& user)
+{
+	bool res = false;
+	string query = DatabaseConnector::createUserStatment;
+	if (checkExists)
+		query += DatabaseConnector::ifNotExists;
+	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "'";
+	try{
+		res = createStatementAndExecute(query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+} 
+
 bool DatabaseConnector::createSchema(bool checkExists)
 {
 	bool res = false;
@@ -355,6 +390,21 @@ bool DatabaseConnector::createTable(const DatabaseConnector::Table& table, bool 
 	}
 	query.pop_back(); // remove last comma
 	query += " );";
+	try{
+		res = createStatementAndExecute(query);
+	}
+	catch(...){
+		throw;
+	}
+	return res;
+}
+
+bool DatabaseConnector::grantAllUser(const Credentials& user)
+{
+	bool res = false;
+	string query = DatabaseConnector::grantAllStatment;
+	query += "'" + DatabaseConnector::schema + "'.* to ";  
+	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "'";
 	try{
 		res = createStatementAndExecute(query);
 	}

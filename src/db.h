@@ -30,6 +30,8 @@ public:
 	DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema);
 	~DatabaseConnector();
 
+	static void firstTimeInit(const Address& addr, const Credentials& privUser, const Credentials& newUser, 
+		const string& schema, const vector<DatabaseConnector::Table>& tables);
 	static void init(const Address& addr, const Credentials& cred, const string& schema, 
 		const vector<DatabaseConnector::Table>& tables);
 	static sql::ResultSet* createStatementAndExecuteQuery(const string& query);
@@ -83,6 +85,8 @@ protected:
 	static recursive_mutex mutex;
 
 	static const string tcp;
+	static const string createUserStatment;
+	static const string grantAllStatment;
 	static const string createSchemaStatment;
 	static const string createTableStatment;
 	static const string ifNotExists;
@@ -92,12 +96,14 @@ protected:
 	static void reconnectIfNeeded();
 	static void disconnect();
 	static void disconnectIfNeeded();
+	static bool createUser(bool checkExists, const Credentials& user);
 	static bool createSchema(bool checkExists);
 	static bool createSchema(const string& schema, bool checkExists);
 	static void setSchema();
 	static void setSchema(const string& schema);
 	static bool createTables();
 	static bool createTable(const DatabaseConnector::Table& table, bool checkExists);
+	static bool grantAllUser(const Credentials& user);
 
 private:
 	static Address addr;

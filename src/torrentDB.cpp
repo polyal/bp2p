@@ -20,6 +20,18 @@ TorrentDB::TorrentDB() : DatabaseConnector(addr, cred, schema)
 	this->setSchema();
 }
 
+bool TorrentDB::firstTimeInit(const DatabaseConnector::Credentials privUser)
+{
+	vector<DatabaseConnector::Table> tables = createTableDefs();
+	try{
+		DatabaseConnector::firstTimeInit(TorrentDB::addr, privUser, TorrentDB::cred, TorrentDB::schema, tables);
+	}
+	catch(...){
+		throw;
+	}
+	return false;
+}
+
 bool TorrentDB::init()
 {
 	vector<DatabaseConnector::Table> tables = createTableDefs();
