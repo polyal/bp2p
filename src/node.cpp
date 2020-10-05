@@ -1,3 +1,4 @@
+#include <sys/mman.h>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -13,6 +14,7 @@
 using namespace std;
 
 
+const string Node::initCmd = "--init";
 const string Node::createTorCmd = "-tc";
 const string Node::listNearbyTorsCmd = "-lnt";
 const string Node::requestTorCmd = "-tr";
@@ -857,6 +859,39 @@ void Node::getTorrentList(vector<Torrent>& torrentList)
 	torrentList = Torrent::getAllTorrents();
 }
 
+void Node::firstTimeInit()
+{
+	string username;
+	char* pwd = new char[DatabaseConnector::SafeCredentials::pwdSize];  // max MySQL pwd len is 32
+	//string strpwd;
+	if (pwd == NULL){
+		cout << "Memory Error" << endl;
+	}
+	else{
+		int ret = mlock(pwd, DatabaseConnector::SafeCredentials::pwdSize);
+		if (ret == -1)
+			cout << "mlock error: " << errno << endl;
+		else{
+			memset(pwd, 0x00, DatabaseConnector::SafeCredentials::pwdSize);
+			cout << "First time initialization..." << endl;
+			cout << "A new user, database, and tables will be created using MySQL on localhost..." << endl;
+			cout << "Enter a MySQL username: " << endl;
+			getline(cin, username);
+			cout << "Enter username password: " << endl;
+			fgets(pwd, DatabaseConnector::SafeCredentials::pwdSize, stdin);
+			pwd[strlen(pwd)-1] = '\0'; // remove \n
+			DatabaseConnector::SafeCredentials user{username, pwd};
+			firstTimeInitDB(user);
+		}
+	}
+	delete[] pwd;
+}
+
+void Node::firstTimeInitDB(const DatabaseConnector::SafeCredentials& user)
+{
+	TorrentDB::firstTimeInit(user);
+}
+
 void Node::initDB()
 {
 	TorrentDB::init();
@@ -877,65 +912,70 @@ void Node::init()
 	createJobManager();
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	Node myNode;
-	myNode.init();
 
-	string in;
-	vector<string> args;
-	do
-	{
-		Node::printcli();
-		
-		getline(cin, in);
-		ArgParser argparser{in, args};
+	if (argc > 1 && Node::initCmd.compare(argv[1]) == 0){
+		myNode.firstTimeInit();
+	}
+	else{
+		myNode.init();
 
-		if (!args.empty()){
-			if (args[0].compare(Node::createTorCmd) == 0 && args.size() > 3){
-				string filename = args[1];
-				vector<string> files{args.begin() + 2, args.end()};
-				if (!myNode.createTorrent(filename, files))
-					cout << "Create Torrent Failed" << endl;
-			}
-			else if (args[0].compare(Node::listNearbyTorsCmd) == 0){
-				vector<string> addr;
-				if (args.size() > 1)
-					copy(args.begin()+1, args.end(), back_inserter(addr));
-				myNode.listNearbyTorrents(addr);
-			}
-			else if (args[0].compare(Node::requestTorCmd) == 0){
-				string name, addr;
-				if (args.size() > 2){
-					name = args[1];
-					addr = args[2];
-					myNode.syncRequestTorrentFile(name, addr);
+		string in;
+		vector<string> args;
+		do{
+			Node::printcli();
+			
+			getline(cin, in);
+			ArgParser argparser{in, args};
+
+			if (!args.empty()){
+				if (args[0].compare(Node::createTorCmd) == 0 && args.size() > 3){
+					string filename = args[1];
+					vector<string> files{args.begin() + 2, args.end()};
+					if (!myNode.createTorrent(filename, files))
+						cout << "Create Torrent Failed" << endl;
 				}
-				else{
-					cout << "Usage: ./bp2p.exe -tr [name] [addr]" << endl;
+				else if (args[0].compare(Node::listNearbyTorsCmd) == 0){
+					vector<string> addr;
+					if (args.size() > 1)
+						copy(args.begin()+1, args.end(), back_inserter(addr));
+					myNode.listNearbyTorrents(addr);
 				}
-			}
-			else if (args[0].compare(Node::requestTorDataCmd) == 0){
-				string name;
-				if (args.size() > 1){
-					name = args[1];
-					myNode.requestTorrentData(name);
+				else if (args[0].compare(Node::requestTorCmd) == 0){
+					string name, addr;
+					if (args.size() > 2){
+						name = args[1];
+						addr = args[2];
+						myNode.syncRequestTorrentFile(name, addr);
+					}
+					else{
+						cout << "Usage: ./bp2p.exe -tr [name] [addr]" << endl;
+					}
 				}
+				else if (args[0].compare(Node::requestTorDataCmd) == 0){
+					string name;
+					if (args.size() > 1){
+						name = args[1];
+						myNode.requestTorrentData(name);
+					}
+				}
+				else if (args[0].compare(Node::quitCmd) == 0)
+					break;
+				else if (args[0].compare(Node::requestChunkAvailCmd) == 0)
+					myNode.requestTorrentAvail(args[1], args[2]);
+				else if(args[0].compare("-p") == 0){
+					myNode.pauseWorkerThreads();
+				}
+				else if(args[0].compare("-a") == 0){
+					myNode.activateWorkerThreads();
+				}
+				args.clear();
 			}
-			else if (args[0].compare(Node::quitCmd) == 0)
-				break;
-			else if (args[0].compare(Node::requestChunkAvailCmd) == 0)
-				myNode.requestTorrentAvail(args[1], args[2]);
-			else if(args[0].compare("-p") == 0){
-				myNode.pauseWorkerThreads();
-			}
-			else if(args[0].compare("-a") == 0){
-				myNode.activateWorkerThreads();
-			}
-			args.clear();
-		}
-	} while (1);
-	myNode.killWorkerThreads();
+		} while (1);
+		myNode.killWorkerThreads();
+	}
 
     return 0;
 }

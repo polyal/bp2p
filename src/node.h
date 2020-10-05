@@ -15,6 +15,7 @@ using namespace std;
 class Node
 {
 public:
+	static const string initCmd;         		  // first time init
 	static const string createTorCmd;         // create torrent
 	static const string listNearbyTorsCmd;    // list nearby torrents
 	static const string requestTorCmd;        // request torrent file command
@@ -27,6 +28,7 @@ public:
 
 	static void printcli();
 
+	void firstTimeInit();
 	void init();
 
 	void activateWorkerThreads();
@@ -73,6 +75,7 @@ private:
 	list<shared_ptr<RRPacket>> jobs;
 
 	// initializations
+	void firstTimeInitDB(const DatabaseConnector::SafeCredentials& user);
 	void initDB();
 	void findLocalDevs();
 	void scanForDevs();
