@@ -23,7 +23,6 @@ class DatabaseConnector
 {
 protected:
 	struct Address;
-	//struct Credentials;
 	struct Column;
 	struct Table;
 
