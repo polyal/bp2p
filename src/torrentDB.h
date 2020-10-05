@@ -18,7 +18,7 @@ protected:
 public:
 	TorrentDB();
 
-	static bool firstTimeInit(const DatabaseConnector::Credentials& privUser);
+	static bool firstTimeInit(const DatabaseConnector::SafeCredentials& privUser);
 	static bool init();
 	bool insertIntoTorrents(const string& name, unsigned int numPieces, unsigned long long size);
 	bool insertIntoFiles(const vector<string>& files);
@@ -41,7 +41,7 @@ protected:
 	static const string schema;
 
 	static DatabaseConnector::Address addr;
-	static DatabaseConnector::Credentials cred;
+	static DatabaseConnector::SafeCredentials cred;
 
 	static vector<DatabaseConnector::Table> createTableDefs();
 	static DatabaseConnector::Table createTorrentTableDef();

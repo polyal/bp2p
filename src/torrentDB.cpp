@@ -9,7 +9,7 @@ const string TorrentDB::user = "bpuser";
 const string TorrentDB::pwd = "bppwd";
 
 DatabaseConnector::Address TorrentDB::addr{ip, port};
-DatabaseConnector::Credentials TorrentDB::cred{user, pwd};
+DatabaseConnector::SafeCredentials TorrentDB::cred{user, pwd.c_str()};
 
 const string TorrentDB::torrentTableName = "torrents";
 const string TorrentDB::filesTableName = "files";
@@ -20,7 +20,7 @@ TorrentDB::TorrentDB() : DatabaseConnector(addr, cred, schema)
 	this->setSchema();
 }
 
-bool TorrentDB::firstTimeInit(const DatabaseConnector::Credentials& privUser)
+bool TorrentDB::firstTimeInit(const DatabaseConnector::SafeCredentials& privUser)
 {
 	vector<DatabaseConnector::Table> tables = createTableDefs();
 	try{
