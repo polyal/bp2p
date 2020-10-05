@@ -10,9 +10,10 @@ const string DatabaseConnector::grantAllStatment = "grant all on ";
 const string DatabaseConnector::createSchemaStatment = "create schema ";
 const string DatabaseConnector::createTableStatment = "create table ";
 const string DatabaseConnector::ifNotExists = "if not exists ";
+const string DatabaseConnector::identifiedBy = "' identified by '"; 
 
 DatabaseConnector::Address DatabaseConnector::addr;
-DatabaseConnector::Credentials DatabaseConnector::cred;
+DatabaseConnector::SafeCredentials DatabaseConnector::cred;
 string DatabaseConnector::schema;
 
 recursive_mutex DatabaseConnector::mutex;
@@ -23,7 +24,7 @@ DatabaseConnector::DatabaseConnector()
 	connectIfNeeded();
 }
 
-DatabaseConnector::DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema)
+DatabaseConnector::DatabaseConnector(const Address& addr, const SafeCredentials& cred, const string& schema)
 {
 	this->addr = addr;
 	this->cred = cred;
@@ -36,7 +37,7 @@ DatabaseConnector::~DatabaseConnector()
 	disconnectIfNeeded();	
 }
 
-void DatabaseConnector::firstTimeInit(const Address& addr, const Credentials& privUser, const Credentials& newUser, 
+void DatabaseConnector::firstTimeInit(const Address& addr, const SafeCredentials& privUser, const SafeCredentials& newUser, 
 	const string& schema, const vector<DatabaseConnector::Table>& tables)
 {
 	DatabaseConnector::addr = addr;
@@ -53,7 +54,7 @@ void DatabaseConnector::firstTimeInit(const Address& addr, const Credentials& pr
 	disconnect();
 }
 
-void DatabaseConnector::init(const Address& addr, const Credentials& cred, const string& schema,
+void DatabaseConnector::init(const Address& addr, const SafeCredentials& cred, const string& schema,
 	const vector<DatabaseConnector::Table>& tables)
 {
 	DatabaseConnector::addr = addr;
@@ -88,7 +89,7 @@ void DatabaseConnector::connect()
 	string url = DatabaseConnector::tcp + DatabaseConnector::addr.ip + ":" + DatabaseConnector::addr.port;
 	try{
 		unique_lock<recursive_mutex> lock{mutex};
-		DatabaseConnector::con = driver->connect(url, DatabaseConnector::cred.user, DatabaseConnector::cred.pwd);
+		DatabaseConnector::con = driver->connect(url, DatabaseConnector::cred.getUser(), DatabaseConnector::cred.getPwd());
 	}
 	catch (sql::SQLException& e){
 		cout << "# ERR: SQLException in " << __FILE__;
@@ -266,6 +267,24 @@ bool DatabaseConnector::execute(sql::Statement* stmt, const string& query)
 	return res;	
 }
 
+bool DatabaseConnector::execute(sql::Statement* stmt, const char* const query)
+{
+	bool res = false;
+	try{
+		unique_lock<recursive_mutex> lock{mutex};
+		res = stmt->execute(query);
+	}
+	catch(sql::SQLException& e){
+		cout << "# ERR: SQLException in " << __FILE__;
+	  	cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;
+	  	cout << "# ERR: " << e.what();
+	  	cout << " (MySQL error code: " << e.getErrorCode();
+	  	cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+		throw;
+	}
+	return res;	
+}
+
 bool DatabaseConnector::execute(sql::PreparedStatement* stmt)
 {
 	bool res = false;
@@ -316,19 +335,60 @@ bool DatabaseConnector::createStatementAndExecute(const string& query)
 	return res;
 }
 
-bool DatabaseConnector::createUser(bool checkExists, const Credentials& user)
+bool DatabaseConnector::createStatementAndExecute(const char* const query)
 {
 	bool res = false;
-	string query = DatabaseConnector::createUserStatment;
-	if (checkExists)
-		query += DatabaseConnector::ifNotExists;
-	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "'";
+	sql::Statement* stmt = nullptr;
 	try{
-		res = createStatementAndExecute(query);
+		unique_lock<recursive_mutex> lock{mutex};
+		stmt = createStatement();
+		res = execute(stmt, query);
 	}
 	catch(...){
 		throw;
 	}
+	if (stmt) delete stmt;
+	return res;
+}
+
+bool DatabaseConnector::createUser(bool checkExists, const SafeCredentials& user)
+{
+	bool res = false;
+	unsigned int querySize = 1000;
+	unsigned int cursor = 0;
+	char* query = new char[querySize];
+	int ret = mlock(query, querySize);
+	if (ret == -1)
+		cout << "mlock error: " << errno << endl;
+	else{
+		memset(query, 0x00, querySize);
+		memcpy(&query[cursor], DatabaseConnector::createUserStatment.c_str(), DatabaseConnector::createUserStatment.length());
+		cursor += DatabaseConnector::createUserStatment.length();
+		if (checkExists){
+			memcpy(&query[cursor], DatabaseConnector::ifNotExists.c_str(), DatabaseConnector::ifNotExists.length());
+			cursor += DatabaseConnector::ifNotExists.length();
+		}
+		memcpy(&query[cursor], "'", strlen("'"));
+		cursor += strlen("'");
+		memcpy(&query[cursor], user.getUser().c_str(), user.getUser().length());
+		cursor += user.getUser().length();
+		memcpy(&query[cursor], "'@'", strlen("'@'"));
+		cursor += strlen("'@'");
+		memcpy(&query[cursor], DatabaseConnector::addr.ip.c_str(), DatabaseConnector::addr.ip.length());
+		cursor += DatabaseConnector::addr.ip.length();
+		memcpy(&query[cursor], DatabaseConnector::identifiedBy.c_str(), DatabaseConnector::identifiedBy.length());
+		cursor += DatabaseConnector::identifiedBy.length();
+		memcpy(&query[cursor], user.getPwd(), user.getPwdLen());
+		cursor += user.getPwdLen();
+		memcpy(&query[cursor], "'", strlen("'"));
+		try{
+			res = createStatementAndExecute(query);
+		}
+		catch(...){
+			throw;
+		}
+	}
+	delete[] query;
 	return res;
 } 
 
@@ -399,18 +459,41 @@ bool DatabaseConnector::createTable(const DatabaseConnector::Table& table, bool 
 	return res;
 }
 
-bool DatabaseConnector::grantAllUser(const Credentials& user)
+bool DatabaseConnector::grantAllUser(const SafeCredentials& user)
 {
 	bool res = false;
-	string query = DatabaseConnector::grantAllStatment;
-	query += DatabaseConnector::schema + ".* to ";  
-	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "';";
-	cout << "QUERY: " << query << endl; 
-	try{
-		res = createStatementAndExecute(query);
+	unsigned int querySize = 1000;
+	unsigned int cursor = 0;
+	char* query = new char[querySize];
+	int ret = mlock(query, querySize);
+	if (ret == -1)
+		cout << "mlock error: " << errno << endl;
+	else{
+		memset(query, 0x00, querySize);
+		memcpy(&query[cursor], DatabaseConnector::grantAllStatment.c_str(), DatabaseConnector::grantAllStatment.length());
+		cursor += DatabaseConnector::grantAllStatment.length();
+		memcpy(&query[cursor], DatabaseConnector::schema.c_str(), DatabaseConnector::schema.length());
+		cursor += DatabaseConnector::schema.length();
+		memcpy(&query[cursor], ".* to '", strlen(".* to '"));
+		cursor += strlen(".* to '");
+		memcpy(&query[cursor], user.getUser().c_str(), user.getUser().length());
+		cursor += user.getUser().length();
+		memcpy(&query[cursor], "'@'", strlen("'@'"));
+		cursor += strlen("'@'");
+		memcpy(&query[cursor], DatabaseConnector::addr.ip.c_str(), DatabaseConnector::addr.ip.length());
+		cursor += DatabaseConnector::addr.ip.length();
+		memcpy(&query[cursor], DatabaseConnector::identifiedBy.c_str(), DatabaseConnector::identifiedBy.length());
+		cursor += DatabaseConnector::identifiedBy.length();
+		memcpy(&query[cursor], user.getPwd(), user.getPwdLen());
+		cursor += user.getPwdLen();
+		memcpy(&query[cursor], "'", strlen("'"));
+		try{
+			res = createStatementAndExecute(query);
+		}
+		catch(...){
+			throw;
+		}
 	}
-	catch(...){
-		throw;
-	}
+	delete[] query;
 	return res;
 }

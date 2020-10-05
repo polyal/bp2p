@@ -27,33 +27,95 @@ protected:
 	struct Table;
 
 public:
-	struct Credentials
+	struct SafeCredentials
 	{
-		Credentials()
+		static const unsigned int userSize = 33;
+		static const unsigned int pwdSize = 33;
+
+		SafeCredentials()
 		{
+			initPwd();
 		}
 		
-		Credentials(string user, string pwd)
-		: user{user}, pwd{pwd} {}
+		SafeCredentials(const string& user, const char* const pwd)
+		: user{user}
+		{
+			this->user = user;
+			initPwd();
+			size_t len = strlen(pwd);
+			len > pwdSize ? this->len = pwdSize : this->len = len;
+			memcpy(this->pwd, pwd, this->len);
+		}
+
+		~SafeCredentials()
+		{
+			int ret = munlock(this->pwd, pwdSize);
+			if (ret == -1)
+				cout << "db munlock error: " << errno << endl;
+			delete[] this->pwd;
+		}
+
+		bool isValid()
+		{
+			if (pwd == NULL)
+				return false;
+			return true;
+		}
+
+		SafeCredentials& operator=(const SafeCredentials& cred)
+		{
+			this->user = cred.getUser();
+			size_t len = strlen(cred.getPwd());
+			memcpy(this->pwd, cred.getPwd(), len > pwdSize ? pwdSize : len);
+		    return *this;
+		}
+
+		string getUser() const
+		{
+			return this->user;
+		}
+
+		char* getPwd() const
+		{
+			return this->pwd;
+		}
+		size_t getPwdLen() const
+		{
+			return this->len;
+		}
+		
+	private:
 		string user;
-		string pwd;
+		char* pwd = nullptr;
+		size_t len = 0;
+
+		void initPwd()
+		{
+			this->pwd = new char[pwdSize];
+			int ret = mlock(this->pwd, pwdSize);
+			if (ret == -1)
+				cout << "db mlock error: " << errno << endl;
+			memset(this->pwd, 0x00, pwdSize);
+		}
 	};
 
 	DatabaseConnector();
-	DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema);
+	DatabaseConnector(const Address& addr, const SafeCredentials& cred, const string& schema);
 	~DatabaseConnector();
 
-	static void firstTimeInit(const Address& addr, const Credentials& privUser, const Credentials& newUser, 
+	static void firstTimeInit(const Address& addr, const SafeCredentials& privUser, const SafeCredentials& newUser, 
 		const string& schema, const vector<DatabaseConnector::Table>& tables);
-	static void init(const Address& addr, const Credentials& cred, const string& schema, 
+	static void init(const Address& addr, const SafeCredentials& cred, const string& schema, 
 		const vector<DatabaseConnector::Table>& tables);
 	static sql::ResultSet* createStatementAndExecuteQuery(const string& query);
 	static bool createStatementAndExecute(const string& query);
+	static bool createStatementAndExecute(const char* const query);
 	static sql::Statement* createStatement();
 	static sql::ResultSet* executeQuery(sql::Statement* stmt, const string& query);
 	static sql::ResultSet* executeQuery(sql::PreparedStatement* stmt);
 	static sql::ResultSet* executeQuery(sql::PreparedStatement* stmt, const string& query);
 	static bool execute(sql::Statement* stmt, const string& query);
+	static bool execute(sql::Statement* stmt, const char* const query);
 	static bool execute(sql::PreparedStatement* stmt);
 
 protected:
@@ -67,45 +129,6 @@ protected:
 		: ip{ip}, port{port} {}
 		string ip;
 		string port;
-	};
-
-	struct SafeCredentials
-	{
-		SafeCredentials()
-		{
-			pwd = (char*)malloc(sizeof(char)* pwdSize);
-			int ret = mlock(pwd, pwdSize);
-			if (ret == -1)
-				cout << "db mlock error: " << errno << endl;
-			memset(pwd, 0x00, pwdSize);
-		}
-		
-		SafeCredentials(const string& user, const char* const pwd)
-		: user{user}
-		{
-			this->user = user;
-			size_t len = strlen(pwd);
-			memcpy(this->pwd, pwd, len > pwdSize ? pwdSize : len);
-		}
-
-		bool isValid()
-		{
-			if (pwd == NULL)
-				return false;
-			return true;
-		}
-
-		~SafeCredentials()
-		{
-			int ret = munlock(pwd, pwdSize);
-			if (ret == -1)
-				cout << "db munlock error: " << errno << endl;
-			if (pwd) free(pwd);
-		}
-	private:
-		string user;
-		char* pwd = NULL;
-		static const unsigned int pwdSize = 33;
 	};
 
 	struct Column
@@ -130,24 +153,25 @@ protected:
 	static const string createSchemaStatment;
 	static const string createTableStatment;
 	static const string ifNotExists;
+	static const string identifiedBy;
 
 	static void connect();
 	static void connectIfNeeded();
 	static void reconnectIfNeeded();
 	static void disconnect();
 	static void disconnectIfNeeded();
-	static bool createUser(bool checkExists, const Credentials& user);
+	static bool createUser(bool checkExists, const SafeCredentials& user);
 	static bool createSchema(bool checkExists);
 	static bool createSchema(const string& schema, bool checkExists);
 	static void setSchema();
 	static void setSchema(const string& schema);
 	static bool createTables();
 	static bool createTable(const DatabaseConnector::Table& table, bool checkExists);
-	static bool grantAllUser(const Credentials& user);
+	static bool grantAllUser(const SafeCredentials& user);
 
 private:
 	static Address addr;
-	static Credentials cred;
+	static SafeCredentials cred;
 	static string schema;
 	static vector<Table> tables;
 
