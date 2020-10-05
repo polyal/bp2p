@@ -3,6 +3,8 @@
 #include <vector>
 #include <tuple>
 #include <mutex>
+#include <sys/mman.h>
+#include <string.h>
 /*
   Include directly the different
   headers from cppconn/ and mysql_driver.h + mysql_util.h
@@ -21,11 +23,23 @@ class DatabaseConnector
 {
 protected:
 	struct Address;
-	struct Credentials;
+	//struct Credentials;
 	struct Column;
 	struct Table;
 
 public:
+	struct Credentials
+	{
+		Credentials()
+		{
+		}
+		
+		Credentials(string user, string pwd)
+		: user{user}, pwd{pwd} {}
+		string user;
+		string pwd;
+	};
+
 	DatabaseConnector();
 	DatabaseConnector(const Address& addr, const Credentials& cred, const string& schema);
 	~DatabaseConnector();
@@ -56,16 +70,43 @@ protected:
 		string port;
 	};
 
-	struct Credentials
+	struct SafeCredentials
 	{
-		Credentials()
+		SafeCredentials()
 		{
+			pwd = (char*)malloc(sizeof(char)* pwdSize);
+			int ret = mlock(pwd, pwdSize);
+			if (ret == -1)
+				cout << "db mlock error: " << errno << endl;
+			memset(pwd, 0x00, pwdSize);
 		}
 		
-		Credentials(string user, string pwd)
-		: user{user}, pwd{pwd} {}
+		SafeCredentials(const string& user, const char* const pwd)
+		: user{user}
+		{
+			this->user = user;
+			size_t len = strlen(pwd);
+			memcpy(this->pwd, pwd, len > pwdSize ? pwdSize : len);
+		}
+
+		bool isValid()
+		{
+			if (pwd == NULL)
+				return false;
+			return true;
+		}
+
+		~SafeCredentials()
+		{
+			int ret = munlock(pwd, pwdSize);
+			if (ret == -1)
+				cout << "db munlock error: " << errno << endl;
+			if (pwd) free(pwd);
+		}
+	private:
 		string user;
-		string pwd;
+		char* pwd = NULL;
+		static const unsigned int pwdSize = 33;
 	};
 
 	struct Column

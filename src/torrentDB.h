@@ -18,7 +18,7 @@ protected:
 public:
 	TorrentDB();
 
-	static bool firstTimeInit(const DatabaseConnector::Credentials privUser);
+	static bool firstTimeInit(const DatabaseConnector::Credentials& privUser);
 	static bool init();
 	bool insertIntoTorrents(const string& name, unsigned int numPieces, unsigned long long size);
 	bool insertIntoFiles(const vector<string>& files);

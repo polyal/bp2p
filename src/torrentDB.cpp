@@ -3,7 +3,7 @@
 #define DEBUG 0
 
 const string TorrentDB::schema = "bp2p";
-const string TorrentDB::ip = "127.0.0.1";
+const string TorrentDB::ip = "localhost";
 const string TorrentDB::port = "3306";
 const string TorrentDB::user = "bpuser";
 const string TorrentDB::pwd = "bppwd";
@@ -20,7 +20,7 @@ TorrentDB::TorrentDB() : DatabaseConnector(addr, cred, schema)
 	this->setSchema();
 }
 
-bool TorrentDB::firstTimeInit(const DatabaseConnector::Credentials privUser)
+bool TorrentDB::firstTimeInit(const DatabaseConnector::Credentials& privUser)
 {
 	vector<DatabaseConnector::Table> tables = createTableDefs();
 	try{

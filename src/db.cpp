@@ -403,8 +403,9 @@ bool DatabaseConnector::grantAllUser(const Credentials& user)
 {
 	bool res = false;
 	string query = DatabaseConnector::grantAllStatment;
-	query += "'" + DatabaseConnector::schema + "'.* to ";  
-	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "'";
+	query += DatabaseConnector::schema + ".* to ";  
+	query += "'" + user.user + "'@'" + DatabaseConnector::addr.ip + "' identified by '" + user.pwd + "';";
+	cout << "QUERY: " << query << endl; 
 	try{
 		res = createStatementAndExecute(query);
 	}
