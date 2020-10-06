@@ -1,4 +1,3 @@
-#include <sys/mman.h>
 #include <iostream>
 #include <fstream>
 #include <utility>
@@ -9,6 +8,7 @@
 #include "torrentAvailReq.h"
 #include "chunkReq.h"
 #include "rrfactory.h"
+#include "pwdGetter.h"
 #include "node.h"
 
 using namespace std;
@@ -862,29 +862,18 @@ void Node::getTorrentList(vector<Torrent>& torrentList)
 void Node::firstTimeInit()
 {
 	string username;
-	char* pwd = new char[DatabaseConnector::SafeCredentials::pwdSize];  // max MySQL pwd len is 32
-	//string strpwd;
-	if (pwd == NULL){
-		cout << "Memory Error" << endl;
+	char* pwd = nullptr;
+	cout << "First time initialization..." << endl;
+	cout << "A new user, database, and tables will be created using MySQL on localhost..." << endl;
+	cout << "Enter a MySQL username: " << endl;
+	getline(cin, username);
+	cout << "Enter username password: " << endl;
+	if (PwdGetter::getPwd(&pwd, DatabaseConnector::SafeCredentials::pwdSize)){
+		DatabaseConnector::SafeCredentials user{username, pwd};
+		firstTimeInitDB(user);
+		PwdGetter::freePwd(&pwd, DatabaseConnector::SafeCredentials::pwdSize);
 	}
-	else{
-		int ret = mlock(pwd, DatabaseConnector::SafeCredentials::pwdSize);
-		if (ret == -1)
-			cout << "mlock error: " << errno << endl;
-		else{
-			memset(pwd, 0x00, DatabaseConnector::SafeCredentials::pwdSize);
-			cout << "First time initialization..." << endl;
-			cout << "A new user, database, and tables will be created using MySQL on localhost..." << endl;
-			cout << "Enter a MySQL username: " << endl;
-			getline(cin, username);
-			cout << "Enter username password: " << endl;
-			fgets(pwd, DatabaseConnector::SafeCredentials::pwdSize, stdin);
-			pwd[strlen(pwd)-1] = '\0'; // remove \n
-			DatabaseConnector::SafeCredentials user{username, pwd};
-			firstTimeInitDB(user);
-		}
-	}
-	delete[] pwd;
+	cout << "DB init complete!" << endl;
 }
 
 void Node::firstTimeInitDB(const DatabaseConnector::SafeCredentials& user)
