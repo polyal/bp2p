@@ -385,9 +385,12 @@ bool DatabaseConnector::createUser(bool checkExists, const SafeCredentials& user
 			res = createStatementAndExecute(query);
 		}
 		catch(...){
+			munlock(query, querySize);
+			delete[] query;
 			throw;
 		}
 	}
+	munlock(query, querySize);
 	delete[] query;
 	return res;
 } 
@@ -491,9 +494,12 @@ bool DatabaseConnector::grantAllUser(const SafeCredentials& user)
 			res = createStatementAndExecute(query);
 		}
 		catch(...){
+			munlock(query, querySize);
+			delete[] query;
 			throw;
 		}
 	}
+	munlock(query, querySize);
 	delete[] query;
 	return res;
 }
