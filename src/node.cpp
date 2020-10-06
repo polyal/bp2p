@@ -890,9 +890,16 @@ void Node::init()
 {
 	cout << "hello!" << endl;
 	cout << "initializing database connection..." << endl;
-	initDB();
-	cout << "reading existing torrents..." << endl;
-	populateLocalTorrents();
+	try{
+		initDB();
+		cout << "reading existing torrents..." << endl;
+		populateLocalTorrents();
+	}
+	catch(...){
+		cout << "Init Error: db is likely not initialized... " << endl;
+		cout << "Run '--init' initialization commandline argument command..." << endl;
+		return;
+	}
 	cout << "scanning for devices..." << endl;
 	findLocalDevs();
 	scanForDevs();
