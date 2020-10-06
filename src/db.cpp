@@ -63,9 +63,6 @@ void DatabaseConnector::init(const Address& addr, const SafeCredentials& cred, c
 	DatabaseConnector::tables = tables;
 	initDriver();
 	connect();
-	createSchema(true);
-	setSchema();
-	createTables();
 	disconnect();
 }
 
