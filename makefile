@@ -15,7 +15,7 @@ default: utils torrent device rrpacket
 	out/rrfactory.o out/rrpacket.o out/torrentFileReq.o out/torrentListReq.o out/chunkReq.o out/torrentAvailReq.o \
 	out/torrent.o out/package.o out/compress.o out/archiver.o \
 	out/db.o out/torrentDB.o \
-	out/utils.o \
+	out/utils.o out/pwdGetter.o \
 	$(libs)
 
 rrpacket:
@@ -45,8 +45,8 @@ package:
 	mv package.o archiver.o compress.o -t out/
 
 utils:
-	$(compile) -c src/utils.cpp;
-	mv utils.o out/utils.o
+	$(compile) -c src/utils.cpp src/pwdGetter.cpp
+	mv utils.o pwdGetter.o -t out/
 
 
 
