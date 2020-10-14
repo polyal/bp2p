@@ -29,7 +29,7 @@ public:
 	static void printcli();
 
 	void firstTimeInit();
-	void init();
+	bool init();
 
 	void activateWorkerThreads();
 	void pauseWorkerThreads();
