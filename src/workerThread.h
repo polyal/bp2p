@@ -51,7 +51,7 @@ public:
 			event->cv.wait(lock, 
 				[this, p]
 				{
-					return *this->status != PAUSE || *this->status == KILL || !p();
+					return (*this->status != PAUSE && p()) || *this->status == KILL ;
 				});
 
 			w();
@@ -79,5 +79,5 @@ protected:
 	shared_ptr<SyncEvent> event = nullptr;
 
 	void setStatus(Status status);
-	inline static bool defaultPredicate(){return false;};
+	inline static bool defaultPredicate(){return true;};
 };
