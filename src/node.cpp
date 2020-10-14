@@ -350,7 +350,7 @@ unique_ptr<WorkerThread> Node::createJobManagerThread()
 		},
 		[this]
 		{
-			return this->jobs.empty();
+			return !this->jobs.empty();
 		});
 }
 
