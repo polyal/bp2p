@@ -1,3 +1,0 @@
-/home/pwner/Projects/bp2p/build/CMakeFiles/a.out.dir
-/home/pwner/Projects/bp2p/build/CMakeFiles/edit_cache.dir
-/home/pwner/Projects/bp2p/build/CMakeFiles/rebuild_cache.dir

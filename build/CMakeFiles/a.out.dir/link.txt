@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/a.out.dir/test.cpp.o -o a.out 
