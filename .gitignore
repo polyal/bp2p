@@ -1,5 +1,4 @@
-out/*
-*test/*
-*torrents/*
-*torrentData/*
+build/*
 
+CMakeFiles/*
+CMakeCache.txt
